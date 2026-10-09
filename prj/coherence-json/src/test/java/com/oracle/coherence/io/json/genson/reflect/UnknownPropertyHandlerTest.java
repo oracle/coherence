@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -34,6 +34,8 @@ import static org.junit.Assert.assertTrue;
 */
 public class UnknownPropertyHandlerTest {
     private static final Genson GENSON = new GensonBuilder()
+                    .addAlias(PersonV1.class.getName(), PersonV1.class)
+                    .addAlias(PersonV2.class.getName(), PersonV2.class)
                     .withBundle(new JSR353Bundle())
                     .useClassMetadata(true)
                     .useClassMetadataWithStaticType(false)

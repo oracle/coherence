@@ -139,7 +139,7 @@ class MapListenerProxyTest
 
         s_filter              = new EqualsFilter<>("foo", "bar");
         s_filterBytes         = BinaryHelper.toByteString(s_filter, SERIALIZER);
-        s_inKeySetFilter      = new InKeySetFilter<>(s_filter, Collections.singleton(s_bytes1));
+        s_inKeySetFilter      = new InKeySetFilter<>(s_filter, Collections.singleton(ONE));
         s_inKeySetFilterBytes = BinaryHelper.toByteString(s_inKeySetFilter, SERIALIZER);
 
         Optional<TestNamedCacheServiceProvider> optional = TestNamedCacheServiceProvider.getProvider();

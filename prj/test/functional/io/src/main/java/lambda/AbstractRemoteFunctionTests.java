@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -268,7 +268,11 @@ abstract public class AbstractRemoteFunctionTests
             sSep = File.separator;
             }
         String sPattern = String.format(".*%sio%starget%s.*", sSep, sSep, sSep);
-        return ClassPath.automatic().excluding(sPattern).toString();
+        File fileMetadata = new File(System.getProperty("test.lambda.security.dir"));
+        assertTrue("server security metadata must be packaged without test classes",
+                new File(fileMetadata, "META-INF/coherence/security-config.xml").isFile());
+        return ClassPath.automatic().excluding(sPattern).toString()
+                + File.pathSeparator + fileMetadata.getAbsolutePath();
         }
 
     // ----- data members ---------------------------------------------------

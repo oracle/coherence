@@ -18,7 +18,8 @@
     </authorized-hosts>
   </cluster-config>
   <security-config>
-    <enabled>true</enabled>
+    <!-- this fixture tests token decoding without the legacy permission exchange -->
+    <enabled>false</enabled>
     <login-module-name>Coherence</login-module-name>
     <access-controller>
       <class-name>com.tangosol.net.security.DefaultController</class-name>

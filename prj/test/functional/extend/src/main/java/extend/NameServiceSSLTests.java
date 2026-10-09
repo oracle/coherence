@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,8 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.tangosol.net.Member;
+
+import java.util.Properties;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -49,8 +51,10 @@ public class NameServiceSSLTests
     @BeforeClass
     public static void startup()
         {
+        Properties props = new Properties();
+        props.setProperty("coherence.invocation.enabled", "true");
         CoherenceClusterMember memberProxy =
-                startCacheServer("NameServiceSSLTests", "extend", "server-cache-config-nameservice-ssl.xml");
+                startCacheServer("NameServiceSSLTests", "extend", "server-cache-config-nameservice-ssl.xml", props);
         Eventually.assertThat(invoking(memberProxy).isServiceRunning("ExtendTcpProxySSLService"), is(true));
 
         Member member = findCacheServer("NameServiceSSLTests");

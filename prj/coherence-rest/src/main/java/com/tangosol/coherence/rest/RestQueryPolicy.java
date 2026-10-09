@@ -11,6 +11,8 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.dslquery.FilterBuilder;
 import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
+import com.tangosol.coherence.dsltools.base.BaseTokenScannerException;
+import com.tangosol.coherence.dsltools.precedence.OPException;
 import com.tangosol.coherence.dsltools.precedence.OPParser;
 import com.tangosol.coherence.dsltools.termtrees.AtomicTerm;
 import com.tangosol.coherence.dsltools.termtrees.NodeTerm;
@@ -288,12 +290,18 @@ public final class RestQueryPolicy
      */
     private static Term parseAndValidateDirectQuery(String sQuery, CoherenceQueryLanguage language)
         {
-        String   sSafeQuery = stripAndValidateTypeHints(sQuery);
-        OPParser parser     = new OPParser(sSafeQuery, language.filtersTokenTable(), language.getOperators());
-        Term     term       = parser.parse();
-
-        validateTerm(term);
-        return term;
+        String sSafeQuery = stripAndValidateTypeHints(sQuery);
+        try
+            {
+            OPParser parser = new OPParser(sSafeQuery, language.filtersTokenTable(), language.getOperators());
+            Term     term   = parser.parse();
+            validateTerm(term);
+            return term;
+            }
+        catch (BaseTokenScannerException | OPException e)
+            {
+            throw new IllegalArgumentException("Invalid direct query syntax", e);
+            }
         }
 
     /**

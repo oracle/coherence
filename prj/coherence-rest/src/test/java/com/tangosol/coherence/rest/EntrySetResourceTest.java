@@ -106,6 +106,9 @@ public class EntrySetResourceTest
     public void testPartialGet()
         {
         EntrySetResource resource = new EntrySetResource(m_cache, Collections.singleton(1), Person.class);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addProjectionAlias("dateOfBirth", "dateOfBirth")
+                .build());
         Response         response = resource.getValues("dateOfBirth");
 
         assertEquals(200 /* OK */, response.getStatus());

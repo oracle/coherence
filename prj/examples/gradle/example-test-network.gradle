@@ -10,8 +10,10 @@ import org.gradle.api.tasks.testing.Test
 import java.util.UUID
 
 def testRunId = UUID.randomUUID().toString()
+// keep the full random suffix while respecting Coherence's 66-character cluster-name limit
+def testClusterName = "example-${project.name}".take(29) + "-${testRunId}"
 def testNetworkDefaults = [
-        'coherence.cluster'       : "example-${project.name}-${testRunId}",
+        'coherence.cluster'       : testClusterName,
         'coherence.ttl'           : '0',
         'coherence.wka'           : '127.0.0.1',
         'coherence.localhost'     : '127.0.0.1',

@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.io.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import com.oracle.coherence.io.json.genson.GensonBuilder;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.internal.util.invoke.Remotable;
@@ -59,9 +61,48 @@ public abstract class AbstractSerializerTest
         {
         m_serializer = new JsonSerializer(null, builder ->
                 {
-                builder.setEnforceTypeAliases(false);
+                configureTestAliases(builder).setEnforceTypeAliases(false);
                 return builder.useIndentation(true);
                 }, false);
+        }
+
+    /**
+     * Register the exact metadata types used by the positive round-trip fixtures.
+     *
+     * @param builder  the test serializer builder
+     *
+     * @return the configured builder
+     */
+    protected static GensonBuilder configureTestAliases(GensonBuilder builder)
+        {
+        for (Class<?> type : new Class<?>[]
+            {
+            JsonSerializerTest.Holder.class,
+            JsonSerializerTest.ContainsDuration.class,
+            JsonSerializerTest.BigIntegerArrayHolder.class,
+            JsonContainerSerializerTest.Result.class,
+            JsonContainerSerializerTest.ResultHolder.class,
+            JsonContainerSerializerTest.CollectionResultHolder.class,
+            JsonContainerSerializerTest.ObjectArrayResultHolder.class,
+            common.data.Person.class,
+            common.data.JavaNumberType.class,
+            common.data.PutAll.class,
+            java.util.HashMap.class,
+            java.util.LinkedHashMap.class,
+            java.util.Optional.class,
+            java.time.Duration.class,
+            java.math.MathContext.class,
+            java.math.RoundingMode.class,
+            com.tangosol.util.Binary.class,
+            com.tangosol.util.aggregator.BigDecimalAverage.class,
+            com.tangosol.util.aggregator.BigDecimalMax.class,
+            com.tangosol.util.aggregator.BigDecimalMin.class,
+            com.tangosol.util.aggregator.BigDecimalSum.class
+            })
+            {
+            builder.addAlias(type.getName(), type);
+            }
+        return builder;
         }
 
     // ----- helper methods -------------------------------------------------

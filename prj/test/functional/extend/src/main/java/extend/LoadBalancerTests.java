@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -227,6 +227,7 @@ public class LoadBalancerTests
         try
             {
             Properties props = new Properties();
+            props.setProperty("coherence.invocation.enabled", "true");
 
             // start the proxy server
             setPortBefore1(props);
@@ -276,6 +277,7 @@ public class LoadBalancerTests
         try
             {
             Properties props = new Properties();
+            props.setProperty("coherence.invocation.enabled", "true");
 
             // start the first proxy server
             setPortBefore1(props);

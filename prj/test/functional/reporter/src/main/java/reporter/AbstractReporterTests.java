@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,7 +15,10 @@ import com.tangosol.net.management.Registry;
 import com.tangosol.util.Resources;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.SystemPropertyResource;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -50,6 +53,23 @@ public class AbstractReporterTests
         System.setProperty("coherence.management", "local-only");
 
         AbstractFunctionalTest._startup();
+        }
+
+    @Before
+    public void configureOutputDirectory()
+            throws IOException
+        {
+        m_outputDirectory = new SystemPropertyResource("coherence.reporter.output.directory",
+                m_temporaryFolder.getRoot().getCanonicalPath());
+        }
+
+    @After
+    public void restoreOutputDirectory()
+        {
+        if (m_outputDirectory != null)
+            {
+            m_outputDirectory.close();
+            }
         }
 
     // ----- helper methods -------------------------------------------------
@@ -179,4 +199,6 @@ public class AbstractReporterTests
      */
     @Rule
     public TemporaryFolder m_temporaryFolder = new TemporaryFolder();
+
+    private SystemPropertyResource m_outputDirectory;
     }

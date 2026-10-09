@@ -111,11 +111,25 @@ public class TopicsSubscriberInstallGateTest
         }
 
     @Test
-    public void rejectsDynamicFilterInstall_prod()
+    public void allowsDynamicSubscriberMetadataInHardenedModeByDefault()
+        {
+        setMode("prod", null);
+
+        RemoteInstallGate.enforceTopicSubscriberInstall(dynamicFilter(), dynamicExtractor(),
+                SerializationRole.TOPICS, null);
+
+        assertCounterAbsent(OperationReason.EVALUATE_FILTER, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertCounterAbsent(OperationReason.EXTRACT, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_MODE_GATE);
+        }
+
+    @Test
+    public void rejectsDynamicFilterInstallWithExplicitDeny()
         {
         Filter<String> filter = dynamicFilter();
         assertTrue(filter.getClass().isSynthetic());
-        setMode("prod", null);
+        setMode("prod", "deny");
 
         SecurityException e = assertThrows(SecurityException.class,
                 () -> RemoteInstallGate.enforceTopicSubscriberInstall(filter, null, SerializationRole.TOPICS, null));
@@ -217,11 +231,11 @@ public class TopicsSubscriberInstallGateTest
         }
 
     @Test
-    public void rejectsDynamicExtractorInstall_prod()
+    public void rejectsDynamicExtractorInstallWithExplicitDeny()
         {
         ValueExtractor<String, String> extractor = dynamicExtractor();
         assertTrue(extractor.getClass().isSynthetic());
-        setMode("prod", null);
+        setMode("prod", "deny");
 
         SecurityException e = assertThrows(SecurityException.class,
                 () -> RemoteInstallGate.enforceTopicSubscriberInstall(null, extractor, SerializationRole.TOPICS, null));

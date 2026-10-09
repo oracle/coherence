@@ -9,6 +9,8 @@ package com.oracle.coherence.concurrent.executor;
 import com.oracle.coherence.concurrent.executor.function.Predicates;
 import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.io.pof.ConfigurablePofContext;
 
 import com.tangosol.net.CacheService;
@@ -17,6 +19,8 @@ import com.tangosol.net.ServiceInfo;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -46,6 +50,18 @@ import static org.junit.jupiter.api.Assertions.assertSame;
  */
 public class ConcurrentSubjectCaptureTest
     {
+    @BeforeEach
+    public void setUp()
+        {
+        m_scope = CoherenceModeHelper.securityHardened();
+        }
+
+    @AfterEach
+    public void tearDown()
+        {
+        m_scope.close();
+        }
+
     @Test
     public void shouldCaptureLocalSubject()
         {
@@ -80,14 +96,17 @@ public class ConcurrentSubjectCaptureTest
         }
 
     @Test
-    public void shouldRoundTripExternalizableLiteSubject()
+    public void shouldRoundTripExternalizableLiteSubjectInCompatibilityMode()
         {
-        Subject subject = subject("roundtrip");
-        ClusteredTaskManager<?, ?, ?> manager = subjectOnlyManager(subject);
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            Subject subject = subject("roundtrip");
+            ClusteredTaskManager<?, ?, ?> manager = subjectOnlyManager(subject);
 
-        ClusteredTaskManager<?, ?, ?> result = ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(manager));
+            ClusteredTaskManager<?, ?, ?> result = ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(manager));
 
-        assertEquals(principal(subject).getName(), principal(result.getSubject()).getName());
+            assertEquals(principal(subject).getName(), principal(result.getSubject()).getName());
+            }
         }
 
     @Test
@@ -211,4 +230,6 @@ public class ConcurrentSubjectCaptureTest
 
         private final String m_sName;
         }
+
+    private CoherenceModeHelper.ModeScope m_scope;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -63,6 +63,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CertSecurityTests
     {
+    private static final String CLUSTER_NAME = System.getProperty("coherence.cluster", "CertSecurityTests-" + java.util.UUID.randomUUID());
+
     @BeforeAll
     public static void setup() throws Exception
         {
@@ -87,7 +89,7 @@ public class CertSecurityTests
         s_urlPermAll = Resources.findFileOrResource("cert-permissions-all.xml", null);
 
         // Common Bedrock options for all processes
-        s_commonOptions = OptionsByType.of(ClusterName.of("CertSecurityTests"),
+        s_commonOptions = OptionsByType.of(ClusterName.of(CLUSTER_NAME),
                                 LocalHost.only(),
                                 WellKnownAddress.loopback(),
                                 HeapSize.of(64, HeapSize.Units.MB, 128, HeapSize.Units.MB),

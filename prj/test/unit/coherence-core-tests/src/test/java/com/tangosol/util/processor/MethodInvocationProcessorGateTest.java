@@ -80,17 +80,15 @@ public class MethodInvocationProcessorGateTest
         }
 
     @Test
-    public void deniesMipInHardenedModeByDefault()
+    public void allowsMipInHardenedModeByDefault()
         {
         setMode("prod", null);
 
-        SecurityException e = assertThrows(SecurityException.class,
-                () -> new MethodInvocationProcessor<String, String, Integer>("length", false)
-                        .process(new SimpleEntry<>("key", "foo", true)));
+        assertEquals(Integer.valueOf(3), new MethodInvocationProcessor<String, String, Integer>("length", false)
+                .process(new SimpleEntry<>("key", "foo", true)));
 
-        assertEquals("method-invocation-denied-by-mode", e.getMessage());
         assertPolicyCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
+        assertModeGateAbsent("prod");
         }
 
     @Test
@@ -188,7 +186,7 @@ public class MethodInvocationProcessorGateTest
     @Test
     public void absentEntrySupplierDoesNotRunBeforeModeGate()
         {
-        setMode("prod", null);
+        setMode("prod", "deny");
         ObservableSupplier<Value> supplier = new ObservableSupplier<>(new Value());
         SimpleEntry<String, Value> entry = new SimpleEntry<>("key", null, false);
 
@@ -206,7 +204,7 @@ public class MethodInvocationProcessorGateTest
     @Test
     public void absentEntryDenyListedSupplierRunsBeforeModeGate()
         {
-        setMode("prod", null);
+        setMode("prod", "deny");
         DeniedSupplier supplier = new DeniedSupplier();
         SimpleEntry<String, Value> entry = new SimpleEntry<>("key", null, false);
 
@@ -264,7 +262,7 @@ public class MethodInvocationProcessorGateTest
     @Test
     public void enforceRunsBeforeModeGate()
         {
-        setMode("prod", null);
+        setMode("prod", "deny");
 
         assertThrows(SecurityException.class,
                 () -> new MethodInvocationProcessor<String, String, Integer>("length", false)
@@ -277,7 +275,7 @@ public class MethodInvocationProcessorGateTest
     @Test
     public void denyListRunsBeforeModeGate()
         {
-        setMode("prod", null);
+        setMode("prod", "deny");
 
         SecurityException e = assertThrows(SecurityException.class,
                 () -> new MethodInvocationProcessor<String, Runtime, Integer>("availableProcessors", false)
@@ -293,7 +291,7 @@ public class MethodInvocationProcessorGateTest
     public void methodDenyListRunsBeforeModeGate()
             throws Exception
         {
-        setMode("prod", null);
+        setMode("prod", "deny");
         Method method = String.class.getDeclaredMethod("length");
 
         SecurityException e = assertThrows(SecurityException.class,

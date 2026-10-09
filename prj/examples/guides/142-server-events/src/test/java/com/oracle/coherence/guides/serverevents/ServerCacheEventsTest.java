@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.oracle.coherence.guides.serverevents.interceptors.ValidationIntercept
 import com.oracle.coherence.guides.serverevents.model.Customer;
 
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.Processors;
 
@@ -63,7 +64,8 @@ public class ServerCacheEventsTest
         assertEquals(customer.getAddress(), "123 JAMES STREET, PERTH");
 
         // update a customers name and ensure that it is updated to uppercase
-        customers.invoke(1, Processors.update(Customer::setName, "timothy"));
+        getMember1().invoke(() -> CacheFactory.getCache("customers")
+                .invoke(1, Processors.update("setName", "timothy")));
         assertEquals(customers.get(1).getName(), "TIMOTHY");
     }
     // #end::test1[]
@@ -156,7 +158,11 @@ public class ServerCacheEventsTest
 
         auditEvents.clear();
         
-        cache.invokeAll(Processors.update(Customer::setCreditLimit, 100_000L));
+        member.invoke(() -> {
+            CacheFactory.getCache("test-customer")
+                    .invokeAll(Processors.update("setCreditLimit", 100_000L));
+            return null;
+        });
 
         dumpAuditEvents("testEntryProcessorInterceptor-1");
         // up to 3 entry processor events and 3 updates
@@ -166,8 +172,13 @@ public class ServerCacheEventsTest
         auditEvents.clear();
 
         // invoke an entry processor across all customers to update credit limit to 100,000
-        cache.invokeAll(Processors.update(Customer::setCreditLimit, 100_000L));
-        cache.invoke(1, Processors.update(Customer::setCreditLimit, 100_000L));
+        member.invoke(() -> {
+            CacheFactory.getCache("test-customer")
+                    .invokeAll(Processors.update("setCreditLimit", 100_000L));
+            return null;
+        });
+        member.invoke(() -> CacheFactory.getCache("test-customer")
+                .invoke(1, Processors.update("setCreditLimit", 100_000L)));
 
         dumpAuditEvents("testEntryProcessorInterceptor-2");
 
@@ -204,7 +215,8 @@ public class ServerCacheEventsTest
 
         // try and update credit limit to GOLD from BRONZE, should fail
         try {
-            customers.invoke(1, Processors.update(Customer::setCustomerType, Customer.GOLD));
+            getMember1().invoke(() -> CacheFactory.getCache("customers")
+                    .invoke(1, Processors.update("setCustomerType", Customer.GOLD)));
             fail("Put succeeded but should have failed");
         }
         catch (Exception e) {

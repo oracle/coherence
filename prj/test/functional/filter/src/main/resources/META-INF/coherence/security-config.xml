@@ -27,5 +27,7 @@
     <class name="filter.TestPerson" source="manual"/>
     <class name="filter.nestinglevel1.nestinglevel2.nestinglevel3.IntegerToStringPersonKeyExtractor" source="manual" executable="true"/>
     <class name="filter.nestinglevel1.nestinglevel2.nestinglevel3.StringToIntegerPersonAddressZipExtractor" source="manual" executable="true"/>
+    <class name="java.lang.StackOverflowError" source="manual"/>
+    <class name="java.lang.VirtualMachineError" source="manual"/>
   </allowed-classes>
 </security-config>

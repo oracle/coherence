@@ -295,6 +295,8 @@ public class ObjectInputFilterTests
         {
         Properties props = new Properties();
         props.putAll(propsCommon);
+        // this case exercises the legacy absence of a built-in filter
+        props.put(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_COMPATIBILITY);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestWithoutObjectInputFilter",
                                                               "io.ObjectInputFilterTests$TestObjectInputStream",

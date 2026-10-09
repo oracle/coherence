@@ -13,6 +13,7 @@ import com.tangosol.internal.util.CoherenceMode;
 import org.junit.After;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -34,53 +35,29 @@ public class RemoteExecutionModeTest
         }
 
     @Test
-    public void defaultSecurityModeAllowsDynamicRemote()
+    public void defaultsToAllowInEveryMode()
         {
-        setMode("prod", null);
-
-        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
+        assertDynamicRemotePolicy(null, true);
         }
 
     @Test
-    public void compatibilitySecurityModeAllowsDynamicRemote()
+    public void explicitAllowInEveryMode()
         {
-        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
-
-        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
+        assertDynamicRemotePolicy("allow", true);
+        assertDynamicRemotePolicy(" AlLoW ", true);
         }
 
     @Test
-    public void hardenedSecurityModeDeniesDynamicRemote()
+    public void explicitDenyInEveryMode()
         {
-        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
-
-        assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
+        assertDynamicRemotePolicy("deny", false);
+        assertDynamicRemotePolicy(" DeNy ", false);
         }
 
     @Test
-    public void explicitAllow()
+    public void invalidValueFallsBackToAllowInEveryMode()
         {
-        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "allow");
-
-        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
-        }
-
-    @Test
-    public void explicitDeny()
-        {
-        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny");
-
-        assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
-        }
-
-    @Test
-    public void invalidValueFallsBackToSecurityModeDefault()
-        {
-        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "maybe");
-        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
-
-        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "maybe");
-        assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
+        assertDynamicRemotePolicy("maybe", true);
         }
 
     @Test
@@ -88,18 +65,27 @@ public class RemoteExecutionModeTest
         {
         setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
 
-        assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
+        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
 
-        restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, "allow");
-        assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
+        restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, "deny");
+        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
 
         RemoteExecutionMode.resetForTesting();
-        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
+        assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
         }
 
-    private static void setMode(String sMode, String sDynamicRemote)
+    private static void assertDynamicRemotePolicy(String sValue, boolean fAllowed)
         {
-        setMode(sMode, null, sDynamicRemote);
+        for (String sMode : new String[] {null, "eval", "dev", "development", "prod", "production"})
+            {
+            for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_COMPATIBILITY,
+                    CoherenceMode.SECURITY_MODE_HARDENED})
+                {
+                setMode(sMode, sSecurityMode, sValue);
+                assertEquals("runtime=" + sMode + ", security=" + sSecurityMode + ", dynamic=" + sValue,
+                        fAllowed, RemoteExecutionMode.isDynamicRemoteAllowed());
+                }
+            }
         }
 
     private static void setMode(String sMode, String sSecurityMode, String sDynamicRemote)

@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package executor;
+
+import com.oracle.coherence.testing.util.HttpTestAuth;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 
@@ -157,12 +159,13 @@ public class CESJavaSingleClusterTests
     public static CoherenceClusterResource s_coherence =
             (CoherenceClusterResource) new CoherenceClusterResource()
                     .with(ClassName.of(Coherence.class),
+                          SystemProperty.of("java.security.auth.login.config", HttpTestAuth.loginConfig()),
                           Multicast.ttl(0),
                           LocalHost.only(),
                           Logging.at(9),
                           Pof.disabled(),
                           ClusterPort.of(7574),
-                          ClusterName.of(CESJavaSingleClusterTests.class.getSimpleName()), // default name is too long
+                          ClusterName.of(CESJavaSingleClusterTests.class.getSimpleName() + "-" + System.nanoTime()), // default name is too long
                           SystemProperty.of(EXTEND_ADDRESS_PROPERTY, EXTEND_HOST),
                           SystemProperty.of(EXTEND_PORT_PROPERTY, EXTEND_PORT),
                           SystemProperty.of(METRICS_PORT_PROPERTY, "0"),

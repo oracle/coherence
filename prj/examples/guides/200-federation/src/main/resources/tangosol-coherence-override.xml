@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2022, 2025 Oracle and/or its affiliates.
+  ~ Copyright (c) 2022, 2026 Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,10 @@
 <coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd">
+
+  <cluster-config>
+    <lambdas-serialization>static</lambdas-serialization>
+  </cluster-config>
 
   <!-- To enable jmx connections -->
   <management-config>
@@ -24,29 +28,39 @@
   <federation-config>
     <participants>
       <participant>  <!--1-->
-        <name>ClusterA</name>
-        <remote-addresses>
-          <socket-address>
-            <address>127.0.0.1</address>
-            <port system-property="test.primary.cluster.port">7574</port>
-          </socket-address>
-        </remote-addresses>
+        <name system-property="test.primary.cluster.name">ClusterA</name>
+        <participant-destinations>
+          <participant-destination>
+            <name>direct</name>
+            <remote-addresses>
+              <socket-address>
+                <address>127.0.0.1</address>
+                <port system-property="federation.primary.port">40000</port>
+              </socket-address>
+            </remote-addresses>
+          </participant-destination>
+        </participant-destinations>
       </participant>
       <participant>  <!--2-->
-        <name>ClusterB</name>
-        <remote-addresses>
-          <socket-address>
-            <address>127.0.0.1</address>
-            <port system-property="test.secondary.cluster.port">7575</port>
-          </socket-address>
-        </remote-addresses>
+        <name system-property="test.secondary.cluster.name">ClusterB</name>
+        <participant-destinations>
+          <participant-destination>
+            <name>direct</name>
+            <remote-addresses>
+              <socket-address>
+                <address>127.0.0.1</address>
+                <port system-property="federation.secondary.port">40001</port>
+              </socket-address>
+            </remote-addresses>
+          </participant-destination>
+        </participant-destinations>
       </participant>
     </participants>
     <topology-definitions>  <!--3-->
       <active-active>
         <name>MyTopology</name>
-        <active>ClusterA</active>
-        <active>ClusterB</active>
+        <active system-property="test.primary.cluster.name">ClusterA</active>
+        <active system-property="test.secondary.cluster.name">ClusterB</active>
       </active-active>
     </topology-definitions>
   </federation-config>

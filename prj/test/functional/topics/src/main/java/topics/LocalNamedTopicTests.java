@@ -6,6 +6,9 @@
  */
 package topics;
 
+import com.oracle.coherence.testing.SystemPropertyResource;
+import com.oracle.coherence.testing.util.HttpTestAuth;
+
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -125,6 +128,8 @@ public class LocalNamedTopicTests
         System.setProperty("coherence.localhost", sHost);
         System.setProperty("coherence.cacheconfig", "topic-cache-config.xml");
         System.setProperty("coherence.metrics.http.enabled", "true");
+        s_loginConfig = new SystemPropertyResource(
+                "java.security.auth.login.config", HttpTestAuth.loginConfig());
 
         AvailablePortIterator it = LocalPlatform.get().getAvailablePorts();
         m_nMetricsPort = it.next();
@@ -138,6 +143,7 @@ public class LocalNamedTopicTests
     public static void closeCoherence()
         {
         Coherence.closeAll();
+        s_loginConfig.close();
         }
 
     @Override
@@ -739,6 +745,11 @@ public class LocalNamedTopicTests
     public static SystemPropertyIsolation s_systemPropertyIsolation = new SystemPropertyIsolation();
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * Restores the login configuration after the local metrics server stops.
+     */
+    private static SystemPropertyResource s_loginConfig;
 
     private static Session m_session;
 

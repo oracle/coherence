@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,8 @@ import com.google.protobuf.BytesValue;
 import com.oracle.coherence.common.base.Classes;
 
 import com.oracle.coherence.grpc.BinaryHelper;
+
+import com.oracle.coherence.testing.SystemPropertyResource;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 
@@ -90,9 +92,10 @@ public abstract class BaseGrpcIT
     @BeforeAll
     protected static void setup(TestInfo info) throws Exception
         {
+        s_serializerAllowlist = new SystemPropertyResource("coherence.grpc.serializer.allowlist", "java");
         System.setProperty("coherence.ttl",         "0");
         System.setProperty("coherence.wka",         "127.0.0.1");
-        System.setProperty("coherence.cluster",     "BaseGrpcIT");
+        System.setProperty("coherence.cluster",     "BaseGrpcIT-" + System.nanoTime());
         System.setProperty("coherence.cacheconfig", "coherence-config.xml");
         System.setProperty("coherence.pof.config",  "test-pof-config.xml");
         System.setProperty("coherence.override",    "test-coherence-override.xml");
@@ -140,7 +143,18 @@ public abstract class BaseGrpcIT
     @AfterAll
     public static void cleanup()
         {
-        Coherence.closeAll();
+        try
+            {
+            Coherence.closeAll();
+            }
+        finally
+            {
+            if (s_serializerAllowlist != null)
+                {
+                s_serializerAllowlist.close();
+                s_serializerAllowlist = null;
+                }
+            }
         }
 
     // ----- helper methods -------------------------------------------------
@@ -574,4 +588,6 @@ public abstract class BaseGrpcIT
     protected final static Map<String, ConfigurableCacheFactory> s_mapCCF = new ConcurrentHashMap<>();
 
     private static List<String> s_scopeNames;
+
+    private static SystemPropertyResource s_serializerAllowlist;
     }

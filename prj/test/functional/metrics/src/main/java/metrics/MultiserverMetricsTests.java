@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package metrics;
+
+import com.oracle.coherence.testing.util.HttpTestAuth;
 
 import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.deferred.DeferredHelper;
@@ -98,6 +100,7 @@ public class MultiserverMetricsTests
     public static void startup() throws IOException
         {
         Properties props = new Properties();
+        props.setProperty("java.security.auth.login.config", HttpTestAuth.loginConfig());
 
         props.put("coherence.management", "dynamic");
 

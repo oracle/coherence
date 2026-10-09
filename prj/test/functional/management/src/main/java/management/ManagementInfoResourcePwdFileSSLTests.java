@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package management;
+
+import com.oracle.coherence.testing.util.HttpTestAuth;
 
 import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.tangosol.coherence.management.internal.MapProvider;
@@ -45,6 +47,7 @@ public class ManagementInfoResourcePwdFileSSLTests
     public static void startup()
         {
         m_client = createSslClient(ClientBuilder.newBuilder()
+                .register(HttpTestAuth.RequestFilter.class)
                 .register(MapProvider.class));
         }
 

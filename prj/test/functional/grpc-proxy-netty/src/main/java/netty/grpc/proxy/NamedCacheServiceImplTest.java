@@ -40,6 +40,8 @@ import com.oracle.coherence.grpc.messages.cache.v0.ValuesRequest;
 import com.oracle.coherence.grpc.proxy.common.v0.BaseNamedCacheServiceImpl;
 import com.oracle.coherence.grpc.proxy.common.ConfigurableCacheFactorySuppliers;
 import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
+import com.oracle.coherence.testing.SystemPropertyResource;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.internal.util.processor.BinaryProcessors;
 import com.tangosol.io.DefaultSerializer;
@@ -337,19 +339,23 @@ class NamedCacheServiceImplTest
     @Test
     public void shouldNotCreateRequestHolderIfRequestSerializerNotFound()
         {
-        BaseNamedCacheServiceImpl service = s_serviceProvider.getBaseService(m_dependencies);;
+        try (SystemPropertyResource ignored =
+                new SystemPropertyResource("coherence.grpc.serializer.allowlist", "BAD"))
+            {
+            BaseNamedCacheServiceImpl service = s_serviceProvider.getBaseService(m_dependencies);
 
-        CompletionStage<CacheRequestHolder<String, Void>> stage =
-                service.createHolderAsync("foo", GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, "BAD");
-        assertThat(stage, is(notNullValue()));
+            CompletionStage<CacheRequestHolder<String, Void>> stage =
+                    service.createHolderAsync("foo", GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, "BAD");
+            assertThat(stage, is(notNullValue()));
 
-        Throwable error = assertThrows(Throwable.class, () ->
-                stage.toCompletableFuture().get(1, TimeUnit.MINUTES));
-        Throwable cause = rootCause(error);
-        assertThat(cause, is(instanceOf(StatusRuntimeException.class)));
-        Status status = ((StatusRuntimeException) cause).getStatus();
-        assertThat(status.getCode(),        is(Status.INVALID_ARGUMENT.getCode()));
-        assertThat(status.getDescription(), is("invalid request format, cannot find serializer with name 'BAD'"));
+            Throwable error = assertThrows(Throwable.class, () ->
+                    stage.toCompletableFuture().get(1, TimeUnit.MINUTES));
+            Throwable cause = rootCause(error);
+            assertThat(cause, is(instanceOf(StatusRuntimeException.class)));
+            Status status = ((StatusRuntimeException) cause).getStatus();
+            assertThat(status.getCode(),        is(Status.INVALID_ARGUMENT.getCode()));
+            assertThat(status.getDescription(), is("invalid request format, cannot find serializer with name 'BAD'"));
+            }
         }
 
     @Test

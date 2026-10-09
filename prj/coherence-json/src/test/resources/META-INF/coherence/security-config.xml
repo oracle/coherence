@@ -12,5 +12,35 @@
     <class name="com.oracle.coherence.io.json.genson.bean.Image" source="manual"/>
     <class name="com.oracle.coherence.io.json.genson.bean.Media" source="manual"/>
     <class name="com.oracle.coherence.io.json.genson.bean.MediaContent" source="manual"/>
+    <class name="common.data.Person" source="manual"/>
+    <class name="common.data.JavaNumberType" source="manual"/>
+    <class name="common.data.PutAll" source="manual"/>
+    <class name="java.awt.Rectangle" source="manual"/>
+    <class name="com.oracle.coherence.io.json.JsonSerializerTest$Holder" source="manual"/>
+    <class name="com.oracle.coherence.io.json.JsonSerializerTest$ContainsDuration" source="manual"/>
+    <class name="com.oracle.coherence.io.json.JsonSerializerTest$BigIntegerArrayHolder" source="manual"/>
+    <class name="com.oracle.coherence.io.json.JsonContainerSerializerTest$Result" source="manual"/>
+    <class name="com.oracle.coherence.io.json.JsonContainerSerializerTest$ResultHolder" source="manual"/>
+    <class name="com.oracle.coherence.io.json.JsonContainerSerializerTest$CollectionResultHolder" source="manual"/>
+    <class name="com.oracle.coherence.io.json.JsonContainerSerializerTest$ObjectArrayResultHolder" source="manual"/>
+    <class name="com.oracle.coherence.io.json.internal.EvolvableHandlerTest$PersonV1" source="manual"/>
+    <class name="com.oracle.coherence.io.json.internal.EvolvableHandlerTest$PersonV2" source="manual"/>
+    <class name="com.oracle.coherence.io.json.internal.ComparableConverterTest$ComparableBean" source="manual"/>
+    <class name="com.oracle.coherence.io.json.internal.ComparableConverterTest$CustomComparable" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.reflect.UnknownPropertyHandlerTest$PersonV1" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.reflect.UnknownPropertyHandlerTest$PersonV2" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.functional.MetadataFeatureTest$Bean" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.JsonSerDeserSymetricTest$B" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.JsonSerDeserSymetricTest$A" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.convert.JsonDeserializationTest$BeanWithConstructor" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.ext.common.Data$JsonPropertyOnField" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.ext.common.Data$JsonPropertyOnGetterSetter" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.ext.common.Data$JsonPropertyOnFieldIgnored" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.ext.common.Data$JsonPropertyOnGetterIgnoredSetter" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.ext.common.Data$JsonPropertyOnGetterSetterIgnored" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.ext.common.Data$JsonPropertyOnFieldCustomName" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.ext.common.Data$JsonPropertyOnGetterSetterCustomName" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.ext.common.Data$JsonCreatorConstructor" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.ext.common.Data$JsonCreatorFactoryMethod" source="manual"/>
   </allowed-classes>
 </security-config>

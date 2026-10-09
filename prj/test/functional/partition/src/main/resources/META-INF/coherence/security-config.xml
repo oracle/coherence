@@ -15,6 +15,7 @@
     <class name="partition.DeltaTests$BackupCheckProcessor" source="manual" executable="true"/>
     <class name="partition.DeltaTests$BackupGetInvocable" source="manual" executable="true"/>
     <class name="partition.DeltaTests$TestValue" source="manual"/>
+    <class name="partition.ExpiryDelayTests$ExpiryValueProcessor" source="manual" executable="true"/>
     <class name="partition.ExpiryDelayTests$SleepProcessor" source="manual" executable="true"/>
     <class name="partition.IndexTests$Result" source="manual"/>
     <class name="partition.IndexTests$Type" source="manual"/>

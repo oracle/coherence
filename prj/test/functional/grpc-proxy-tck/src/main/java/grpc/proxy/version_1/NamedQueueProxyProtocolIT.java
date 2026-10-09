@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.concurrent.Queues;
 import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.NamedQueueProtocol;
 import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
 import com.oracle.coherence.grpc.messages.common.v1.OptionalValue;
@@ -36,6 +37,7 @@ import com.oracle.coherence.grpc.proxy.common.ProxyServiceChannel;
 import com.tangosol.coherence.config.scheme.PagedQueueScheme;
 import com.tangosol.coherence.config.scheme.SimpleDequeScheme;
 import com.tangosol.io.DefaultSerializer;
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
@@ -85,7 +87,15 @@ public class NamedQueueProxyProtocolIT
         RequestIncompleteException ex = assertThrows(RequestIncompleteException.class,
                 () -> sendQueueRequest(channel, observer, 0, NamedQueueRequestType.PeekHead, BytesValue.getDefaultInstance()));
 
-        assertThat(ex.getMessage(), startsWith("Missing queue id in request"));
+        if (CoherenceMode.isSecurityHardeningEnabled())
+            {
+            assertThat(ex.getMessage(), is(ErrorsHelper.SAFE_INTERNAL_ERROR_MESSAGE));
+            assertThat(ex.getCause(), is(nullValue()));
+            }
+        else
+            {
+            assertThat(ex.getMessage(), startsWith("Missing queue id in request"));
+            }
         }
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
@@ -1002,8 +1012,8 @@ public class NamedQueueProxyProtocolIT
                     {
                     cause = BinaryHelper.fromByteString(error.getError(), proxy.getSerializer());
                     }
-                throw new RequestIncompleteException(error.getMessage(), cause);
                 }
+            throw new RequestIncompleteException(error.getMessage(), cause);
             }
         if (proxyResponse.getResponseCase() == ProxyResponse.ResponseCase.COMPLETE)
             {

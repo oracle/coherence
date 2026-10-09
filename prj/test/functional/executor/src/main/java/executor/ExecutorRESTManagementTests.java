@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package executor;
+
+import com.oracle.coherence.testing.util.HttpTestAuth;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -137,6 +139,7 @@ public class ExecutorRESTManagementTests
         Eventually.assertDeferred(() -> assertClusterReady(cluster), is(true));
 
         m_client = ClientBuilder.newBuilder()
+                .register(HttpTestAuth.RequestFilter.class)
                 .register(MapProvider.class).build();
 
         }
@@ -442,7 +445,7 @@ public class ExecutorRESTManagementTests
      */
     protected static final int STORAGE_DISABLED_MEMBER_COUNT = 1;
 
-    protected static final String CLUSTER_NAME = ExecutorRESTManagementTests.class.getSimpleName();
+    protected static final String CLUSTER_NAME = ExecutorRESTManagementTests.class.getSimpleName() + "-" + System.nanoTime();
 
     // ----- data members ---------------------------------------------------
 
@@ -472,6 +475,7 @@ public class ExecutorRESTManagementTests
                              JMXManagementMode.ALL,
                              SystemProperty.of("coherence.executor.extend.enabled", false),
                              SystemProperty.of("coherence.executor.trace.logging", true),
+                             SystemProperty.of("java.security.auth.login.config", HttpTestAuth.loginConfig()),
                              SystemProperty.of("coherence.management.http", "inherit"),
                              SystemProperty.of("coherence.management.http.port", "0"))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,

@@ -19,8 +19,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * Central resolver for the dynamic-remote-code gate. Used by
  * LambdaBytecodeGate (wire-arriving DYNAMIC lambda bytecode) and, under
  * CACHE-01, by MethodInvocationProcessor and ScriptProcessor mode gates.
- * Long-term property; security-mode-dependent default
- * (compatibility=allow, hardened=deny).
+ * Defaults to allow in both compatibility and hardened security modes.
+ * An explicit {@code deny} continues to enforce the dynamic-remote-code gate.
  *
  * @author Aleks Seovic  2026.05.01
  * @since 26.07

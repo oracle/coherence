@@ -118,6 +118,9 @@ public class CacheResourceTest
     public void testSortGet()
         {
         CacheResource resource = createCacheResource(m_cache);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addSortAlias("name", "name")
+                .build());
         Response      response = resource.getValues(0, -1, "name:desc", null, null);
 
         assertEquals(200 /* OK */, response.getStatus());
@@ -131,6 +134,9 @@ public class CacheResourceTest
     public void testSortGetEntries()
         {
         CacheResource resource = createCacheResource(m_cache);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addSortAlias("name", "name")
+                .build());
         Response      response = resource.getEntries(0, -1, "name:desc", null, null);
 
         assertEquals(200 /* OK */, response.getStatus());
@@ -159,6 +165,9 @@ public class CacheResourceTest
     public void testPartialGet()
         {
         CacheResource resource = createCacheResource(m_cache);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addProjectionAlias("name", "name")
+                .build());
         Response      response = resource.getValues(0, -1, null, "name", null);
 
         assertEquals(200 /* OK */, response.getStatus());
@@ -208,6 +217,10 @@ public class CacheResourceTest
     public void testCacheAggregation()
         {
         CacheResource resource = createCacheResource(m_cache);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addAggregatorArgumentAlias("long-sum", "age", "age")
+                .addAggregatorArgumentAlias("comparable-max", "dateOfBirth", "dateOfBirth")
+                .build());
         Response      response = resource.aggregate("long-sum(age)", null);
         assertEquals(200 /* OK */, response.getStatus());
         assertEquals(36 + 39 + 40L, response.getEntity());
@@ -221,6 +234,11 @@ public class CacheResourceTest
     public void testCustomAggregator()
         {
         CacheResource resource = createCacheResource(m_cache);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addAggregatorArgumentAlias("my-aggr", "a", "a")
+                .addAggregatorArgumentAlias("my-aggr", "b", "b")
+                .addAggregatorArgumentAlias("my-aggr", "c", "c")
+                .build());
         resource.m_aggregatorRegistry.register("my-aggr", asArgs -> entries -> "hoop");
 
         Response response = resource.aggregate("my-aggr(a,b,c)", null);
@@ -235,6 +253,10 @@ public class CacheResourceTest
         queryConfig.setDirectQuery(new DirectQuery(null, -1));
 
         CacheResource resource = createCacheResource(m_cache);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addAggregatorArgumentAlias("long-sum", "age", "age")
+                .addAggregatorArgumentAlias("comparable-max", "dateOfBirth", "dateOfBirth")
+                .build());
         resource.m_queryConfig = queryConfig;
 
         Response      response = resource.aggregate("long-sum(age)", "name != \"Ivan\"");
@@ -310,6 +332,11 @@ public class CacheResourceTest
     public void testCustomProcessor()
         {
         CacheResource resource = createCacheResource(m_cache);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addProcessorArgumentAlias("my-proc", "a", "a")
+                .addProcessorArgumentAlias("my-proc", "b", "b")
+                .addProcessorArgumentAlias("my-proc", "c", "c")
+                .build());
         resource.m_processorRegistry.register("my-proc", asArgs -> entry -> Integer.valueOf(entry.getKey() + "") + 1);
 
         Response response = resource.process("my-proc(a,b,c)", null);
@@ -328,6 +355,9 @@ public class CacheResourceTest
         queryConfig.setDirectQuery(new DirectQuery("DEFAULT", -1));
 
         CacheResource resource = createCacheResource(m_cache);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addProcessorArgumentAlias("increment", "age", "age")
+                .build());
         resource.m_queryConfig = queryConfig;
 
         Response      response = resource.process("increment(age, 1)", "name != \"Ivan\"");

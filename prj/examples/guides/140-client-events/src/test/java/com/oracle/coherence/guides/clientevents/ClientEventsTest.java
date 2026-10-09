@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -91,7 +91,7 @@ public class ClientEventsTest {
         customers.put(customer1.getId(), customer1); // <3>
         customers.put(customer2.getId(), customer2);
 
-        customers.invoke(1, Processors.update(Customer::setCreditLimit, 2000L));  // <4>
+        customers.invoke(1, Processors.update("setCreditLimit", 2000L));  // <4>
         customers.remove(1);  // <5>
 
         // ensure that we see all events <6>
@@ -112,7 +112,7 @@ public class ClientEventsTest {
         customer1 = new Customer(1, "James Brown", "1 Main Street New York NY", Customer.GOLD, 10000);
 
         customers.put(customer1.getId(), customer1); // <3>
-        customers.invoke(1, Processors.update(Customer::setAddress, "Updated address"));
+        customers.invoke(1, Processors.update("setAddress", "Updated address"));
         customers.remove(1);
 
         // ensure that we see all events <4>
@@ -199,8 +199,8 @@ public class ClientEventsTest {
         customers.put(customer3.getId(), customer3);
 
         // update customer 1 from BRONZE to GOLD
-        customers.invoke(1, Processors.update(Customer::setCustomerType, Customer.GOLD));
-        customers.invoke(2, Processors.update(Customer::setCustomerType, Customer.SILVER));
+        customers.invoke(1, Processors.update("setCustomerType", Customer.GOLD));
+        customers.invoke(2, Processors.update("setCustomerType", Customer.SILVER));
 
         // ensure that we see all events // <5>
         Eventually.assertDeferred(mapListener::getInsertCount, is(1));

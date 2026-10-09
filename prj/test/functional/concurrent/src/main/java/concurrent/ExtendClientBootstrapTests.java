@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -116,7 +116,7 @@ public class ExtendClientBootstrapTests
             });
         }
 
-    public static final String CLUSTER_NAME = "ExtendClientBootstrapTestsCluster";
+    public static final String CLUSTER_NAME = "ExtendClientBootstrapTestsCluster-" + System.nanoTime();
 
     static final LocalPlatform PLATFORM = LocalPlatform.get();
 
@@ -130,6 +130,7 @@ public class ExtendClientBootstrapTests
             .with(
                     SystemProperty.of("coherence.extend.port", PORTS, Ports.capture()),
                     SystemProperty.of("coherence.concurrent.extend.port", PORTS, Ports.capture()),
+                    SystemProperty.of("coherence.concurrent.extend.enabled", true),
                     WellKnownAddress.loopback(),
                     ClusterName.of(CLUSTER_NAME),
                     DisplayName.of("storage"),

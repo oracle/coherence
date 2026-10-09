@@ -28,6 +28,7 @@ import com.tangosol.net.cache.WrapperNamedCache;
 
 import com.tangosol.util.InvocableMap;
 
+import com.tangosol.util.function.Remote;
 import com.tangosol.util.processor.AbstractProcessor;
 
 import data.pof.Person;
@@ -96,6 +97,9 @@ public class NamedQueryResourceTest
         {
         NamedQuery         query    = new NamedQuery("named-query", null, "DEFAULT", 10);
         NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addSortAlias("name", "name")
+                .build());
         UriInfo            uriInfo  = getUriInfo(new MultivaluedHashMap());
         Response           response = resource.getValues(uriInfo, 1, 1, "name", null);
 
@@ -108,6 +112,9 @@ public class NamedQueryResourceTest
         {
         NamedQuery         query    = new NamedQuery("named-query", null, "DEFAULT", 10);
         NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addSortAlias("name", "name")
+                .build());
         UriInfo            uriInfo  = getUriInfo(new MultivaluedHashMap());
         Response           response = resource.getValues(uriInfo, 0, -1, "name:desc", null);
 
@@ -123,6 +130,9 @@ public class NamedQueryResourceTest
         {
         NamedQuery         query    = new NamedQuery("named-query", null, "DEFAULT", 10);
         NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addSortAlias("name", "name")
+                .build());
         UriInfo            uriInfo  = getUriInfo(new MultivaluedHashMap());
         Response           response = resource.getEntries(uriInfo, 0, -1, "name:desc", null);
 
@@ -154,6 +164,9 @@ public class NamedQueryResourceTest
         {
         NamedQuery         query    = new NamedQuery("named-query", null, "DEFAULT", 10);
         NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addProjectionAlias("name", "name")
+                .build());
         UriInfo            uriInfo  = getUriInfo(new MultivaluedHashMap());
         Response           response = resource.getValues(uriInfo, 0, -1, null, "name");
 
@@ -203,6 +216,10 @@ public class NamedQueryResourceTest
         {
         NamedQuery         query    = new NamedQuery("named-query", null, "DEFAULT", 10);
         NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addAggregatorArgumentAlias("long-sum", "age", "age")
+                .addAggregatorArgumentAlias("comparable-max", "dateOfBirth", "dateOfBirth")
+                .build());
         UriInfo            uriInfo  = getUriInfo(new MultivaluedHashMap());
         Response           response = resource.aggregate(uriInfo, "long-sum(age)");
 
@@ -219,17 +236,16 @@ public class NamedQueryResourceTest
         {
         NamedQuery         query    = new NamedQuery("named-query", null, "DEFAULT", 10);
         NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addAggregatorArgumentAlias("my-aggr", "a", "a")
+                .addAggregatorArgumentAlias("my-aggr", "b", "b")
+                .addAggregatorArgumentAlias("my-aggr", "c", "c")
+                .build());
         resource.m_aggregatorRegistry.register("my-aggr", new AggregatorFactory()
             {
             public InvocableMap.EntryAggregator getAggregator(String... asArgs)
                 {
-                return new InvocableMap.EntryAggregator()
-                    {
-                    public Object aggregate(Set entries)
-                        {
-                        return "hoop";
-                        }
-                    };
+                return new TestAggregator();
                 }
             });
 
@@ -244,6 +260,10 @@ public class NamedQueryResourceTest
         {
         NamedQuery         query    = new NamedQuery("age-query", "name is :name1 OR name is :name2", "DEFAULT", 10);
         NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addAggregatorArgumentAlias("long-sum", "age", "age")
+                .addAggregatorArgumentAlias("comparable-max", "dateOfBirth", "dateOfBirth")
+                .build());
         MultivaluedMap     params   = new MultivaluedHashMap();
         params.add("name1", "Ivan");
         params.add("name2", "Vaso");
@@ -255,6 +275,10 @@ public class NamedQueryResourceTest
 
         query    = new NamedQuery("age-query", "name != :name", "DEFAULT", 10);
         resource = createNamedQueryResource(m_cache, query, -1);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addAggregatorArgumentAlias("long-sum", "age", "age")
+                .addAggregatorArgumentAlias("comparable-max", "dateOfBirth", "dateOfBirth")
+                .build());
         params   = new MultivaluedHashMap();
         params.add("name", "Ivan");
         uriInfo  = getUriInfo(params);
@@ -337,17 +361,16 @@ public class NamedQueryResourceTest
         {
         NamedQuery         query    = new NamedQuery("named-query", null, "DEFAULT", 10);
         NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addProcessorArgumentAlias("my-proc", "a", "a")
+                .addProcessorArgumentAlias("my-proc", "b", "b")
+                .addProcessorArgumentAlias("my-proc", "c", "c")
+                .build());
         resource.m_processorRegistry.register("my-proc", new ProcessorFactory()
             {
             public InvocableMap.EntryProcessor getProcessor(String... asArgs)
                 {
-                return new AbstractProcessor()
-                    {
-                    public Object process(InvocableMap.Entry entry)
-                        {
-                        return Integer.valueOf(entry.getKey() + "") + 1;
-                        }
-                    };
+                return new TestProcessor();
                 }
             });
 
@@ -366,6 +389,9 @@ public class NamedQueryResourceTest
         {
         NamedQuery         query    = new NamedQuery("name-query", "name != \"${name}\"", "DEFAULT", 10);
         NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addProcessorArgumentAlias("increment", "age", "age")
+                .build());
         MultivaluedMap     params   = new MultivaluedHashMap();
         params.add("name", "Ivan");
         UriInfo  uriInfo  = getUriInfo(params);
@@ -610,4 +636,26 @@ public class NamedQueryResourceTest
     // ---- data members ----------------------------------------------------
 
     protected NamedCache m_cache;
+    @Remote.Executable
+    public static class TestAggregator
+            implements InvocableMap.EntryAggregator
+        {
+        @Override
+        public Object aggregate(Set entries)
+            {
+            return "hoop";
+            }
+        }
+
+    @Remote.Executable
+    public static class TestProcessor
+            extends AbstractProcessor
+        {
+        @Override
+        public Object process(InvocableMap.Entry entry)
+            {
+            return Integer.valueOf(entry.getKey() + "") + 1;
+            }
+        }
+
     }

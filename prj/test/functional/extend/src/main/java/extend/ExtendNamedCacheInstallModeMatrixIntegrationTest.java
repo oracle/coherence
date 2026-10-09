@@ -109,11 +109,11 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
         startProxy("prod", null);
 
         assertAllOperationsInstall(PayloadKind.ANNOTATED);
-        assertCounterAbsent(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterAbsent(OperationReason.AGGREGATE, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterAbsent(OperationReason.EVALUATE_FILTER, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterAbsent(OperationReason.EXTRACT, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterAbsent(OperationReason.COMPARE, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterPresent(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterPresent(OperationReason.AGGREGATE, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterPresent(OperationReason.EVALUATE_FILTER, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterPresent(OperationReason.EXTRACT, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterPresent(OperationReason.COMPARE, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
@@ -122,7 +122,7 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
         startProxy("dev", null);
 
         assertAllOperationsInstall(PayloadKind.ANNOTATED);
-        assertCounterAbsent(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterPresent(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
@@ -137,7 +137,7 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
     @Test
     public void plainRequestsShadowInProd()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertAllOperationsInstall(PayloadKind.PLAIN);
         assertWouldRejectCounterPresent(PlainProcessor.class, OperationReason.PROCESS_ENTRY);
@@ -149,7 +149,7 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
     @Test
     public void plainRequestsShadowInDev()
         {
-        startProxy("dev", null);
+        startProxy("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertAllOperationsInstall(PayloadKind.PLAIN);
         assertWouldRejectCounterPresent(PlainProcessor.class, OperationReason.PROCESS_ENTRY);
@@ -170,7 +170,7 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
     @Test
     public void dynamicRequestsShadowInProd()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertAllOperationsInstall(PayloadKind.DYNAMIC);
         assertWouldRejectCounterPresent(Generated$$LambdaProcessor.class, OperationReason.PROCESS_ENTRY);
@@ -277,9 +277,9 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
         }
 
     @Test
-    public void plainListenerFilterShadowsWhenSecurityModeIsUnset()
+    public void plainListenerFilterShadowsInCompatibility()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         NamedCache<String, Integer> cache = getCache(Operation.QUERY);
         MapListener<String, Integer> listener = listener();
@@ -312,6 +312,22 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
         cache.removeMapListener(listener, filter);
         cache.addMapListener(listener, "one-QUERY", false);
         cache.removeMapListener(listener, "one-QUERY");
+        }
+
+    @Test
+    public void plainRequestsRejectedWithHardenedDefault()
+        {
+        startProxy("prod", null);
+
+        assertAllOperationsRejected(PayloadKind.PLAIN, "Remote execution denied for class");
+        }
+
+    @Test
+    public void dynamicRequestsRejectedInHardenedModeWithExplicitDeny()
+        {
+        startProxy("prod", CoherenceMode.SECURITY_MODE_HARDENED, "deny");
+
+        assertAllOperationsRejected(PayloadKind.DYNAMIC, "denied-by-mode");
         }
 
     private void assertAllOperationsInstall(PayloadKind kind)

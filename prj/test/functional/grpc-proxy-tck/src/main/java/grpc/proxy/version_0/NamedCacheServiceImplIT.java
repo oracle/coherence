@@ -29,6 +29,7 @@ import com.oracle.coherence.grpc.messages.cache.v0.OptionalValue;
 
 import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
+import com.oracle.coherence.testing.SystemPropertyResource;
 
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
@@ -117,7 +118,8 @@ public class NamedCacheServiceImplIT
         TestStreamObserver<BoolValue> observer = new TestStreamObserver<>();
         DefaultSerializer        serializer = new DefaultSerializer();
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+        try (SystemPropertyResource allowed = new SystemPropertyResource("coherence.grpc.serializer.allowlist", "");
+             CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             service.containsKey(Requests.containsKey(null, sCacheName, "java", toByteString("key", serializer)),
                     observer);
@@ -846,7 +848,7 @@ public class NamedCacheServiceImplIT
         cache.put(person3.getLastName(), person3);
 
         NamedCacheService service = createService();
-        Filter<Person>   filter  = new EqualsFilter<>("getAge", 25);
+        Filter<Person>   filter  = new EqualsFilter<>(new UniversalExtractor<>("age"), 25);
 
         Set<Map.Entry<String, Person>> expected = cache.entrySet(filter);
 
@@ -910,7 +912,7 @@ public class NamedCacheServiceImplIT
         cache.put(person3.getLastName(), person3);
 
         NamedCacheService service = createService();
-        Filter<Person>   filter  = new EqualsFilter<>("getAge", 100);
+        Filter<Person>   filter  = new EqualsFilter<>(new UniversalExtractor<>("age"), 100);
 
         Set<Map.Entry<String, Person>> expected = cache.entrySet(filter);
 
@@ -2320,7 +2322,7 @@ public class NamedCacheServiceImplIT
         cache.put(person3.getLastName(), person3);
 
         NamedCacheService              service      = createService();
-        Filter<Person>                 filter       = new EqualsFilter<>("getAge", 25);
+        Filter<Person>                 filter       = new EqualsFilter<>(new UniversalExtractor<>("age"), 25);
         List<String>                   listExpected = new ArrayList<>(cache.keySet(filter));
         ByteString                     filterBytes  = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<BytesValue> observer     = new TestStreamObserver<>();
@@ -2389,7 +2391,7 @@ public class NamedCacheServiceImplIT
         cache.put(person3.getLastName(), person3);
 
         NamedCacheService              service  = createService();
-        Filter<Person>                 filter      = new EqualsFilter<>("getAge", 100);
+        Filter<Person>                 filter      = new EqualsFilter<>(new UniversalExtractor<>("age"), 100);
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();
         service.keySet(Requests.keySet(sScope, sCacheName, serializerName, filterBytes), observer);
@@ -3111,7 +3113,7 @@ public class NamedCacheServiceImplIT
         cache.put(person3.getLastName(), person3);
 
         NamedCacheService service     = createService();
-        Filter<Person>     filter      = new EqualsFilter<>("getAge", 25);
+        Filter<Person>     filter      = new EqualsFilter<>(new UniversalExtractor<>("age"), 25);
         Collection<Person> colExpected = cache.values(filter);
 
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, serializer);
@@ -3183,7 +3185,7 @@ public class NamedCacheServiceImplIT
         cache.put(person3.getLastName(), person3);
 
         NamedCacheService service     = createService();
-        Filter<Person>                 filter      = new EqualsFilter<>("getAge", 100);
+        Filter<Person>                 filter      = new EqualsFilter<>(new UniversalExtractor<>("age"), 100);
         Collection<Person>             colExpected = cache.values(filter);
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, serializer);
         TestStreamObserver<BytesValue> observer    = new TestStreamObserver<>();

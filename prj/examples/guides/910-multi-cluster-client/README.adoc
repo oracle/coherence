@@ -143,6 +143,13 @@ SessionConfiguration.builder()
 
 The example application is a web-server that gets data to service requests from a specific Coherence cluster depending on a header value in the http request. This demonstrates a simple stateless multi-tenant web-server, where the tenant's data is segregated into different Coherence clusters. The information about a tenant's connection details are held in a meta-data cache in a separate admin cluster.
 
+The gRPC tenant in this guide selects the `java` serializer. The example server
+image explicitly approves that format using
+`COHERENCE_GRPC_SERIALIZER_ALLOWLIST=java`; the local test sets the equivalent
+`coherence.grpc.serializer.allowlist` property. Keep this approval limited to the
+formats your application requires. The default hardened serialization filters
+and generated application-class approvals still apply.
+
 === What You Need
 :java_version: 21
 include::../../internal/includes/what-you-need.adoc[tag=text]

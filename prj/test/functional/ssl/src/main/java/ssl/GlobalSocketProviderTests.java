@@ -112,7 +112,7 @@ public class GlobalSocketProviderTests
     @Before
     public void generateCLusterName()
         {
-        m_sClusterName = "GlobalSocketProviderTests" + m_nClusterId.incrementAndGet();
+        m_sClusterName = "GlobalSocketProviderTests-" + Long.toHexString(System.nanoTime()) + "-" + m_nClusterId.incrementAndGet();
         System.setProperty(ClusterName.PROPERTY, m_sClusterName);
         m_nClusterPort = m_ports.next();
         System.setProperty(ClusterPort.PROPERTY, String.valueOf(m_nClusterPort));

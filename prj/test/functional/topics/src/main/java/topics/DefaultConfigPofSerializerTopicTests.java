@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package topics;
+
+import com.oracle.coherence.testing.util.HttpTestAuth;
 
 
 import com.oracle.bedrock.junit.CoherenceClusterResource;
@@ -161,7 +163,7 @@ public class DefaultConfigPofSerializerTopicTests
     @ClassRule
     public static CoherenceClusterResource cluster =
         new CoherenceClusterResource()
-            .with(ClusterName.of(DefaultConfigPofSerializerTopicTests.class.getSimpleName() + "Cluster"),
+            .with(ClusterName.of(DefaultConfigPofSerializerTopicTests.class.getSimpleName() + "-" + System.nanoTime()),
                   CacheConfig.of(CACHE_CONFIG_FILE),
                   Logging.atMax(),
                   Pof.enabled(),
@@ -170,6 +172,7 @@ public class DefaultConfigPofSerializerTopicTests
                   SystemProperty.of("coherence.management.remote", "true"),
                   SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                   SystemProperty.of("coherence.metrics.http.enabled", true),
+                  SystemProperty.of("java.security.auth.login.config", HttpTestAuth.loginConfig()),
                   SystemProperty.of("coherence.metrics.http.address", "127.0.0.1"),
                   SystemProperty.of("coherence.metrics.http.port", s_ports, Ports.capture()),
                   LocalHost.only(),

@@ -6,7 +6,10 @@
  */
 package com.tangosol.net.security;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.io.DefaultSerializer;
+import com.tangosol.io.internal.SerializationAllowlist;
 import com.tangosol.io.internal.SerializationBridgeFilters;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PortableObjectSerializer;
@@ -18,7 +21,11 @@ import com.tangosol.net.ClusterPermission;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -49,6 +56,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -56,8 +64,53 @@ import static org.mockito.Mockito.when;
  *
  * @author OpenAI  2026.05.16
  */
+@RunWith(Parameterized.class)
 public class PermissionInfoSerializationFilterTest
     {
+    @Parameterized.Parameters(name = "security={0}")
+    public static Object[] modes()
+        {
+        return new Object[] {"compatibility", "hardened"};
+        }
+
+    public PermissionInfoSerializationFilterTest(String sSecurityMode)
+        {
+        f_sSecurityMode = sSecurityMode;
+        }
+
+    @Before
+    public void setUp()
+        {
+        m_scope = CoherenceModeHelper.securityMode(f_sSecurityMode);
+        m_sAllowed = System.getProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED);
+        MaterializationProbe.reset();
+        NumberProbe.reset();
+
+        // admit only the passive fixture graph so nested rejection tests reach their target field
+        System.setProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED,
+                "hardened".equals(f_sSecurityMode) ? String.join(";",
+                        "java.security.SignedObject",
+                        "com.tangosol.io.pof.PofPrincipal",
+                        "javax.security.auth.Subject",
+                        "javax.security.auth.Subject$SecureSet",
+                        "java.security.cert.CertPath$CertPathRep",
+                        "sun.security.provider.certpath.X509CertPath") : "");
+        }
+
+    @After
+    public void tearDown()
+        {
+        if (m_sAllowed == null)
+            {
+            System.clearProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED);
+            }
+        else
+            {
+            System.setProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED, m_sAllowed);
+            }
+        m_scope.close();
+        }
+
     @Test
     public void shouldRoundTripExternalizablePermissionInfo() throws Exception
         {
@@ -118,6 +171,7 @@ public class PermissionInfoSerializationFilterTest
         PofReader reader = reader(binary(signedPermission()), binary(setPrincipals), binary(Set.of()));
 
         assertThrows(IOException.class, () -> new PermissionInfo().readExternal(reader));
+        verify(reader).readBinary(3);
         assertFalse(MaterializationProbe.wasMaterialized());
         }
 
@@ -130,6 +184,7 @@ public class PermissionInfoSerializationFilterTest
         PofReader reader = reader(binary(signedPermission()), binary(setPrincipals), binary(Set.of()));
 
         assertThrows(IOException.class, () -> new PermissionInfo().readExternal(reader));
+        verify(reader).readBinary(3);
         assertFalse(NumberProbe.wasMaterialized());
         }
 
@@ -142,6 +197,7 @@ public class PermissionInfoSerializationFilterTest
         PofReader reader = reader(binary(signedPermission()), binary(Set.of()), binary(setCredentials));
 
         assertThrows(IOException.class, () -> new PermissionInfo().readExternal(reader));
+        verify(reader).readBinary(4);
         assertFalse(MaterializationProbe.wasMaterialized());
         }
 
@@ -154,6 +210,7 @@ public class PermissionInfoSerializationFilterTest
         PofReader reader = reader(binary(signedPermission()), binary(Set.of()), binary(setCredentials));
 
         assertThrows(IOException.class, () -> new PermissionInfo().readExternal(reader));
+        verify(reader).readBinary(4);
         assertFalse(NumberProbe.wasMaterialized());
         }
 
@@ -195,6 +252,7 @@ public class PermissionInfoSerializationFilterTest
                 new ByteArrayInputStream(bytes.toByteArray()), getClass().getClassLoader()))
             {
             assertThrows(IOException.class, () -> info.readExternal(in));
+            assertNotNull(info.getSignedPermission());
             }
         assertFalse(MaterializationProbe.wasMaterialized());
         }
@@ -219,6 +277,7 @@ public class PermissionInfoSerializationFilterTest
                 new ByteArrayInputStream(bytes.toByteArray()), getClass().getClassLoader()))
             {
             assertThrows(IOException.class, () -> info.readExternal(in));
+            assertNotNull(info.getSignedPermission());
             }
         assertFalse(NumberProbe.wasMaterialized());
         }
@@ -242,6 +301,7 @@ public class PermissionInfoSerializationFilterTest
                 new ByteArrayInputStream(bytes.toByteArray()), getClass().getClassLoader()))
             {
             assertThrows(IOException.class, () -> info.readExternal(in));
+            assertNotNull(info.getSignedPermission());
             }
         assertFalse(MaterializationProbe.wasMaterialized());
         }
@@ -266,6 +326,7 @@ public class PermissionInfoSerializationFilterTest
                 new ByteArrayInputStream(bytes.toByteArray()), getClass().getClassLoader()))
             {
             assertThrows(IOException.class, () -> info.readExternal(in));
+            assertNotNull(info.getSignedPermission());
             }
         assertFalse(NumberProbe.wasMaterialized());
         }
@@ -433,4 +494,10 @@ public class PermissionInfoSerializationFilterTest
 
         private static final long serialVersionUID = 1L;
         }
+
+    private CoherenceModeHelper.ModeScope m_scope;
+
+    private String m_sAllowed;
+
+    private final String f_sSecurityMode;
     }

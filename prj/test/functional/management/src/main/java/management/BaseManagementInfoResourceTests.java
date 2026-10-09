@@ -6,6 +6,8 @@
  */
 package management;
 
+import com.oracle.coherence.testing.util.HttpTestAuth;
+
 import com.oracle.bedrock.Option;
 import com.oracle.bedrock.OptionsByType;
 
@@ -2074,7 +2076,8 @@ public abstract class BaseManagementInfoResourceTests
     public void testClusterMemberUpdateFailure()
             throws Exception
         {
-        assertClusterMemberUpdateFailureStatus(Response.Status.OK);
+        withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_COMPATIBILITY, () ->
+                assertClusterMemberUpdateFailureStatus(Response.Status.OK));
         withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED, () ->
                 assertClusterMemberUpdateFailureStatus(Response.Status.UNAUTHORIZED));
         }
@@ -2095,7 +2098,8 @@ public abstract class BaseManagementInfoResourceTests
     public void testCacheMemberUpdateFailure()
             throws Exception
         {
-        assertCacheMemberUpdateFailureStatus(Response.Status.OK);
+        withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_COMPATIBILITY, () ->
+                assertCacheMemberUpdateFailureStatus(Response.Status.OK));
         withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED, () ->
                 assertCacheMemberUpdateFailureStatus(Response.Status.UNAUTHORIZED));
         }
@@ -5384,7 +5388,8 @@ public abstract class BaseManagementInfoResourceTests
         propsServer1.add(SystemProperty.of("coherence.role", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("test.server.name", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("coherence.management.http", "inherit"));
-        propsServer1.add(SystemProperty.of("coherence.management.http.auth", "none"));
+        propsServer1.add(SystemProperty.of("java.security.auth.login.config", HttpTestAuth.loginConfig()));
+        propsServer1.add(SystemProperty.of("coherence.management.http.auth", "basic"));
         propsServer1.add(SystemProperty.of("coherence.management.readonly", Boolean.toString(isReadOnly())));
         propsServer1.add(SystemProperty.of("coherence.management.http.override-port", 0));
         propsServer1.add(SystemProperty.of("coherence.management.http.cluster", sClusterName));
@@ -5430,6 +5435,7 @@ public abstract class BaseManagementInfoResourceTests
         inClusterInvoker.accept(sClusterName, SERVER_PREFIX + "-2", BaseManagementInfoResourceTests::createTopics);
 
         m_client = ClientBuilder.newBuilder()
+                .register(HttpTestAuth.RequestFilter.class)
                 .register(MapProvider.class)
                 .register(new LoggingFeature(java.util.logging.Logger.getLogger("coherence.management.rest.diagnostic"),
                 Level.INFO,
@@ -6067,7 +6073,7 @@ public abstract class BaseManagementInfoResourceTests
     /**
      * Name of the Coherence cluster.
      */
-    public static final String CLUSTER_NAME = System.getProperty("coherence.cluster", "mgmtRestCluster");
+    public static final String CLUSTER_NAME = System.getProperty("coherence.cluster", "mgmtRestCluster-" + System.nanoTime());
 
     /**
      * The name of topic.

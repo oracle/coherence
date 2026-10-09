@@ -46,6 +46,11 @@ include::../../internal/includes/what-you-need.adoc[tag=text]
 ==== Building the Example Code
 include::../../internal/includes/simple-build.adoc[tag=text]
 
+This example uses the default DYNAMIC lambda serialization. The security
+configuration generated from `@Remote.Allowed` annotations authorizes the
+example's application classes. Dynamic remote execution must be allowed on
+participating members, as it is by default during the 26.1.0.0.0 integration phase.
+
 [#data-model]
 === Example Data Model
 

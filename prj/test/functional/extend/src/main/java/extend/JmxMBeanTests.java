@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -85,8 +85,11 @@ public class JmxMBeanTests
         propsMain.put("coherence.management.remote", "true");
         System.getProperties().putAll(propsMain);
 
+        Properties propsServer = new Properties();
+        propsServer.setProperty("coherence.invocation.enabled", "true");
+
         CoherenceClusterMember memberProxy = startCacheServer("JmxMBeanTests", "extend",
-                AbstractExtendTests.FILE_SERVER_CFG_CACHE);
+                AbstractExtendTests.FILE_SERVER_CFG_CACHE, propsServer);
         assertThat(invoking(memberProxy).isServiceRunning("ExtendTcpProxyService"), is(true));
         }
 

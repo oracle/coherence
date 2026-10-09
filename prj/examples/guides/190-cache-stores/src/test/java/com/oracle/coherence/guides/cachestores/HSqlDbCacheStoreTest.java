@@ -9,6 +9,7 @@ package com.oracle.coherence.guides.cachestores;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.net.NamedMap;
+import com.tangosol.util.Processors;
 import com.tangosol.net.cache.TypeAssertion;
 import com.tangosol.util.function.Remote;
 import com.tangosol.util.processor.PreloadRequest;
@@ -97,10 +98,7 @@ public class HSqlDbCacheStoreTest
             assertNotNull(customer2);
 
             // update customer 2 with "New Address"
-            namedMap.compute(2, (k, v)->{
-                v.setAddress("New Address");
-                return v;
-            });
+            namedMap.invoke(2, Processors.update("setAddress", "New Address"));
 
             // customer should have new address in cache and DB
             assertEquals("New Address", namedMap.get(2).getAddress());

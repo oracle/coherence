@@ -9,6 +9,7 @@
                  version="1.0">
   <allowed-classes>
     <class name="processor.AbstractDistEntryProcessorTests$ExpiryProcessor" source="manual" executable="true"/>
+    <class name="processor.AbstractDistEntryProcessorTests$ExpiryProcessor$Mode" source="manual"/>
     <class name="processor.AbstractDistEntryProcessorTests$OffloadProcessor" source="manual" executable="true"/>
     <class name="processor.AbstractDistEntryProcessorTests$OptimizedGetAllProcessor" source="manual" executable="true"/>
     <class name="processor.AbstractDistEntryProcessorTests$SerializationCountingKey" source="manual"/>
@@ -25,6 +26,7 @@
     <class name="processor.Coh7207RegressionTests$MyProcessor" source="manual" executable="true"/>
     <class name="processor.ContentionTests$CheckProcessor" source="manual" executable="true"/>
     <class name="processor.IndexIntegrityTests$BackdoorMutatingProcessor" source="manual" executable="true"/>
+    <class name="processor.IndexIntegrityTests$BackdoorSameKeyProcessor" source="manual" executable="true"/>
     <class name="processor.IndexIntegrityTests$IndexVerifierProcessor" source="manual" executable="true"/>
     <class name="processor.LiteTxnProcessorTests$AtomicUpdateProcessor" source="manual" executable="true"/>
     <class name="processor.LiteTxnProcessorTests$Coh14323Processor" source="manual" executable="true"/>

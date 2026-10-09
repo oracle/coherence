@@ -15,6 +15,18 @@
       <key-class>java.lang.Integer</key-class>
       <value-class>data.pof.PortablePerson</value-class>
       <expression-aliases>
+        <projection-alias>
+          <name>summary</name>
+          <properties>name,age</properties>
+        </projection-alias>
+        <projection-alias>
+          <name>person-dates</name>
+          <properties>name,age,dateOfBirth</properties>
+        </projection-alias>
+        <projection-alias>
+          <name>person-details</name>
+          <properties>name,address:(city,state),children:(name)</properties>
+        </projection-alias>
         <aggregator-argument-alias>
           <aggregator>long-sum</aggregator>
           <name>age</name>
@@ -40,6 +52,16 @@
           <name>age</name>
           <expression>age</expression>
         </aggregator-argument-alias>
+        <aggregator-argument-alias>
+          <aggregator>custom-long-sum-factory</aggregator>
+          <name>getAge</name>
+          <expression>getAge</expression>
+        </aggregator-argument-alias>
+        <aggregator-argument-alias>
+          <aggregator>distinct-values</aggregator>
+          <name>name</name>
+          <expression>name</expression>
+        </aggregator-argument-alias>
       </expression-aliases>
     </resource>
     <resource>
@@ -62,6 +84,10 @@
       <key-class>java.lang.Integer</key-class>
       <value-class>rest.data.Persona</value-class>
       <expression-aliases>
+        <projection-alias>
+          <name>age</name>
+          <properties>age</properties>
+        </projection-alias>
         <processor-argument-alias>
           <processor>custom-number-doubler</processor>
           <name>age</name>
@@ -79,6 +105,21 @@
         </processor-argument-alias>
         <processor-argument-alias>
           <processor>allowed-constructor-side-effect-processor</processor>
+          <name>age</name>
+          <expression>Age</expression>
+        </processor-argument-alias>
+        <processor-argument-alias>
+          <processor>increment</processor>
+          <name>age</name>
+          <expression>age</expression>
+        </processor-argument-alias>
+        <processor-argument-alias>
+          <processor>multiply</processor>
+          <name>age</name>
+          <expression>age</expression>
+        </processor-argument-alias>
+        <processor-argument-alias>
+          <processor>custom-number-doubler-factory</processor>
           <name>age</name>
           <expression>Age</expression>
         </processor-argument-alias>
@@ -107,6 +148,27 @@
           <name>by-age</name>
           <expression>age</expression>
         </sort-alias>
+        <sort-alias>
+          <name>name</name>
+          <expression>name</expression>
+        </sort-alias>
+        <sort-alias>
+          <name>age</name>
+          <expression>age</expression>
+        </sort-alias>
+        <projection-alias>
+          <name>summary</name>
+          <properties>age,name</properties>
+        </projection-alias>
+        <projection-alias>
+          <name>name</name>
+          <properties>name</properties>
+        </projection-alias>
+        <aggregator-argument-alias>
+          <aggregator>long-sum</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
       </expression-aliases>
     </resource>
     <resource>
@@ -171,6 +233,27 @@
         <expression>age = 37</expression>
       </query>
       <direct-query enabled="true" engine="DEFAULT"/>
+      <expression-aliases>
+        <projection-alias>
+          <name>name</name>
+          <properties>name</properties>
+        </projection-alias>
+        <aggregator-argument-alias>
+          <aggregator>long-sum</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+        <processor-argument-alias>
+          <processor>increment</processor>
+          <name>age</name>
+          <expression>age</expression>
+        </processor-argument-alias>
+        <processor-argument-alias>
+          <processor>multiply</processor>
+          <name>age</name>
+          <expression>age</expression>
+        </processor-argument-alias>
+      </expression-aliases>
     </resource>
      <!-- resources used for unit tests -->
 

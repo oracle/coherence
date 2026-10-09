@@ -102,8 +102,8 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
         startProxy("prod");
 
         assertFilterInstalled(new AnnotatedFilter());
-        assertCounterAbsent(OperationReason.EVALUATE_FILTER, "prod", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
         }
 
     @Test
@@ -112,8 +112,8 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
         startProxy("dev");
 
         assertFilterInstalled(new AnnotatedFilter());
-        assertCounterAbsent(OperationReason.EVALUATE_FILTER, "dev", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounter(OperationReason.EVALUATE_FILTER, "dev", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
         }
 
     @Test
@@ -128,7 +128,7 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
     @Test
     public void unannotatedFilterShadowedInProd()
         {
-        startProxy("prod");
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertFilterInstalled(new PlainFilter());
         assertWouldRejectCounter(PlainFilter.class, OperationReason.EVALUATE_FILTER, 1L);
@@ -137,7 +137,7 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
     @Test
     public void wrappedUnannotatedExtractorFilterShadowedInProd()
         {
-        startProxy("prod");
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertFilterInstalled(new EqualsFilter<>(new PlainExtractor(), "value"));
         assertWouldRejectCounter(PlainExtractor.class, OperationReason.EXTRACT, 1L);
@@ -146,7 +146,7 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
     @Test
     public void unannotatedFilterShadowedInDev()
         {
-        startProxy("dev");
+        startProxy("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertFilterInstalled(new PlainFilter());
         assertWouldRejectCounter(PlainFilter.class, OperationReason.EVALUATE_FILTER, 1L);
@@ -164,7 +164,7 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
     @Test
     public void dynamicFilterShadowedInProd()
         {
-        startProxy("prod", "static");
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "static");
 
         Filter<String> filter = dynamicFilter();
         assertTrue(filter.getClass().isSynthetic());
@@ -220,8 +220,8 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
         startProxy("prod");
 
         assertExtractorInstalled(new AnnotatedExtractor());
-        assertCounterAbsent(OperationReason.EXTRACT, "prod", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounter(OperationReason.EXTRACT, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
         }
 
     @Test
@@ -230,8 +230,8 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
         startProxy("dev");
 
         assertExtractorInstalled(new AnnotatedExtractor());
-        assertCounterAbsent(OperationReason.EXTRACT, "dev", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounter(OperationReason.EXTRACT, "dev", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
         }
 
     @Test
@@ -246,7 +246,7 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
     @Test
     public void unannotatedExtractorShadowedInProd()
         {
-        startProxy("prod");
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertExtractorInstalled(new PlainExtractor());
         assertWouldRejectCounter(PlainExtractor.class, OperationReason.EXTRACT, 1L);
@@ -255,7 +255,7 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
     @Test
     public void unannotatedExtractorShadowedInDev()
         {
-        startProxy("dev");
+        startProxy("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertExtractorInstalled(new PlainExtractor());
         assertWouldRejectCounter(PlainExtractor.class, OperationReason.EXTRACT, 1L);
@@ -273,7 +273,7 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
     @Test
     public void dynamicExtractorShadowedInProd()
         {
-        startProxy("prod", "static");
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "static");
 
         ValueExtractor<String, String> extractor = dynamicExtractor();
         assertTrue(extractor.getClass().isSynthetic());
@@ -321,6 +321,30 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
 
         assertExtractorInstalled(extractor);
         assertWouldRejectLambdaCounter(OperationReason.EXTRACT, 2L);
+        }
+
+    @Test
+    public void unannotatedFilterRejectedWithHardenedDefault()
+        {
+        startProxy("prod");
+
+        assertFilterRejected(new PlainFilter(), "Remote execution denied for class");
+        }
+
+    @Test
+    public void unannotatedExtractorRejectedWithHardenedDefault()
+        {
+        startProxy("dev");
+
+        assertExtractorRejected(new PlainExtractor(), "Remote execution denied for class");
+        }
+
+    @Test
+    public void dynamicFilterRejectedInHardenedModeWithExplicitDeny()
+        {
+        startProxy("prod", CoherenceMode.SECURITY_MODE_HARDENED, "static", "deny");
+
+        assertFilterRejected(dynamicFilter(), "topic-subscriber-install-denied-by-mode");
         }
 
     private void assertFilterInstalled(Filter<String> filter)

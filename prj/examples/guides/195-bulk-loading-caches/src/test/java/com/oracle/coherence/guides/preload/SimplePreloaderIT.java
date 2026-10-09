@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -47,6 +47,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SimplePreloaderIT
         extends AbstractPreloadIT {
+    private static final String CLUSTER_NAME = System.getProperty("coherence.cluster", "SimplePreloaderIT-" + java.util.UUID.randomUUID());
+
 
     private static Session session;
 
@@ -60,7 +62,7 @@ public class SimplePreloaderIT
     @RegisterExtension
     static final CoherenceClusterExtension clusterRunner = new CoherenceClusterExtension()
             .with(WellKnownAddress.of("127.0.0.1"),
-                    ClusterName.of("preload-test"),
+                    ClusterName.of(CLUSTER_NAME),
                     IPv4Preferred.yes(),
                     LocalHost.only())
             .include(3, CoherenceClusterMember.class,
@@ -156,7 +158,7 @@ public class SimplePreloaderIT
         try (CoherenceClusterMember preloader = platform.launch(CoherenceClusterMember.class,
                 ClassName.of(PreloadApplication.class),
                 WellKnownAddress.of("127.0.0.1"),
-                ClusterName.of("preload-test"),
+                ClusterName.of(CLUSTER_NAME),
                 SystemProperty.of("jdbc.url", hsqldbRunner.getJdbcURL()),
                 IPv4Preferred.yes(),
                 LocalHost.only(),

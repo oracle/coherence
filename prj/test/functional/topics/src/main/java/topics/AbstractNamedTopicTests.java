@@ -6,6 +6,8 @@
  */
 package topics;
 
+import com.oracle.coherence.testing.util.HttpTestAuth;
+
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -48,6 +50,7 @@ import com.tangosol.net.Invocable;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Session;
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.net.TopicService;
 import com.tangosol.net.ValueTypeAssertion;
 
@@ -1706,7 +1709,7 @@ public abstract class AbstractNamedTopicTests
                     topic.createSubscriber(inGroup(sGroup + "durableSubscriber"), completeOnEmpty(),
                             withFilter(Filters.lessEqual(Customer::getId, 12))));
 
-            assertThat(exception.getMessage(), containsStringIgnoringCase("Cannot change the Filter in existing Subscriber group"));
+            assertSubscriberGroupChangeRejected(topic, exception, "Cannot change the Filter in existing Subscriber group");
             }
         }
 
@@ -1773,7 +1776,7 @@ public abstract class AbstractNamedTopicTests
                 }
             catch (Exception e)
                 {
-                assertThat(e.getMessage(), containsString("Cannot change the ValueExtractor in existing Subscriber group"));
+                assertSubscriberGroupChangeRejected(topic, e, "Cannot change the ValueExtractor in existing Subscriber group");
                 }
             }
         }
@@ -4627,9 +4630,10 @@ public abstract class AbstractNamedTopicTests
         HttpRequest request = HttpRequest.newBuilder()
                 .GET()
                 .uri(URI.create(sURL + "/.json"))
+                .header("Authorization", HttpTestAuth.authorization())
                 .build();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        assertThat(response.statusCode(), is(200));
+        assertThat("metrics response: " + response.body(), response.statusCode(), is(200));
         String     sJson  = response.body();
         return JSON_SERIALIZER.deserialize("{\"data\":" + sJson + "}", JsonObject.class);
         }
@@ -5391,6 +5395,27 @@ public abstract class AbstractNamedTopicTests
         {
         invocable.run();
         return (R) invocable.getResult();
+        }
+
+    /**
+     * Verify subscriber-group rejection using the transport's disclosure contract.
+     */
+    protected void assertSubscriberGroupChangeRejected(NamedTopic<?> topic, Exception error, String sExpected)
+        {
+        if (CoherenceMode.isSecurityHardeningEnabled()
+                && TopicService.TYPE_REMOTE_GRPC.equals(topic.getService().getInfo().getServiceType()))
+            {
+            Throwable cause = error;
+            while (cause.getCause() != null)
+                {
+                cause = cause.getCause();
+                }
+            assertThat(cause.getMessage(), is("internal gRPC request failed"));
+            }
+        else
+            {
+            assertThat(error.getMessage(), containsStringIgnoringCase(sExpected));
+            }
         }
 
     protected int[] getMetricsPorts()

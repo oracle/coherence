@@ -8,6 +8,13 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="grpc.client.AbstractGrpcClientIT" source="manual"/>
+    <class name="grpc.client.TestFunctions$AppendSuffix" source="manual" executable="true"/>
+    <class name="grpc.client.TestFunctions$IncreaseAge" source="manual" executable="true"/>
+    <class name="grpc.client.TestFunctions$DoubleValue" source="manual" executable="true"/>
+    <class name="grpc.client.TestFunctions$RemoveValue" source="manual" executable="true"/>
+    <class name="grpc.client.TestFunctions$ReturnResult" source="manual" executable="true"/>
+    <class name="grpc.client.DeferKeyAssociationCheckGrpcIT" source="manual" lambda-target="true"/>
     <class name="grpc.client.GetEntryExpiry" source="manual" executable="true"/>
     <class name="grpc.client.GetEntryPartition" source="manual" executable="true"/>
     <class name="grpc.client.Person" source="manual"/>

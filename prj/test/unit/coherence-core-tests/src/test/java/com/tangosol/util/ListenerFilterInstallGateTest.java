@@ -96,19 +96,27 @@ public class ListenerFilterInstallGateTest
         }
 
     @Test
-    public void shouldShadowPlainListenerFilterWhenSecurityModeIsUnsetOrCompatibility()
+    public void shouldShadowPlainListenerFilterInCompatibilityMode()
         {
-        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_COMPATIBILITY})
-            {
-            setMode("prod", sSecurityMode);
-            ExposedListenerFilterRequest request = filterRequest(new PlainFilter(), null, true);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        ExposedListenerFilterRequest request = filterRequest(new PlainFilter(), null, true);
 
-            request.runWith(null);
+        request.runWith(null);
 
-            assertEquals(1, ((RecordingMapListenerProxy) request.getChannel().getAttribute(
-                    com.tangosol.coherence.component.net.extend.proxy.NamedCacheProxy.ATTR_LISTENER)).m_cFilterAdds);
-            assertEquals(Long.valueOf(1L), SerializationTelemetry.snapshot().get(wouldRejectKey(PlainFilter.class)));
-            }
+        assertEquals(1, ((RecordingMapListenerProxy) request.getChannel().getAttribute(
+                com.tangosol.coherence.component.net.extend.proxy.NamedCacheProxy.ATTR_LISTENER)).m_cFilterAdds);
+        assertEquals(Long.valueOf(1L), SerializationTelemetry.snapshot().get(wouldRejectKey(PlainFilter.class)));
+        }
+
+    @Test
+    public void shouldRejectPlainListenerFilterWhenSecurityModeIsUnset()
+        {
+        setMode("prod", null);
+        ExposedListenerFilterRequest request = filterRequest(new PlainFilter(), null, true);
+
+        assertThrows(SecurityException.class, () -> request.runWith(null));
+        assertEquals(0, ((RecordingMapListenerProxy) request.getChannel().getAttribute(
+                com.tangosol.coherence.component.net.extend.proxy.NamedCacheProxy.ATTR_LISTENER)).m_cFilterAdds);
         }
 
     @Test

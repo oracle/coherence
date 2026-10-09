@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,7 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import org.junit.ClassRule;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -40,6 +41,8 @@ import static org.junit.Assert.assertEquals;
 public abstract class AbstractRestSecurityTests
         extends AbstractFunctionalTest
     {
+    @ClassRule
+    public static final LegacySecurityRule s_legacySecurity = new LegacySecurityRule();
 
     // ----- constructors ----------------------------------------------------
 

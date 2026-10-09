@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package metrics;
+
+import com.oracle.coherence.testing.util.HttpTestAuth;
 
 import com.oracle.bedrock.deferred.DeferredHelper;
 
@@ -94,6 +96,8 @@ public class ExtendMetricsTests
             }
 
         Properties props = new Properties();
+        props.setProperty("java.security.auth.login.config", HttpTestAuth.loginConfig());
+        props.setProperty("coherence.invocation.enabled", "true");
 
         // Disable active persistence, has nothing to do with this test.
         //props.put("test.persistence.mode","active");

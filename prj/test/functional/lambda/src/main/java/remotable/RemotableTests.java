@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.oracle.bedrock.junit.SessionBuilders;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.testing.tests.invoke.AbstractRemotableTest;
 import com.tangosol.coherence.config.Config;
+import com.tangosol.internal.util.invoke.ClassIdentity;
 
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -20,6 +21,10 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.TypeAssertion;
 
 import data.Trade;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -94,5 +99,36 @@ public class RemotableTests
 
         Assume.assumeTrue("skip test using an instance of AbstractRemotable if dynamic lambdas disabled", fDynamic);
         super.testRemotableClass();
+        }
+
+    // ----- build-time security metadata -----------------------------------
+
+    /**
+     * Register the exact generated processor name from this build's bytecode.
+     * The identity changes when the fixture or compiler changes.
+     *
+     * @since 26.10
+     */
+    public static class SecurityMetadata
+        {
+        public static void main(String[] args) throws IOException
+            {
+            String sName   = new ClassIdentity(SplitProcessor.class).getName().replace('/', '.');
+            String sXml    = Files.readString(Path.of(args[0]));
+            String sMarker = "<!-- generated SplitProcessor registration -->";
+            if (!sXml.contains(sMarker))
+                {
+                throw new IllegalStateException("Missing generated processor metadata marker");
+                }
+            Path pathOutput = Path.of(args[1]);
+            // copied resources can retain Perforce's read-only permissions
+            if (Files.exists(pathOutput) && !Files.isWritable(pathOutput)
+                    && !pathOutput.toFile().setWritable(true, true))
+                {
+                throw new IOException("Cannot make generated security metadata writable: " + pathOutput);
+                }
+            Files.writeString(pathOutput, sXml.replace(sMarker,
+                    "<class name=\"" + sName + "\" source=\"manual\" executable=\"true\"/>"));
+            }
         }
     }

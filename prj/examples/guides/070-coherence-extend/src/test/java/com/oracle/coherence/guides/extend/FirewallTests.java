@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -34,6 +34,8 @@ import static org.hamcrest.CoreMatchers.is;
  * @author Gunnar Hillert  2022.09.22
  */
 class FirewallTests {
+    private static final String CLUSTER_NAME = System.getProperty("coherence.cluster", "FirewallTests-" + java.util.UUID.randomUUID());
+
     // # tag::bootstrap[]
     static CoherenceClusterMember server;
 
@@ -47,7 +49,7 @@ class FirewallTests {
                 CacheConfig.of("firewall/server-coherence-cache-config.xml"),
                 IPv4Preferred.yes(),
                 SystemProperty.of("coherence.wka", "127.0.0.1"),
-                ClusterName.of("myCluster"),
+                ClusterName.of(CLUSTER_NAME),
                 DisplayName.of("server"));
 
         // Wait for Coherence to start
@@ -74,7 +76,7 @@ class FirewallTests {
     @Test
     void testFirewallUseCase() {
         System.setProperty("coherence.tcmp.enabled", "false");
-        System.setProperty("coherence.cluster", "myCluster");
+        System.setProperty("coherence.cluster", CLUSTER_NAME);
         System.setProperty("coherence.wka", "127.0.0.1");
         CoherenceHelper.startCoherenceClient(
                 CoherenceHelper.FIREWALL_INSTANCE_NAME,

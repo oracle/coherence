@@ -592,12 +592,24 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         }
 
     /**
-     * Test ObjectInputStream without an ObjectInputFilter.
+     * Test ObjectInputStream without an ObjectInputFilter in compatibility mode.
      */
     @Test
-    public void testObjectInputStreamWithoutFilter()
+    public void testObjectInputStreamWithoutFilterInCompatibilityMode()
         {
-        testObjectInputFilter(false, false, 500000);
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            testObjectInputFilter(false, false, 500000);
+            }
+        }
+
+    @Test
+    public void testObjectInputStreamWithoutFilterRejectsByDefault()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityMode(null))
+            {
+            testObjectInputFilter(false, true, 10);
+            }
         }
 
     @Test

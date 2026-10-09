@@ -169,9 +169,9 @@ public class LambdaBytecodeGateTest
         }
 
     @Test
-    public void shouldDenyDynamicLambdaInHardenedModeByDefault()
+    public void shouldDenyDynamicLambdaInHardenedModeWhenPropertySetToDeny()
         {
-        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "deny");
 
         assertRejected(LambdaBytecodeGate.checkDynamicLambdaMode(),
                 LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, "dynamic-lambda");
@@ -195,20 +195,19 @@ public class LambdaBytecodeGateTest
         }
 
     @Test
-    public void shouldDefaultToSecurityModeWhenPropertyValueInvalid()
+    public void shouldDefaultToAllowWhenPropertyValueInvalid()
         {
         setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "maybe");
         assertAllowed(LambdaBytecodeGate.checkDynamicLambdaMode());
 
         setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "maybe");
-        assertRejected(LambdaBytecodeGate.checkDynamicLambdaMode(),
-                LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, "dynamic-lambda");
+        assertAllowed(LambdaBytecodeGate.checkDynamicLambdaMode());
         }
 
     @Test
     public void shouldReportDynamicLambdaDeniedByModeReason()
         {
-        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "deny");
 
         long cBefore = LambdaBytecodeGate.counter("rejected",
                 LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, LambdaBytecodeGate.Site.LAMBDA);

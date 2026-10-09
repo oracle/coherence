@@ -115,19 +115,23 @@ class JsonSerializerTest
     @Test
     void shouldFallBackToJsonObjectWhenClassIsMissing()
         {
-        String json = "{\"@class\":\"com.missing.Point\",\"x\":22,\"y\":42}";
+        try (CoherenceModeHelper.ModeScope ignored =
+                CoherenceModeHelper.securityCompatibility())
+            {
+            String json = "{\"@class\":\"com.missing.Point\",\"x\":22,\"y\":42}";
 
-        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
-                                                       builder -> builder.setEnforceTypeAliases(false),
-                                                       false);
+            JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
+                                                           builder -> configureTestAliases(builder).setEnforceTypeAliases(false),
+                                                           false);
 
-        JsonObject     obj        = (JsonObject) serializer.underlying().deserialize(json, Object.class);
-        assertEquals("com.missing.Point", obj.getClassName());
-        assertEquals(22, obj.getInt("x"));
-        assertEquals(42, obj.getInt("y"));
+            JsonObject     obj        = (JsonObject) serializer.underlying().deserialize(json, Object.class);
+            assertEquals("com.missing.Point", obj.getClassName());
+            assertEquals(22, obj.getInt("x"));
+            assertEquals(42, obj.getInt("y"));
 
-        String json2 = serializer.underlying().serialize(obj);
-        assertEquals(json, json2);
+            String json2 = serializer.underlying().serialize(obj);
+            assertEquals(json, json2);
+            }
         }
 
     @Test
@@ -593,7 +597,7 @@ class JsonSerializerTest
     void shouldRejectKnownExecutableClassMetadataNames()
         {
         JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
-                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       builder -> configureTestAliases(builder).setEnforceTypeAliases(false),
                                                        false);
 
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
@@ -610,7 +614,7 @@ class JsonSerializerTest
     void shouldAllowClassMetadataThatPassesGateWhenTypeEnforcementDisabled()
         {
         JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
-                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       builder -> configureTestAliases(builder).setEnforceTypeAliases(false),
                                                        false);
 
         Object result = serializer.underlying().deserialize("{\"@class\":\"common.data.Person\","
@@ -624,7 +628,7 @@ class JsonSerializerTest
     void shouldRejectNestedKnownExecutableClassMetadata()
         {
         JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
-                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       builder -> configureTestAliases(builder).setEnforceTypeAliases(false),
                                                        false);
         String json = "{\"@class\":\"" + Holder.class.getName() + "\","
                       + "\"value\":{\"@class\":\"internal.util.invoke.RemoteConstructor\"}}";
@@ -642,7 +646,7 @@ class JsonSerializerTest
     void shouldAllowNestedClassMetadataThatPassesGate()
         {
         JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
-                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       builder -> configureTestAliases(builder).setEnforceTypeAliases(false),
                                                        false);
         String json = "{\"@class\":\"" + Holder.class.getName() + "\","
                       + "\"value\":{\"@class\":\"common.data.Person\","
@@ -675,7 +679,7 @@ class JsonSerializerTest
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
-                                                           builder -> builder.setEnforceTypeAliases(false),
+                                                           builder -> configureTestAliases(builder).setEnforceTypeAliases(false),
                                                            false);
 
             assertClassMetadataRejected(serializer, sClassName);
@@ -854,7 +858,7 @@ class JsonSerializerTest
     public void shouldSerializeBackslash()
         {
         JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
-                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       builder -> configureTestAliases(builder).setEnforceTypeAliases(false),
                                                        false);
 
         Genson              genson = serializer.underlying();

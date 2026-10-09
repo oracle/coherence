@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -40,7 +40,8 @@ public class VectorsIT {
     /**
      * The test cluster name.
      */
-    public static final String CLUSTER_NAME = "vector-store";
+    public static final String CLUSTER_NAME = System.getProperty("coherence.cluster",
+            "vector-store-" + java.util.UUID.randomUUID());
 
     /**
      * A JUnit 5 extension to capture cluster member logs.

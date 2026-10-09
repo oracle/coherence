@@ -20,26 +20,25 @@ Custom federation topologies can also be created as required.
 
 **Connecting Clusters**
 
-When configuring the connection between clusters, there are two methods:
+This example uses direct federation connections between explicitly configured
+endpoints on the same host. Hardened mode checks the incoming endpoint against
+the participant's configured destination, so both clusters must configure the
+other cluster's federation listener.
 
-1. Specify the Coherence Name Service (or cluster port) of one or more cluster members in the destination cluster. Destination members are automatically discovered and connected to. This method is easiest to configure, but not always practical with load balancer or firewall in between clsuters.
-2. Specify a host and port of a destination cluster load balancer, which will load balance across specified hosts and ports on the designation cluster.
-
-In this example we will use the first method by running two clusters on the same host, with different cluster ports, for simplicity of setup.
+The supplied operational configuration selects static lambda serialization for
+use with the default hardened security mode. Run matching Coherence and
+application versions in both clusters: static lambdas require the referenced
+classes to be deployed on every sender and receiver.
 
 NOTE: We are only federating a single service. If you wish to federate multiple services, the section on <<mutliple-services,multiple services>> for more information on this.
 
-This example starts `ClusterA` on cluster port 7574 and `ClusterB` on port 7575 as shown in the diagram below:
+This example starts `ClusterA` on cluster port 7574 with federation listener
+40000, and `ClusterB` on cluster port 7575 with federation listener 40001.
+Federation traffic travels directly between listeners 40000 and 40001.
+The cluster ports remain available for member discovery and CohQL clients.
 
-image::federation.png[width=80%]
-
-Notes - when using Name Service lookup
-
-1. On initial connection to destination cluster from any member, the destination Name Service is contacted to lookup an address to connect to
-2. Once the address of a federated service on one of the members has been provided, the source member communicates directly to the destination member's address to send data
-
-In scenarios where you require Federation across data centres and through firewalls or load balancers, you must specify the address of
-a load balancer. See <<load-balancer-setup,here>> for more information on this example.
+For connections through a load balancer or firewall, see
+<<load-balancer-setup, Using Federation with a Load Balancer>>.
 
 Federation is only available when using Coherence Grid Edition (GE) 12.2.1.4.X and above, and is not available in the open-source
 Coherence Community Edition (CE).
@@ -66,8 +65,8 @@ local Grid Edition Install. See <<installing-coherence,here>> for instructions o
 
 You will review the operational and cache configuration required to set up Federated Coherence clusters and carry out the following:
 
-1. Start one or more cache servers for `ClusterA`
-2. Start one or more cache servers for `ClusterB`
+1. Start one cache server for `ClusterA`
+2. Start one cache server for `ClusterB`
 3. Start a `CohQL` session for `ClusterA`
 4. Start a `CohQL` session for `ClusterB`
 5. Carry out various data operations on each cluster and observe the data being replicated
@@ -77,8 +76,8 @@ get a better idea of how federation works.
 
 We will start the clusters in this example using the following ports.
 
-1. `ClusterA` on 127.0.0.1:7574
-2. `ClusterB` on 127.0.0.1:7575
+1. `ClusterA`: cluster port 127.0.0.1:7574, federation listener 127.0.0.1:40000
+2. `ClusterB`: cluster port 127.0.0.1:7575, federation listener 127.0.0.1:40001
 
 NOTE: If you wish to know more about Coherence Federation, please see the
 {commercial-docs-base-url}/administer/federating-caches-clusters.html[Coherence Documentation].
@@ -149,11 +148,12 @@ include::src/main/resources/federation-cache-config.xml[tag=mapping]
 include::src/main/resources/tangosol-coherence-override.xml[tag=mapping]
 ----
 +
-<1> `ClusterA` participant with its host and port for the cluster Name Service - 127.0.0.1:7574
-<2> `ClusterB` participant with its host and port for the cluster Name Service - 127.0.0.1:7575
+<1> `ClusterA` participant with its direct federation destination - 127.0.0.1:40000
+<2> `ClusterB` participant with its direct federation destination - 127.0.0.1:40001
 <3> Topology that defines an `active-active` configuration between clusters. This is the default and not strictly required.
 
-NOTE: System properties are for the guides internal integration tests and can be ignored.
+The system properties allow the integration test to use isolated cluster names
+and available ports. The defaults match the commands below.
 
 [#run-the-example]
 === Start Cache servers and CohQL
@@ -185,7 +185,7 @@ Linux/MacOS
 +
 [source,bash]
 ----
-java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA  \
+java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA -Dfederation.local.port=40000  \
     -Dcoherence.override=tangosol-coherence-override.xml \
     -Dcoherence.cacheconfig=federation-cache-config.xml com.tangosol.net.Coherence
 ----
@@ -194,7 +194,7 @@ Windows
 +
 [source,bash]
 ----
-java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA  ^
+java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA -Dfederation.local.port=40000  ^
     -Dcoherence.override=tangosol-coherence-override.xml ^
     -Dcoherence.cacheconfig=federation-cache-config.xml com.tangosol.net.Coherence
 ----
@@ -204,6 +204,7 @@ Explanation of system properties:
 - `-Dcoherence.wka=127.0.0.1` - Uses the loopback adapter for the cluster, only for development
 - `-Dcoherence.clusterport=7574` - Defines the coherence cluster port
 - `-Dcoherence.cluster=ClusterA` - Defines the cluster name
+- `-Dfederation.local.port=40000` - Binds the configured direct federation listener; use 40001 for ClusterB
 - `-Dcoherence.override` - override file to define the participants
 - `-Dcoherence.cacheconfig=federation-cache-config.xml` - cache configuration
 
@@ -213,7 +214,7 @@ Linux/MacOS
 +
 [source,bash]
 ----
-java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB  \
+java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB -Dfederation.local.port=40001  \
     -Dcoherence.override=tangosol-coherence-override.xml \
     -Dcoherence.cacheconfig=federation-cache-config.xml com.tangosol.net.Coherence
 ----
@@ -222,7 +223,7 @@ Windows
 +
 [source,bash]
 ----
-java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB  ^
+java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB -Dfederation.local.port=40001  ^
     -Dcoherence.override=tangosol-coherence-override.xml ^
     -Dcoherence.cacheconfig=federation-cache-config.xml com.tangosol.net.Coherence
 ----
@@ -233,7 +234,7 @@ Linux/MacOS
 +
 [source,bash]
 ----
-java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA  \
+java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA -Dfederation.local.port=0  \
     -Dcoherence.override=tangosol-coherence-override.xml \
     -Dcoherence.cacheconfig=federation-cache-config.xml \
     -Dcoherence.distributed.localstorage=false com.tangosol.coherence.dslquery.QueryPlus
@@ -243,9 +244,9 @@ Windows
 +
 [source,bash]
 ----
-java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA  \
-    -Dcoherence.override=tangosol-coherence-override.xml \
-    -Dcoherence.cacheconfig=federation-cache-config.xml \
+java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA -Dfederation.local.port=0  ^
+    -Dcoherence.override=tangosol-coherence-override.xml ^
+    -Dcoherence.cacheconfig=federation-cache-config.xml ^
     -Dcoherence.distributed.localstorage=false com.tangosol.coherence.dslquery.QueryPlus
 ----
 
@@ -255,7 +256,7 @@ Linux/MacOS
 +
 [source,bash]
 ----
-java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB  \
+java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB -Dfederation.local.port=0  \
     -Dcoherence.override=tangosol-coherence-override.xml \
     -Dcoherence.cacheconfig=federation-cache-config.xml \
     -Dcoherence.distributed.localstorage=false com.tangosol.coherence.dslquery.QueryPlus
@@ -265,9 +266,9 @@ Windows
 +
 [source,bash]
 ----
-java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB  \
-    -Dcoherence.override=tangosol-coherence-override.xml \
-    -Dcoherence.cacheconfig=federation-cache-config.xml \
+java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB -Dfederation.local.port=0  ^
+    -Dcoherence.override=tangosol-coherence-override.xml ^
+    -Dcoherence.cacheconfig=federation-cache-config.xml ^
     -Dcoherence.distributed.localstorage=false com.tangosol.coherence.dslquery.QueryPlus
 ----
 
@@ -419,9 +420,12 @@ For detailed information on how to use CohQL, please visit the chapter
 link:{commercial-docs-base-url}/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641[Using Coherence Query Language]
 in the Coherence reference guide.
 +
-**Start a second cache server on either cluster**
+**Add storage members**
 +
-Use the commands above to start a second cache server on either of the clusters.
+Assign each additional storage member a distinct federation listener port, and add
+that endpoint to the participant destination configuration in both clusters before
+starting it. The fixed listener ports in the commands above are for one storage
+member per cluster.
 
 7. Monitor Federation
 +
@@ -443,187 +447,28 @@ There are other options outlined below for monitoring Federation:
 [#load-balancer-setup]
 === Using Federation with a Load Balancer
 
-In this example we have used a simplified Federation setup using the Name Service to demonstrate the capabilities. In most cases
-you will need to send data to another data centre via either a load balancer and/or through a firewall.
+The example configures one storage member in each cluster. For a larger topology,
+configure a stable listener for every storage member and list the expected peer
+endpoints in the corresponding `participant-destination` on both sides. Open the
+chosen listener ports in the firewall.
 
-This requires a couple of changes to the setup we have configured for this example.
-
-1. A load balancer on either side needs to be configured on a specified host and chosen cluster port, e.g. 40000 in our case.
-2. The participant addresses needs to be set to this load balancer IP and port
-3. The cache configuration must be updated to a specific listen port for federation
-
-This setup is shown below:
-
-image::federation-lbr.png[width=80%]
-
-See below for the changes required, excluding the load balancer setup.
-
-1. Create a load balancer on each site to load balance across the federation port 40000 on all back-end storage-enabled members for that cluster.
-
-2. Update the `tangosol-coherence-override.xml`, and add each of the cluster's respective load balancer IP address and a port you are going use for federation. We have chosen 40000, in this example.
-+
-We have updated each of the `<paticipant>` entries for the clusters below.
-+
-[source,xml]
-----
-<participants>
-  <participant>
-    <name>ClusterA</name>
-    <remote-addresses>
-      <socket-address>
-        <address>ClusterA-load-balancer-ip</address>  <!--1-->
-        <port>40000</port>  <!--2-->
-      </socket-address>
-    </remote-addresses>
-  </participant>
-  <participant>
-    <name>ClusterB</name>
-    <remote-addresses>
-      <socket-address>
-        <address>ClusterB-load-balancer-ip</address>  <!--3-->
-        <port>40000</port>  <!--4-->
-      </socket-address>
-    </remote-addresses>
-  </participant>
-</participants>
-----
-<1> ClusterA load balancer IP
-<2> ClusterA port, 40000
-<3> ClusterB load balancer IP
-<4> ClusterB port, 40000
-
-3. Update the `federated-cache-config.xml` and add the `<address-provider>` element in the `<federated-scheme>` to specify a port for the member to listen on for federation.
-+
-[source,xml]
-----
-<federated-scheme>
-  <scheme-name>federated</scheme-name>
-  <service-name>FederatedPartitionedCache</service-name>
-  <backing-map-scheme>
-    <local-scheme>
-      <unit-calculator>BINARY</unit-calculator>
-    </local-scheme>
-  </backing-map-scheme>
-  <autostart>true</autostart>
-  <address-provider>
-    <local-address>
-      <address/> <!--1-->
-      <port>40000</port>  <!--2-->
-    </local-address>
-  </address-provider>
-  <topologies>
-    <topology>
-      <name>MyTopology</name>
-    </topology>
-  </topologies>
-</federated-scheme>
-----
-<1> Optional local address to listen on, defaults to 0.0.0.0 or all addresses if not specified
-<2> Local port to listen on. This is the port that will be redirected to by the load balancer.
-+
-NOTE: This will ensure that the member starts federation on a specify port, instead of using and ephemeral port. This
-fixed port can then be load balanced to by the load balancer.
+A load balancer introduces an additional endpoint mapping. In hardened mode, an
+inbound connection's asserted endpoint must still match a configured peer
+endpoint; a load balancer's virtual address alone does not establish that match.
+Validate that mapping in both directions when designing the deployment. See the
+{commercial-docs-base-url}/administer/federating-caches-clusters.html[Federation Documentation]
+for deployment options.
 
 [#mutliple-services]
 === Federating Multiple Services
 
-If you are using the Name Service method, then there are no changes required, but if you are using a load balancer, then you will need to do the following:
-
-1. Add a second port on your load balancers, e.g. 40001, which will across the federation port 40001 on all back-end storage-enabled members for that cluster.
-
-2. Update the `tangosol-coherence-override.xml`, and add each of the cluster's respective load balancer IP address **and each port** you are going use for federation. We have chosen 40000, in this example.
-+
-We have updated each of the `<paticipant>` entries for the clusters below.
-+
-[source,xml]
-----
-<participants>
-  <participant>
-    <name>ClusterA</name>
-    <remote-addresses>
-      <socket-address>
-        <address>ClusterA-load-balancer-ip</address>  <!--1-->
-        <port>40000</port>  <!--2-->
-      </socket-address>
-      <socket-address>
-        <address>ClusterA-load-balancer-ip</address>  <!--3-->
-        <port>40001</port>  <!--4-->
-      </socket-address>
-    </remote-addresses>
-  </participant>
-  <participant>
-    <name>ClusterB</name>
-    <remote-addresses>
-      <socket-address>
-        <address>ClusterB-load-balancer-ip</address>
-        <port>40000</port>
-      </socket-address>
-      <socket-address>
-        <address>ClusterB-load-balancer-ip</address>
-        <port>40001</port>
-      </socket-address>
-    </remote-addresses>
-  </participant>
-</participants>
-----
-<1> ClusterA load balancer IP
-<2> ClusterA port, 40000 (first service)
-<3> ClusterA load balancer IP
-<4> ClusterA port, 40001 (second service)
-
-
-3. Update the `federated-cache-config.xml` and add an additional `<address-provider>` element in the `<federated-scheme>` to specify a port for the member to listen on for the second service.
-+
-[source,xml]
-----
-<federated-scheme>
-  <scheme-name>federated</scheme-name>
-  <service-name>FederatedPartitionedCache</service-name>
-  <backing-map-scheme>
-    <local-scheme>
-      <unit-calculator>BINARY</unit-calculator>
-    </local-scheme>
-  </backing-map-scheme>
-  <autostart>true</autostart>
-  <address-provider>
-    <local-address>
-      <address/> <!--1-->
-      <port>40000</port>  <!--2-->
-    </local-address>
-  </address-provider>
-  <topologies>
-    <topology>
-      <name>MyTopology</name>
-    </topology>
-  </topologies>
-</federated-scheme>
-
-<federated-scheme>
-  <scheme-name>federated2</scheme-name>
-  <service-name>FederatedPartitionedCache2</service-name>
-  <backing-map-scheme>
-    <local-scheme>
-      <unit-calculator>BINARY</unit-calculator>
-    </local-scheme>
-  </backing-map-scheme>
-  <autostart>true</autostart>
-  <address-provider>
-    <local-address>
-      <address/> <!--3-->
-      <port>40001</port>  <!--4-->
-    </local-address>
-  </address-provider>
-  <topologies>
-    <topology>
-      <name>MyTopology</name>
-    </topology>
-  </topologies>
-</federated-scheme>
-----
-<1> Optional local address to listen on, defaults to 0.0.0.0 or all addresses if not specified
-<2> Local port to listen on for `FederatedPartitionedCache` service . This is the port that will be redirected to by the load balancer.
-<3> Optional local address to listen on, defaults to 0.0.0.0 or all addresses if not specified
-<4> Local port to listen on for `FederatedPartitionedCache2` service . This is the port that will be redirected to by the load balancer.
+Give each federated service its own destination name and stable listener port.
+For example, a second service can use destination `direct2` and ports 40002 and
+40003 on the two local clusters. Add a `participant-destination` named `direct2`
+for each participant, with that participant's listener address and port. Set the
+second service's `<participant-destination-name>` to `direct2` and configure its
+`<address-provider>` to bind its local listener. Keep destination names and peer
+endpoints consistent on both sides.
 
 [#summary]
 === Summary

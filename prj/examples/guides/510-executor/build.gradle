@@ -9,6 +9,7 @@ import groovy.xml.XmlSlurper
 
 plugins {
 	id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
 
 java {
@@ -54,6 +55,10 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+}
+
+securityConfig {
+    processTestClasses = true
 }
 
 apply from: '../../gradle/example-test-network.gradle'

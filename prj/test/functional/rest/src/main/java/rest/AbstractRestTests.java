@@ -18,6 +18,7 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.HttpAcceptor;
 
+import com.tangosol.coherence.rest.RestExpressionPolicy;
 import com.tangosol.coherence.rest.providers.JacksonMapperProvider;
 
 import com.tangosol.coherence.rest.util.JsonMap;
@@ -246,7 +247,7 @@ public abstract class AbstractRestTests
     @Test
     public void testGetEntriesPartialJson()
         {
-        WebTarget webTarget = getWebTarget("dist-test1/entries.json;p=name,age");
+        WebTarget webTarget = getWebTarget("dist-test1/entries.json;p=" + getExpression("summary", "name,age"));
         Response  response  = webTarget.request().get();
         int       status    = response.getStatus();
         assertEquals(200 /* OK */, status);
@@ -289,6 +290,20 @@ public abstract class AbstractRestTests
         {
         Client client = getClient();
         return client.target(getResourceUrl(url) + attr);
+        }
+
+    /**
+     * Select a configured alias in hardened mode and the raw expression in
+     * compatibility mode.
+     *
+     * @param sAlias       the alias in coherence-rest-config.xml
+     * @param sExpression  the compatibility expression
+     *
+     * @return the request argument for the current security mode
+     */
+    protected String getExpression(String sAlias, String sExpression)
+        {
+        return RestExpressionPolicy.isCompatibilityExpressionAllowed() ? sExpression : sAlias;
         }
 
     protected void testGetInternal(WebTarget webTarget)
@@ -498,7 +513,7 @@ public abstract class AbstractRestTests
     @Test
     public void testGetEntriesPartialXml()
         {
-        WebTarget webTarget = getWebTarget("dist-test1/entries;p=name,age,dateOfBirth");
+        WebTarget webTarget = getWebTarget("dist-test1/entries;p=" + getExpression("person-dates", "name,age,dateOfBirth"));
 
         Response  response  = webTarget.request(MediaType.APPLICATION_XML).get();
         int       status    = response.getStatus();
@@ -531,7 +546,7 @@ public abstract class AbstractRestTests
     public void testPartialGetJson()
             throws JSONException
         {
-        WebTarget webTarget = getWebTarget("dist-test1/1;p=name,address:(city,state),children:(name)");
+        WebTarget webTarget = getWebTarget("dist-test1/1;p=" + getExpression("person-details", "name,address:(city,state),children:(name)"));
 
         Response  response  = webTarget.request(MediaType.APPLICATION_JSON).get();
         int       status    = response.getStatus();
@@ -563,7 +578,7 @@ public abstract class AbstractRestTests
     @Test
     public void testPartialGetXml()
         {
-        WebTarget webTarget = getWebTarget("dist-test1/1;p=name,address:(city,state),children:(name)");
+        WebTarget webTarget = getWebTarget("dist-test1/1;p=" + getExpression("person-details", "name,address:(city,state),children:(name)"));
 
         Response  response  = webTarget.request(MediaType.APPLICATION_XML).get();
         int       status    = response.getStatus();
@@ -983,7 +998,7 @@ public abstract class AbstractRestTests
     @Test
     public void testCustomProcessingJson()
         {
-        WebTarget webTarget = getWebTarget("dist-test-proc/(1,2)/custom-number-doubler(Age)");
+        WebTarget webTarget = getWebTarget("dist-test-proc/(1,2)/custom-number-doubler(" + getExpression("age", "Age") + ")");
 
         NamedCache cache = getNamedCache("dist-test-proc");
 
@@ -1035,7 +1050,7 @@ public abstract class AbstractRestTests
     @Test
     public void testCustomProcessingFactoryJson()
         {
-        WebTarget webTarget = getWebTarget("dist-test-proc/(1,2)/custom-number-doubler-factory(Age)");
+        WebTarget webTarget = getWebTarget("dist-test-proc/(1,2)/custom-number-doubler-factory(" + getExpression("age", "Age") + ")");
 
         Response response = webTarget.request(MediaType.APPLICATION_JSON).post(Entity.text(""));
         int      status   = response.getStatus();
@@ -1147,7 +1162,7 @@ public abstract class AbstractRestTests
         boolean swap   = entity.equals("<?xml version=\"1.0\" encoding=\"UTF-8\" ?><collection><Persona><addresses/><age>37</age><name>Vaso</name></Persona><Persona><addresses/><age>37</age><name>Aleks</name></Persona></collection>");
         assertTrue(orig || swap);
 
-        webTarget = getWebTarget("dist-test-named-query", "/age-37-query;p=age,name");
+        webTarget = getWebTarget("dist-test-named-query", "/age-37-query;p=" + getExpression("summary", "age,name"));
 
         response  = webTarget.request(MediaType.APPLICATION_XML).get();
         status    = response.getStatus();
@@ -1200,7 +1215,7 @@ public abstract class AbstractRestTests
 
         assertTrue(orig || swap);
 
-        webTarget = getWebTarget("dist-test-named-query", "/age-37-query/entries;p=age,name");
+        webTarget = getWebTarget("dist-test-named-query", "/age-37-query/entries;p=" + getExpression("summary", "age,name"));
 
         response  = webTarget.request(MediaType.APPLICATION_XML).get();
         status    = response.getStatus();

@@ -24,6 +24,7 @@
     <class name="events.TransactionEventTests$UnsolicitedPutProcesser" source="manual" executable="true"/>
     <class name="events.common.AbstractTestInterceptor$ErrorAccumulator" source="manual" executable="true"/>
     <class name="events.common.AbstractTestInterceptor$Expectations" source="manual"/>
+    <class name="events.common.AbstractTestInterceptor$Expectations$AbstractExpectation" source="manual"/>
     <class name="events.common.AbstractTestInterceptor$Expectations$CacheEntryExpectation" source="manual"/>
     <class name="events.common.AbstractTestInterceptor$ExpectationsInformerInvocable" source="manual" executable="true"/>
     <class name="events.common.AbstractTestInterceptor$ResetAccumulator" source="manual" executable="true"/>

@@ -16,6 +16,9 @@
     <class name="concurrent.PofClusteredRemoteSemaphoreExtendIT" source="manual"/>
     <class name="concurrent.PofClusteredRemoteSemaphoreExtendProxyIT" source="manual"/>
     <class name="concurrent.PofClusteredRemoteSemaphoreIT" source="manual"/>
+    <class name="concurrent.atomic.AtomicIntegerTest" source="manual"/>
+    <class name="concurrent.atomic.AtomicLongTest" source="manual"/>
+    <class name="concurrent.atomic.AtomicReferenceTest" source="manual"/>
     <class name="concurrent.locks.ClusteredRemoteLockExtendIT" source="manual"/>
     <class name="concurrent.locks.ClusteredRemoteLockExtendProxyIT" source="manual"/>
     <class name="concurrent.locks.ClusteredRemoteLockIT" source="manual"/>
@@ -28,6 +31,7 @@
     <class name="concurrent.locks.PofClusteredRemoteReadWriteLockExtendIT" source="manual"/>
     <class name="concurrent.locks.PofClusteredRemoteReadWriteLockExtendProxyIT" source="manual"/>
     <class name="concurrent.locks.PofClusteredRemoteReadWriteLockIT" source="manual"/>
+    <class name="concurrent.executor.AbstractRemoteExecutorTest" source="manual" lambda-target="true"/>
     <class name="concurrent.executor.RemoteExecutorInstallModeMatrixIT$AnnotatedCallable" source="manual" executable="true"/>
     <class name="concurrent.executor.RemoteExecutorInstallModeMatrixIT$AnnotatedExecutorPredicate" source="manual" executable="true"/>
     <class name="concurrent.executor.RemoteExecutorInstallModeMatrixIT$AnnotatedTask" source="manual" executable="true"/>

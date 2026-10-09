@@ -50,6 +50,7 @@ import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.oracle.coherence.grpc.proxy.common.ProxyServiceChannel;
 
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.NamedCache;
@@ -136,7 +137,15 @@ public class NamedCacheProxyProtocolIT
         RequestIncompleteException ex = assertThrows(RequestIncompleteException.class,
                 () -> sendCacheRequest(channel, observer, 0, NamedCacheRequestType.Get, BytesValue.getDefaultInstance()));
 
-        assertThat(ex.getMessage(), startsWith("Missing channel id in request"));
+        if (CoherenceMode.isSecurityHardeningEnabled())
+            {
+            assertThat(ex.getMessage(), is(ErrorsHelper.SAFE_INTERNAL_ERROR_MESSAGE));
+            assertThat(ex.getCause(), is(nullValue()));
+            }
+        else
+            {
+            assertThat(ex.getMessage(), startsWith("Missing channel id in request"));
+            }
         }
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
@@ -866,7 +875,7 @@ public class NamedCacheProxyProtocolIT
         init(channel, observer, serializer, sScope);
         int cacheId = ensureCache(channel, observer, sCacheName);
 
-        Filter<Person>                 filter   = new EqualsFilter<>("getAge", 25);
+        Filter<Person>                 filter   = new EqualsFilter<>(new UniversalExtractor<>("age"), 25);
         Set<Map.Entry<String, Person>> expected = cache.entrySet(filter);
 
         ByteString   filterBytes  = BinaryHelper.toByteString(filter, serializer);
@@ -936,7 +945,7 @@ public class NamedCacheProxyProtocolIT
         init(channel, observer, serializer, sScope);
         int cacheId = ensureCache(channel, observer, sCacheName);
 
-        Filter<Person>                 filter   = new EqualsFilter<>("getAge", 100);
+        Filter<Person>                 filter   = new EqualsFilter<>(new UniversalExtractor<>("age"), 100);
         Set<Map.Entry<String, Person>> expected = cache.entrySet(filter);
 
         ByteString   filterBytes  = BinaryHelper.toByteString(filter, serializer);
@@ -2283,7 +2292,7 @@ public class NamedCacheProxyProtocolIT
         init(channel, observer, serializer, sScope);
         int cacheId = ensureCache(channel, observer, sCacheName);
 
-        Filter<Person> filter       = new EqualsFilter<>("getAge", 25);
+        Filter<Person> filter       = new EqualsFilter<>(new UniversalExtractor<>("age"), 25);
         List<String>   listExpected = new ArrayList<>(cache.keySet(filter));
         ByteString     filterBytes  = BinaryHelper.toByteString(filter, serializer);
         QueryRequest   request      = QueryRequest.newBuilder()
@@ -2359,7 +2368,7 @@ public class NamedCacheProxyProtocolIT
         init(channel, observer, serializer, sScope);
         int cacheId = ensureCache(channel, observer, sCacheName);
 
-        Filter<Person> filter      = new EqualsFilter<>("getAge", 100);
+        Filter<Person> filter      = new EqualsFilter<>(new UniversalExtractor<>("age"), 100);
         ByteString     filterBytes = BinaryHelper.toByteString(filter, serializer);
         QueryRequest   request     = QueryRequest.newBuilder()
                                                 .setFilter(filterBytes)
@@ -3163,7 +3172,7 @@ public class NamedCacheProxyProtocolIT
         init(channel, observer, serializer, sScope);
         int cacheId = ensureCache(channel, observer, sCacheName);
 
-        Filter<Person>     filter      = new EqualsFilter<>("getAge", 25);
+        Filter<Person>     filter      = new EqualsFilter<>(new UniversalExtractor<>("age"), 25);
         Collection<Person> colExpected = cache.values(filter);
         ByteString         filterBytes = BinaryHelper.toByteString(filter, serializer);
 
@@ -3244,7 +3253,7 @@ public class NamedCacheProxyProtocolIT
         init(channel, observer, serializer, sScope);
         int cacheId = ensureCache(channel, observer, sCacheName);
 
-        Filter<Person>                 filter      = new EqualsFilter<>("getAge", 100);
+        Filter<Person>                 filter      = new EqualsFilter<>(new UniversalExtractor<>("age"), 100);
         Collection<Person>             colExpected = cache.values(filter);
         ByteString                     filterBytes = BinaryHelper.toByteString(filter, serializer);
 
@@ -3448,8 +3457,8 @@ public class NamedCacheProxyProtocolIT
                     {
                     cause = BinaryHelper.fromByteString(error.getError(), proxy.getSerializer());
                     }
-                throw new RequestIncompleteException(error.getMessage(), cause);
                 }
+            throw new RequestIncompleteException(error.getMessage(), cause);
             }
         if (proxyResponse.getResponseCase() == ProxyResponse.ResponseCase.COMPLETE)
             {
@@ -3499,8 +3508,8 @@ public class NamedCacheProxyProtocolIT
                         {
                         cause = BinaryHelper.fromByteString(error.getError(), proxy.getSerializer());
                         }
-                    throw new RequestIncompleteException(error.getMessage(), cause);
                     }
+                throw new RequestIncompleteException(error.getMessage(), cause);
                 }
             if (proxyResponse.getResponseCase() == ProxyResponse.ResponseCase.COMPLETE)
                 {

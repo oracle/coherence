@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -49,6 +49,7 @@ import java.io.IOException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Test messages output from suspect protocol.
@@ -83,8 +84,11 @@ public class SuspectProtocolTests
     @BeforeClass
     public static void startup()
         {
+        Properties propsServer = new Properties();
+        propsServer.setProperty("coherence.invocation.enabled", "true");
+
         CoherenceClusterMember memberProxy = startCacheServer("SuspectProtocolTests", "extend",
-                                                     "server-cache-config-suspect-protocol.xml");
+                                                     "server-cache-config-suspect-protocol.xml", propsServer);
         Eventually.assertThat(invoking(memberProxy).isServiceRunning("ExtendTcpProxyService"), is(true));
         }
 

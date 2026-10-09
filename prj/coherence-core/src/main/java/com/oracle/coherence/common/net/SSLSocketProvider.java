@@ -28,6 +28,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
 import com.oracle.coherence.common.internal.net.ssl.SSLCertUtility;
@@ -224,6 +225,46 @@ public class SSLSocketProvider
             {
             getDependencies().getLogger().log(Level.WARNING, "Using self-signed SSL certificate in production environment is not recommended.\nPlease use SSL certificate that is signed by an certificate authority.");
             }
+        }
+
+    /**
+     * Validate a session, taking the local endpoint's TLS role into account.
+     * A server that does not require client authentication may complete a
+     * handshake without a client certificate. In that case there is no client
+     * hostname to verify unless an explicit verifier has been configured.
+     *
+     * @param session      the established SSL session
+     * @param socket       the connected socket
+     * @param fClientMode  {@code true} if this endpoint is the TLS client
+     *
+     * @throws SSLException if the session is not acceptable
+     *
+     * @since 26.10
+     */
+    public void ensureSessionValidity(SSLSession session, Socket socket, boolean fClientMode)
+            throws SSLException
+        {
+        if (session == null || socket == null)
+            {
+            throw new IllegalArgumentException();
+            }
+
+        Dependencies deps = getDependencies();
+        if (!fClientMode && deps.getClientAuth() != ClientAuthMode.required
+                && deps.getHostnameVerifier() == null && session.isValid())
+            {
+            try
+                {
+                session.getPeerCertificates();
+                }
+            catch (SSLPeerUnverifiedException e)
+                {
+                // a completed one-way handshake has no client identity to verify
+                return;
+                }
+            }
+
+        ensureSessionValidity(session, socket);
         }
 
     /**

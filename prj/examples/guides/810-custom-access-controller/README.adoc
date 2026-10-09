@@ -511,6 +511,12 @@ This class is actually used by cluster members for a similar task to transfer th
 As the `com.tangosol.net.security` package is part of the Coherence public API we can safely use it.
 
 The `PermissionInfo` class contains a `ClusterPermission`, the name of the remote service, a `SignedObject` and a `Subject`.
+The supplied `META-INF/coherence/security-config.xml` explicitly approves
+`java.security.SignedObject` and the exact X.500 principal and X.509 certificate
+representations used by this certificate-based protocol in hardened mode.
+The access controller verifies its signature against a trusted public key before
+reading the signed permission. Include this approval only in applications that
+use this protocol; it does not grant approval to arbitrary serialized payloads.
 The `SignedObject` is actually the `ClusterPermission` encrypted using the subjects private key.
 When the `PermissionInfo` is serialized by the client, the subject's principal and any public credentials are also
 serialized, which is exactly what we want. The subjects' private credentials are never serialized or sent to the server.

@@ -138,6 +138,7 @@ class GrpcAuthenticationTest
     @Test
     void shouldAllowCleartextBasicWhenHardeningIsDisabled()
         {
+        securityMode("compatibility");
         Attributes attributes = Attributes.newBuilder()
                 .set(Grpc.TRANSPORT_ATTR_REMOTE_ADDR, new InetSocketAddress("127.0.0.1", 1234))
                 .build();
@@ -147,6 +148,21 @@ class GrpcAuthenticationTest
 
         mode("dev");
         assertDoesNotThrow(() -> GrpcAuthentication.validateBasicTransport(attributes));
+        }
+
+    @Test
+    void shouldRejectCleartextBasicWhenSecurityModeIsAbsent()
+        {
+        securityMode(null);
+        Attributes attributes = Attributes.newBuilder()
+                .set(Grpc.TRANSPORT_ATTR_REMOTE_ADDR, new InetSocketAddress("127.0.0.1", 1234))
+                .build();
+
+        for (String sMode : new String[] {null, "dev", "prod"})
+            {
+            mode(sMode);
+            assertUnauthenticated(() -> GrpcAuthentication.validateBasicTransport(attributes));
+            }
         }
 
     @Test

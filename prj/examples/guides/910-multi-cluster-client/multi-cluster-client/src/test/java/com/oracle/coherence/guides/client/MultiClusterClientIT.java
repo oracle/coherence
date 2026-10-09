@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,6 +29,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class MultiClusterClientIT
         extends AbstractMultiClusterClientIT {
+    private static final String CLUSTER_SUFFIX = java.util.UUID.randomUUID().toString();
+
 
     /**
      * The port the Extend proxy in the Tenants' admin cluster will listen on.
@@ -68,7 +70,7 @@ public class MultiClusterClientIT
     @Order(2)
     static CoherenceClusterExtension marvel = new CoherenceClusterExtension()
             .include(1, CoherenceClusterMember.class,
-                    ClusterName.of("Marvel"),
+                    ClusterName.of("Marvel-" + CLUSTER_SUFFIX),
                     SystemProperty.of("coherence.extend.port", marvelPort),
                     SystemProperty.of(GrpcDependencies.PROP_PORT, 0),
                     SystemProperty.of("webserver.port", 0),
@@ -86,8 +88,9 @@ public class MultiClusterClientIT
     @Order(2)
     static CoherenceClusterExtension starWars = new CoherenceClusterExtension()
             .include(1, CoherenceClusterMember.class,
-                    ClusterName.of("StarWars"),
+                    ClusterName.of("StarWars-" + CLUSTER_SUFFIX),
                     SystemProperty.of(GrpcDependencies.PROP_PORT, starWarsPort),
+                    SystemProperty.of("coherence.grpc.serializer.allowlist", "java"),
                     SystemProperty.of("webserver.port", 0),
                     RoleName.of("storage"),
                     IPv4Preferred.yes(),
@@ -103,7 +106,7 @@ public class MultiClusterClientIT
     @Order(3)
     static CoherenceClusterExtension tenants = new CoherenceClusterExtension()
             .include(1, CoherenceClusterMember.class,
-                    ClusterName.of("Tenants"),
+                    ClusterName.of("Tenants-" + CLUSTER_SUFFIX),
                     SystemProperty.of("coherence.extend.port", adminPort),
                     SystemProperty.of(GrpcDependencies.PROP_PORT, 0),
                     SystemProperty.of("webserver.port", 0),
@@ -121,7 +124,7 @@ public class MultiClusterClientIT
     @Order(4)
     static CoherenceClusterExtension client = new CoherenceClusterExtension()
             .include(1, CoherenceClusterMember.class,
-                    ClusterName.of("client"),
+                    ClusterName.of("client-" + CLUSTER_SUFFIX),
                     SystemProperty.of("webserver.port", httpPort),
                     SystemProperty.of("coherence.client", "remote-fixed"),
                     SystemProperty.of("coherence.extend.address", "127.0.0.1"),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -171,7 +171,7 @@ public class KeyTool
         // Generate OpenSSL X509 extensions
         try (PrintStream out = new PrintStream(new FileOutputStream(fileConfig)))
             {
-            out.print("subjectAltName=DNS:" + InetAddress.getLocalHost().getHostName());
+            out.print("subjectAltName=DNS:localhost,DNS:" + InetAddress.getLocalHost().getHostName());
             List<InetAddress> listAddress = InetAddressHelper.getAllLocalAddresses();
             for (InetAddress address : listAddress)
                 {

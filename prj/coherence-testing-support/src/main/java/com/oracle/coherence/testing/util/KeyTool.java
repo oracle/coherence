@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -305,11 +305,11 @@ public class KeyTool
                 out.println("extendedKeyUsage = serverAuth,clientAuth");
                 }
 
-            out.print("subjectAltName = DNS:" + InetAddress.getLocalHost().getHostName());
+            out.print("subjectAltName = DNS:localhost,IP:127.0.0.1,IP:::1,DNS:" + InetAddress.getLocalHost().getHostName());
             List<InetAddress> listAddress = InetAddressHelper.getAllLocalAddresses();
             for (InetAddress address : listAddress)
                 {
-                if (address instanceof Inet4Address)
+                if (address instanceof Inet4Address && !address.isLoopbackAddress())
                     {
                     out.printf(",IP:%s", address.getHostAddress());
                     }

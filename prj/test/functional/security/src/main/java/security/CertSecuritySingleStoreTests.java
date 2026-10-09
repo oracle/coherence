@@ -32,9 +32,9 @@ import com.oracle.coherence.testing.BedrockInvocationProperties;
 import com.oracle.coherence.testing.util.KeyTool;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.util.Resources;
+import org.junit.ClassRule;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
@@ -48,6 +48,9 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 
 public class CertSecuritySingleStoreTests
     {
+    @ClassRule
+    public static final LegacySecurityRule s_legacySecurity = new LegacySecurityRule();
+
     @BeforeClass
     public static void setup() throws Exception
         {
@@ -73,13 +76,14 @@ public class CertSecuritySingleStoreTests
         String sPattern = sCertDir + File.separatorChar + "member-%s.jks";
 
         // Common Bedrock options for all processes
-        s_commonOptions = OptionsByType.of(ClusterName.of("CertSecuritySingleStoreTests"),
+        s_commonOptions = OptionsByType.of(ClusterName.of(System.getProperty("coherence.cluster")),
                                 LocalHost.only(),
                                 WellKnownAddress.loopback(),
                                 HeapSize.of(64, HeapSize.Units.MB, 128, HeapSize.Units.MB),
                                 OperationalOverride.of("cert-default-override.xml"),
                                 CacheConfig.of("cert-cache.config.xml"),
                                 SystemProperty.of("coherence.storage.authorizer", "capture"),
+                                SystemProperty.of("coherence.security.mode", "compatibility"),
                                 SystemProperty.of("java.security.auth.login.config", s_urlLogin.getFile()),
                                 SystemProperty.of("coherence.security.config", "cert-security-config.xml"),
                                 SystemProperty.of("coherence.security.login.password", s_keyAndCertStorage1.storePasswordString()),
@@ -91,7 +95,7 @@ public class CertSecuritySingleStoreTests
 
         if (Config.getBoolean("coherence.security.test.local", false))
             {
-            System.setProperty("coherence.cluster", "CertSecuritySingleStoreTests");
+            // the rule supplies a unique cluster name shared by every member
             System.setProperty("coherence.localhost", "127.0.0.1");
             System.setProperty("coherence.wka", "127.0.0.1");
             System.setProperty("coherence.override", "cert-default-override.xml");

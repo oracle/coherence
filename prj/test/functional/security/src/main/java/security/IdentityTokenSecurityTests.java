@@ -6,10 +6,14 @@
  */
 package security;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,8 +33,10 @@ import org.junit.Test;
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.greaterThan;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -59,18 +65,20 @@ public class IdentityTokenSecurityTests
             throw new RuntimeException("failed to create malicious identity marker", e);
             }
 
+        s_mode = CoherenceModeHelper.securityHardened();
+        System.setProperty("coherence.cluster", "IdentityTokenSecurityTests-" + System.nanoTime());
         System.setProperty("coherence.override", "security-malicious-identity-override.xml");
         System.setProperty("java.security.auth.login.config", "login.config");
         System.setProperty("test.malicious.identity.marker", s_pathMarker.toString());
         AbstractFunctionalTest._startup();
 
         Properties props = new Properties();
-        props.setProperty("test.server.classname", "security.SubjectCacheServer");
+        props.setProperty("coherence.security.mode", "hardened");
         props.setProperty("test.malicious.identity.marker", s_pathMarker.toString());
 
-        CoherenceClusterMember clusterMember = startCacheServer("IdentityTokenSecurityTests", "security",
+        s_member = startCacheServer("IdentityTokenSecurityTests", "security",
                 "server-cache-config-java-identity.xml", props);
-        Eventually.assertThat(invoking(clusterMember).isServiceRunning("TcpProxyService"), is(true));
+        Eventually.assertThat(invoking(s_member).isServiceRunning("TcpProxyService"), is(true));
         }
 
     @AfterClass
@@ -82,12 +90,14 @@ public class IdentityTokenSecurityTests
             Files.deleteIfExists(s_pathMarker);
             }
         System.clearProperty("test.malicious.identity.marker");
+        s_mode.close();
         }
 
     @Test
     public void shouldRejectMaliciousIdentityTokenBeforeMaterialization() throws Exception
         {
         Subject subject = NameServiceSecurityTests.loginJAAS("manager", "password");
+        long cRejected = identityFilterRejections();
 
         try
             {
@@ -100,11 +110,29 @@ public class IdentityTokenSecurityTests
             }
         catch (RuntimeException expected)
             {
-            // expected
+            Throwable cause = expected;
+            while (cause.getCause() != null)
+                {
+                cause = cause.getCause();
+                }
+            assertTrue("expected a security rejection: " + expected, cause instanceof SecurityException);
             }
 
+        // the peer sanitizes the client error; verify the server reached the token filter
+        Eventually.assertDeferred(IdentityTokenSecurityTests::identityFilterRejections, greaterThan(cRejected));
         assertFalse(Files.exists(s_pathMarker));
         }
 
+    private static long identityFilterRejections()
+        {
+        return s_member.invoke(() -> SerializationTelemetry.snapshot().entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith("coh.serialization.filter_check{result=rejected,"
+                        + "reason=serialization-allowlist-rejected,")
+                        && entry.getKey().contains(",route=UNCLASSIFIED,"))
+                .mapToLong(entry -> entry.getValue()).sum());
+        }
+
+    private static CoherenceClusterMember s_member;
     private static Path s_pathMarker;
+    private static CoherenceModeHelper.ModeScope s_mode;
     }

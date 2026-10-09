@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.io.json.internal;
+
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.oracle.coherence.io.json.JsonSerializer;
 
@@ -101,24 +103,28 @@ class EvolvableHandlerTest
     @Test
     void testRoundTripWithMissingClass() throws IOException
         {
-        String v3 = "{\n" +
-                    "  \"@class\":\"com.oracle.coherence.io.json.internal.EvolvableHandlerTest$PersonV1\",\n" +
-                    "  \"age\":50,\n" +
-                    "  \"name\":\"Homer\",\n" +
-                    "  \"address\":{\n" +
-                    "    \"@class\":\"com.missing.Address\",\n" +
-                    "    \"city\":\"Springfield\"\n" +
-                    "  }\n" +
-                    "}";
+        try (CoherenceModeHelper.ModeScope ignored =
+                CoherenceModeHelper.securityCompatibility())
+            {
+            String v3 = "{\n" +
+                        "  \"@class\":\"com.oracle.coherence.io.json.internal.EvolvableHandlerTest$PersonV1\",\n" +
+                        "  \"age\":50,\n" +
+                        "  \"name\":\"Homer\",\n" +
+                        "  \"address\":{\n" +
+                        "    \"@class\":\"com.missing.Address\",\n" +
+                        "    \"city\":\"Springfield\"\n" +
+                        "  }\n" +
+                        "}";
 
-        JsonValue homerV3   = SERIALIZER.deserialize(new ByteArrayReadBuffer(v3.getBytes()).getBufferInput(),
-                                                    JsonValue.class);
-        Binary    bin       = ExternalizableHelper.toBinary(homerV3, SERIALIZER);
-        PersonV1  homerV1   = ExternalizableHelper.fromBinary(bin, SERIALIZER, PersonV1.class);
-        Binary    binActual = ExternalizableHelper.toBinary(homerV1, SERIALIZER);
-        System.out.println(new String(bin.toByteArray()));
-        System.out.println(new String(binActual.toByteArray()));
-        assertEquals(bin, binActual);
+            JsonValue homerV3   = SERIALIZER.deserialize(new ByteArrayReadBuffer(v3.getBytes()).getBufferInput(),
+                                                        JsonValue.class);
+            Binary    bin       = ExternalizableHelper.toBinary(homerV3, SERIALIZER);
+            PersonV1  homerV1   = ExternalizableHelper.fromBinary(bin, SERIALIZER, PersonV1.class);
+            Binary    binActual = ExternalizableHelper.toBinary(homerV1, SERIALIZER);
+            System.out.println(new String(bin.toByteArray()));
+            System.out.println(new String(binActual.toByteArray()));
+            assertEquals(bin, binActual);
+            }
         }
 
     // ----- inner class: PersonV1 ------------------------------------------
@@ -307,6 +313,8 @@ class EvolvableHandlerTest
     // ----- data members ---------------------------------------------------
 
     protected static final Serializer SERIALIZER = new JsonSerializer(null,
-                                                                      builder -> builder.setEnforceTypeAliases(false),
+                                                                      builder -> builder.setEnforceTypeAliases(false)
+                                                                              .addAlias(PersonV1.class.getName(), PersonV1.class)
+                                                                              .addAlias(PersonV2.class.getName(), PersonV2.class),
                                                                       false);
     }

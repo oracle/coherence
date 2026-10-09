@@ -137,12 +137,13 @@ public class TopicsSubscriberReplayIntegrationTest
         }
 
     @Test
-    public void warnAllowPolicyDriftShadowsRecovery() throws Exception
+    public void hardenedDefaultWarnAllowPolicyDriftAllowsRecovery() throws Exception
         {
         ReplayResult result = runReplay("prod", TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, false, false);
 
-        assertWouldRejectCounterAtLeast(result.m_mapTelemetry, DriftFilter.class, OperationReason.EVALUATE_FILTER, 1L);
-        assertNoReplayDriftCounter(result.m_mapTelemetry);
+        assertCounterAtLeast(result.m_mapTelemetry, OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 1L);
+        assertFalse(result.m_mapTelemetry.containsKey(wouldRejectKey(DriftFilter.class, OperationReason.EVALUATE_FILTER)));
         }
 
     @Test
@@ -253,7 +254,7 @@ public class TopicsSubscriberReplayIntegrationTest
             sKey = key(OperationReason.EVALUATE_FILTER, sMode, "rejected",
                     SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
             }
-        else if (sSecurityMode == null || CoherenceMode.SECURITY_MODE_COMPATIBILITY.equals(sSecurityMode))
+        else if (CoherenceMode.SECURITY_MODE_COMPATIBILITY.equals(sSecurityMode))
             {
             sKey = wouldRejectKey(DriftFilter.class, OperationReason.EVALUATE_FILTER);
             }

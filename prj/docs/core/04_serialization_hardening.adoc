@@ -25,9 +25,16 @@ The compatibility model has two independent axes:
 * `coherence.mode` remains the released runtime/license mode switch. It is not
   the global security-hardening opt-in.
 * `coherence.security.mode` controls the compatibility-sensitive SER-01
-  hardening gates. When unset, or set to `compatibility`, Coherence preserves
-  prior-patch compatibility. Set `-Dcoherence.security.mode=hardened` to opt in
-  to the hardening-on posture.
+  hardening gates. In 26.1.0.0.0, unset means `hardened`. Set
+  `-Dcoherence.security.mode=compatibility` explicitly to preserve the
+  compatibility posture during migration.
+
+The current 26.1.0.0.0 integration phase defaults
+`coherence.remote.dynamic.unauthenticated` to `allow` in both security modes.
+An explicit `deny` continues to reject dynamic remote code. This phased
+integration setting is subject to a separate release decision after Remote
+Queue and WLS integration validation; it is not a commitment to ship with
+this dynamic-code default.
 
 === Why not JEP-290 alone?
 
@@ -55,31 +62,33 @@ remote-executable classification.
 |===
 |Security mode |Allowlist gate: `isAllowlistEnforced()` |DYNAMIC remote default: `isDynamicRemoteDefaultDeny()` |Remote executable gate: `isRemoteExecutableEnforced()` |Use
 
-|unset / `compatibility`
+|`compatibility`
 |`false`
 |`false`
 |`false`
-|Default patch-compatible posture. Existing deployments, including
+|Explicit compatibility posture. Deployments, including
 `coherence.mode=dev` and `coherence.mode=prod` deployments, continue to run
 without configuration changes while selected gates emit
 `result=would_reject` shadow telemetry.
 
-|`hardened`
+|unset / `hardened`
 |`true`
+|`false`
 |`true`
-|`true`
-|Hardening-on target. Generated allowlists, remote-executable classification,
-and unauthenticated DYNAMIC lambda default-deny are enforced unless a
-feature-specific override explicitly allows the behavior.
+|Default for 26.1.0.0.0. Generated allowlists and remote-executable
+classification are enforced. Dynamic remote code defaults to allow during
+this integration phase; explicit `coherence.remote.dynamic.unauthenticated=deny`
+enforces its separate gate.
 |===
 
 == Quick Migration Guide
 
 For an existing application:
 
-* Apply the patch with the existing `coherence.mode` value. Leave
-  `coherence.security.mode` unset during the rolling upgrade so the cluster
-  keeps prior-patch compatibility.
+* Keep the existing `coherence.mode` value. To retain compatibility during a
+  rolling upgrade to 26.1.0.0.0, explicitly set
+  `-Dcoherence.security.mode=compatibility` on participating members and clients;
+  leaving it unset enables hardening.
 * Add the Maven or Gradle security-config generation step to every application
   artifact that sends filters, processors, extractors, aggregators, or other
   application payload classes over Coherence services.
@@ -91,15 +100,14 @@ For an existing application:
   appears there.
 * After the full deployment is upgraded and the shadow telemetry is clean, test
   client/server workflows with `-Dcoherence.security.mode=hardened`.
-* Enable `coherence.security.mode=hardened` only after all members and clients
-  that need to participate in the hardened workflow are ready.
+* Once participating members and clients are ready, remove the explicit
+  compatibility setting or set `coherence.security.mode=hardened`.
 
-Applications that skip this migration will most commonly see two
-`SecurityException` reasons at runtime: `security-config-missing` when an
-application payload class is not in any generated allowlist, and
-`dynamic-remote-denied-by-mode` when a DYNAMIC lambda is received while
-security mode is hardened and unauthenticated dynamic remote payloads resolve
-to `deny`. Both are documented in <<Error Message Reference>>.
+Applications missing allowlist metadata can see `SecurityException` with
+reason `security-config-missing`. When dynamic remote code is explicitly set
+to `deny`, receiving a DYNAMIC lambda can produce
+`dynamic-remote-denied-by-mode`. Both are documented in
+<<Error Message Reference>>.
 
 == Runtime Modes
 
@@ -114,9 +122,9 @@ enable the compatibility-sensitive SER-01 hardening gates.
 Security mode is selected by the `coherence.security.mode` system property.
 Supported values trim whitespace and compare case-insensitively:
 
-* unset or `compatibility` keeps the compatibility-sensitive hardening gates
-  disabled by default and emits bounded shadow telemetry where available.
-* `hardened` enables the compatibility-sensitive hardening gates.
+* `compatibility` keeps the compatibility-sensitive hardening gates disabled
+  and emits bounded shadow telemetry where available.
+* unset or `hardened` enables the compatibility-sensitive hardening gates.
 
 Blank, unknown, shorthand, and boolean-style values such as `true`, `false`,
 `on`, `off`, `enabled`, or `disabled` fail fast. The removed pre-release
@@ -266,13 +274,14 @@ class-version coordination: a new lambda can flow from an upgraded sender to
 an older receiver without both sides first deploying the same compiled
 class.
 
-When `coherence.security.mode=hardened`, the DYNAMIC lambda gate denies
-wire-supplied bytecode from unauthenticated peers before class definition
-unless `coherence.remote.dynamic.unauthenticated=allow` is set. Applications
-that opt in to hardened mode have two supported migration paths:
+The DYNAMIC lambda gate denies wire-supplied bytecode from unauthenticated
+peers before class definition when
+`coherence.remote.dynamic.unauthenticated=deny` is explicitly set. The current
+integration default is `allow` in both security modes. Applications have two
+supported deployment paths:
 
-* Set `-Dcoherence.remote.dynamic.unauthenticated=allow` (the recommended
-  path). This preserves DYNAMIC lambda serialization and the rolling-upgrade
+* Retain DYNAMIC lambda serialization with the current default or explicit
+  `-Dcoherence.remote.dynamic.unauthenticated=allow`. This preserves the rolling-upgrade
   ergonomics that make it Coherence's default. It is a long-term option, not
   deprecated; a future Coherence release will layer subject-aware permission
   checks on top of this path. Monitor rejection telemetry on the
@@ -376,10 +385,10 @@ serialized state. Both classes are `final`, annotated with
 `@Remote.Executable`, and checked by `RemoteExecutablePolicy` before their
 dynamic-remote gates run.
 
-When `coherence.security.mode=hardened`, both processors are denied by default
-unless `coherence.remote.dynamic.unauthenticated=allow` is set. With
-`coherence.security.mode` unset or set to `compatibility`, the dynamic-remote
-mode gate allows them by default while preserving hard-floor deny-list checks.
+The dynamic-remote mode gate allows both processors by default in both
+security modes. Explicit `coherence.remote.dynamic.unauthenticated=deny`
+rejects them before execution. Executable classification and hard-floor
+deny-list checks remain in force.
 The same property therefore controls unauthenticated DYNAMIC lambda bytecode,
 reflective method invocation through `MethodInvocationProcessor`, and script
 evaluation through `ScriptProcessor`.
@@ -410,11 +419,13 @@ unannotated trigger classes are rejected in hardened security mode and shadowed
 in compatibility security mode.
 
 After the class policy check, dynamic trigger classes use the same mode gate as
-DYNAMIC lambdas, `MethodInvocationProcessor`, and `ScriptProcessor`. Hardened
-security mode denies dynamic trigger installation by default unless
-`coherence.remote.dynamic.unauthenticated=allow` is set. Compatibility mode
-permits dynamic trigger installation by default while emitting
-`result=would_reject` shadow telemetry where the hardened policy would reject.
+DYNAMIC lambdas, `MethodInvocationProcessor`, and `ScriptProcessor`. This gate
+defaults to allow in both security modes; explicit
+`coherence.remote.dynamic.unauthenticated=deny` rejects dynamic installation.
+For dynamic classes, allowing this gate permits installation even if class
+classification rejects the generated class. Named trigger classes remain subject
+to executable classification. Compatibility mode emits `result=would_reject`
+shadow telemetry for classification failures.
 
 Classes declared in cache configuration remain server-trusted and are not
 blocked at startup. Coherence logs a WARN for each unannotated declared
@@ -450,11 +461,11 @@ built-in containers.
 
 Dynamic or lambda-shaped subscriber filter and extractor classes use the same
 dynamic remote mode gate as DYNAMIC lambdas, `MethodInvocationProcessor`,
-`ScriptProcessor`, and remote `MapTrigger` installs. Hardened security mode
-denies dynamic subscriber metadata by default unless
-`coherence.remote.dynamic.unauthenticated=allow` is set. Compatibility security
-mode permits dynamic subscriber metadata by default while emitting
-`result=would_reject` shadow telemetry where the hardened policy would reject.
+`ScriptProcessor`, and remote `MapTrigger` installs. This gate defaults to allow
+in both security modes; explicit `coherence.remote.dynamic.unauthenticated=deny`
+rejects dynamic subscriber metadata. This permission can admit dynamic classes
+that fail class classification; named classes remain subject to executable
+classification, with `result=would_reject` telemetry in compatibility mode.
 
 Persisted subscriber metadata is rechecked when topic subscription metadata is
 activated from persistence. The
@@ -494,10 +505,11 @@ The processor, aggregator, filter, extractor, or comparator class must carry
 `META-INF/coherence/security-config.xml`. Unannotated classes are rejected in
 hardened security mode and shadowed in compatibility security mode. Dynamic,
 lambda-shaped, or script-backed cache data-plane executables also pass through
-the dynamic remote mode gate: hardened security mode denies them by default
-unless `coherence.remote.dynamic.unauthenticated=allow` is set; compatibility
-security mode permits them by default while emitting `result=would_reject`
-shadow telemetry where the hardened policy would reject. The shared script
+the dynamic remote mode gate: it defaults to allow in both security modes,
+while explicit `coherence.remote.dynamic.unauthenticated=deny` rejects them.
+The allow setting can admit dynamic classes that fail class classification.
+Named executable classification remains enforced in hardened mode and emits
+`result=would_reject` shadow telemetry in compatibility mode. The shared script
 gate covers `ScriptProcessor`, `ScriptFilter`,
 `ScriptValueExtractor`, and `ScriptAggregator`; the check runs at remote
 install time where the transport exposes the script object and again directly
@@ -702,24 +714,26 @@ compatibility-sensitive SER-01 hardening gates. Blank, unknown, `legacy`, and
 
 |`coherence.security.mode`
 |enum: `compatibility`, `hardened`
-|`compatibility`
+|`hardened` (26.1.0.0.0)
 |15.1.2.0
-|Selects the global SER-01 security hardening posture. Unset or
-`compatibility` preserves prior-patch behavior and shadow telemetry where
-available; `hardened` enables the compatibility-sensitive hardening gates.
+|Selects the global SER-01 security hardening posture. Explicit
+`compatibility` preserves compatibility behavior and shadow telemetry where
+available; unset or `hardened` enables the compatibility-sensitive hardening gates.
 The removed pre-release `coherence.security.hardened` property is not an alias.
 |<<Runtime Modes>>
 
 |`coherence.remote.dynamic.unauthenticated`
 |enum: `allow`, `deny`
-|security mode `compatibility`: `allow`; security mode `hardened`: `deny`
+|`allow` in both security modes during the 26.1.0.0.0 integration phase
 |26.04
 |Controls whether unauthenticated wire-arriving DYNAMIC lambda bytecode,
 reflective `MethodInvocationProcessor` execution, and `ScriptProcessor`
 evaluation are accepted before subject-aware authorization is available. The
 property is resolved through Coherence `Config`, so the
 `COHERENCE_REMOTE_DYNAMIC_UNAUTHENTICATED` environment variable alias is also
-honoured. Does not bypass functional-interface target allowlisting, the MIP
+honoured. Blank values are treated as unset; invalid values log an error and
+fall back to the default. Explicit `deny` remains supported in both modes.
+Does not bypass named executable classification, functional-interface target allowlisting, the MIP
 deny-list, or Graal HostAccess hardening.
 |<<Lambda Serialization>>, <<MethodInvocationProcessor / ScriptProcessor>>
 
@@ -829,14 +843,14 @@ the Maven or Gradle generator, and package the generated config.
 
 |`Lambda bytecode rejected: site=LAMBDA, reason=dynamic-remote-denied-by-mode`
 |Lambda mode gate
-|A DYNAMIC lambda arrived while security mode was hardened and
+|A DYNAMIC lambda arrived while
 `coherence.remote.dynamic.unauthenticated` resolved to `deny`.
 |Switch to STATIC lambda serialization or explicitly set
 `-Dcoherence.remote.dynamic.unauthenticated=allow`.
 
 |`method-invocation-denied-by-mode`
 |MIP mode gate
-|A `MethodInvocationProcessor` arrived while security mode was hardened and
+|A `MethodInvocationProcessor` arrived while
 `coherence.remote.dynamic.unauthenticated` resolved to `deny`.
 |Set `-Dcoherence.remote.dynamic.unauthenticated=allow` only where reflective
 method invocation is intentionally exposed, or replace the call with a
@@ -844,7 +858,7 @@ purpose-built `@Remote.Executable` processor.
 
 |`script-eval-denied-by-mode`
 |Script mode gate
-|A `ScriptProcessor` arrived while security mode was hardened and
+|A `ScriptProcessor` arrived while
 `coherence.remote.dynamic.unauthenticated` resolved to `deny`.
 |Set `-Dcoherence.remote.dynamic.unauthenticated=allow` only where remote
 script evaluation is intentionally exposed, or replace the script with a

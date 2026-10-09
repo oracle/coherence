@@ -11,6 +11,7 @@
     <class name="rwbm.ReadWriteBackingMapTests" source="manual"/>
     <class name="rwbm.ReadWriteBackingMapTests$CacheEventInterceptor" source="manual" executable="true"/>
     <class name="rwbm.ReadWriteBackingMapTests$CustomAggregator" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor" source="manual"/>
     <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor1" source="manual" executable="true"/>
     <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor10" source="manual" executable="true"/>
     <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor11" source="manual" executable="true"/>

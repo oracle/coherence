@@ -142,6 +142,7 @@ public class ClientCompatibilityIT
                                 createClasspath(),
                                 Pof.config("test-pof-config.xml"),
                                 SystemProperty.of("coherence.serializer", "pof"),
+                                SystemProperty.of("coherence.grpc.serializer.allowlist", "java"),
                                 SystemProperty.of("coherence.extend.port", PORTS, Ports.capture()),
                                 WellKnownAddress.loopback(),
                                 ClusterName.of(CLUSTER_NAME),
@@ -454,7 +455,7 @@ public class ClientCompatibilityIT
 
     static final Map<String, Session> SESSIONS = new HashMap<>();
 
-    static final String CLUSTER_NAME = "ClientCompatibilityIT";
+    static final String CLUSTER_NAME = "ClientCompatibilityIT-" + System.nanoTime();
 
     static final LocalPlatform PLATFORM = LocalPlatform.get();
 

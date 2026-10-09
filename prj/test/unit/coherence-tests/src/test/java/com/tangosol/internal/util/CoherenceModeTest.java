@@ -6,8 +6,19 @@
  */
 package com.tangosol.internal.util;
 
+import com.tangosol.internal.util.security.RemoteExecutionMode;
+
 import org.junit.After;
 import org.junit.Test;
+
+import java.io.File;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -36,11 +47,12 @@ public class CoherenceModeTest
     public void testDefaultModeIsDev()
         {
         setMode(null);
+        setSecurityMode(null);
 
         assertSame(CoherenceMode.DEV, CoherenceMode.current());
         assertTrue(CoherenceMode.isDev());
         assertFalse(CoherenceMode.isProd());
-        assertFalse(CoherenceMode.isSecurityHardeningEnabled());
+        assertTrue(CoherenceMode.isSecurityHardeningEnabled());
         }
 
     @Test
@@ -141,18 +153,20 @@ public class CoherenceModeTest
         }
 
     @Test
-    public void testSecurityModeDefaultsCompatibilityForReleasedModes()
+    public void testSecurityModeDefaultsHardenedForReleasedModes()
         {
-        assertPredicates("eval", false);
-        assertPredicates("dev", false);
-        assertPredicates("development", false);
-        assertPredicates("prod", false);
-        assertPredicates("production", false);
+        assertPredicates(null, true);
+        assertPredicates("eval", true);
+        assertPredicates("dev", true);
+        assertPredicates("development", true);
+        assertPredicates("prod", true);
+        assertPredicates("production", true);
         }
 
     @Test
     public void testSecurityModeExplicitCompatibilityDisablesGates()
         {
+        assertPredicates(null, false, CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         assertPredicates("eval", false, CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         assertPredicates("dev", false, CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         assertPredicates("development", false, CoherenceMode.SECURITY_MODE_COMPATIBILITY);
@@ -163,6 +177,7 @@ public class CoherenceModeTest
     @Test
     public void testSecurityModeExplicitHardenedEnablesGates()
         {
+        assertPredicates(null, true, CoherenceMode.SECURITY_MODE_HARDENED);
         assertPredicates("eval", true, CoherenceMode.SECURITY_MODE_HARDENED);
         assertPredicates("dev", true, CoherenceMode.SECURITY_MODE_HARDENED);
         assertPredicates("development", true, CoherenceMode.SECURITY_MODE_HARDENED);
@@ -180,7 +195,10 @@ public class CoherenceModeTest
     @Test
     public void testSecurityModeRejectsBlankUnknownAndBooleanAliases()
         {
+        assertInvalidSecurityMode("");
         assertInvalidSecurityMode(" ");
+        assertInvalidSecurityMode("legacy");
+        assertInvalidSecurityMode("legacy-compatibility");
         assertInvalidSecurityMode("unknown");
         assertInvalidSecurityMode("compat");
         assertInvalidSecurityMode("true");
@@ -207,13 +225,14 @@ public class CoherenceModeTest
     @Test
     public void testOldSecurityHardenedPropertyIsNotAlias()
         {
-        setMode("prod");
-        setSecurityMode(null);
-        setProperty(OLD_SECURITY_HARDENED_PROPERTY, "true");
-        CoherenceMode.resetForTesting();
+        for (String sOldValue : new String[] {"true", "false"})
+            {
+            setProperty(OLD_SECURITY_HARDENED_PROPERTY, sOldValue);
 
-        assertFalse(CoherenceMode.isSecurityHardeningEnabled());
-        assertFalse(CoherenceMode.isAllowlistEnforced());
+            assertPredicates("prod", true);
+            assertPredicates("prod", false, CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+            assertPredicates("prod", true, CoherenceMode.SECURITY_MODE_HARDENED);
+            }
         }
 
     @Test
@@ -229,6 +248,113 @@ public class CoherenceModeTest
         assertFalse(CoherenceMode.isSecurityHardeningEnabled());
         }
 
+    @Test
+    public void testMemoizedDefaultSecurityModeIgnoresLaterPropertyChange()
+        {
+        assertPredicates(null, true);
+
+        setProperty(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+
+        assertCurrentPredicates(null, true);
+        }
+
+    @Test
+    public void testSecurityModesInFreshJvm()
+            throws Exception
+        {
+        for (String sMode : new String[] {null, "eval", "dev", "development", "prod", "production"})
+            {
+            assertFreshJvm(sMode, null);
+            assertFreshJvm(sMode, CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+            assertFreshJvm(sMode, CoherenceMode.SECURITY_MODE_HARDENED);
+            }
+        }
+
+    /**
+     * Verify the initial mode resolution in a fresh JVM without resetting or
+     * modifying the properties.
+     *
+     * @param asArgs  the expected runtime, security, and dynamic-remote properties, with empty
+     *                strings representing absent properties
+     */
+    public static void main(String[] asArgs)
+        {
+        String sMode         = asArgs[0].isEmpty() ? null : asArgs[0];
+        String sSecurityMode = asArgs[1].isEmpty() ? null : asArgs[1];
+
+        assertEquals(sMode, System.getProperty(CoherenceMode.PROP_COHERENCE_MODE));
+        assertEquals(sSecurityMode, System.getProperty(CoherenceMode.PROP_SECURITY_MODE));
+        String sDynamic = asArgs[2].isEmpty() ? null : asArgs[2];
+        assertEquals(sDynamic, System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH));
+        assertCurrentPredicates(sMode, !CoherenceMode.SECURITY_MODE_COMPATIBILITY.equals(sSecurityMode));
+        assertEquals(!"deny".equals(sDynamic), RemoteExecutionMode.isDynamicRemoteAllowed());
+        }
+
+    private static void assertFreshJvm(String sMode, String sSecurityMode)
+            throws Exception
+        {
+        for (String sDynamic : new String[] {null, "allow", "deny"})
+            {
+            assertFreshJvm(sMode, sSecurityMode, sDynamic);
+            }
+        }
+
+    private static void assertFreshJvm(String sMode, String sSecurityMode, String sDynamic)
+            throws Exception
+        {
+        List<String> listCommand = new ArrayList<>();
+        listCommand.add(new File(System.getProperty("java.home"), "bin/java").getAbsolutePath());
+        listCommand.add("-cp");
+        listCommand.add(System.getProperty("java.class.path"));
+        if (sMode != null)
+            {
+            listCommand.add("-D" + CoherenceMode.PROP_COHERENCE_MODE + "=" + sMode);
+            }
+        if (sSecurityMode != null)
+            {
+            listCommand.add("-D" + CoherenceMode.PROP_SECURITY_MODE + "=" + sSecurityMode);
+            }
+        if (sDynamic != null)
+            {
+            listCommand.add("-D" + RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH + "=" + sDynamic);
+            }
+        listCommand.add(CoherenceModeTest.class.getName());
+        listCommand.add(sMode == null ? "" : sMode);
+        listCommand.add(sSecurityMode == null ? "" : sSecurityMode);
+        listCommand.add(sDynamic == null ? "" : sDynamic);
+
+        Path           pathOutput = Files.createTempFile("coherence-mode-", ".log");
+        ProcessBuilder builder    = new ProcessBuilder(listCommand)
+                .redirectErrorStream(true)
+                .redirectOutput(pathOutput.toFile());
+
+        // prevent inherited JVM options from supplying a security mode to the probe
+        builder.environment().remove("JAVA_TOOL_OPTIONS");
+        builder.environment().remove("JDK_JAVA_OPTIONS");
+        builder.environment().remove("_JAVA_OPTIONS");
+        builder.environment().remove("COHERENCE_REMOTE_DYNAMIC_UNAUTHENTICATED");
+        builder.environment().remove("TANGOSOL_COHERENCE_REMOTE_DYNAMIC_UNAUTHENTICATED");
+        builder.environment().remove("TANGOSOL_REMOTE_DYNAMIC_UNAUTHENTICATED");
+
+        Process process = null;
+        try
+            {
+            process = builder.start();
+            assertTrue("Mode probe timed out: " + listCommand, process.waitFor(30, TimeUnit.SECONDS));
+            assertEquals("Mode probe: " + listCommand + "\n" + Files.readString(pathOutput),
+                    0, process.exitValue());
+            }
+        finally
+            {
+            if (process != null && process.isAlive())
+                {
+                process.destroyForcibly();
+                process.waitFor(10, TimeUnit.SECONDS);
+                }
+            Files.deleteIfExists(pathOutput);
+            }
+        }
+
     private static void assertPredicates(String sMode, boolean fHardened)
         {
         assertPredicates(sMode, fHardened, null);
@@ -239,10 +365,21 @@ public class CoherenceModeTest
         setMode(sMode);
         setSecurityMode(sSecurityMode);
 
-        assertEquals(sMode, sMode.equals("dev") || sMode.equals("development"), CoherenceMode.isDev());
+        assertCurrentPredicates(sMode, fHardened);
+        }
+
+    private static void assertCurrentPredicates(String sMode, boolean fHardened)
+        {
+        boolean fDev  = sMode == null || sMode.equals("dev") || sMode.equals("development");
+        boolean fProd = "prod".equals(sMode) || "production".equals(sMode);
+
+        assertSame(sMode, fDev ? CoherenceMode.DEV : fProd ? CoherenceMode.PROD : CoherenceMode.EVAL,
+                CoherenceMode.current());
+        assertEquals(sMode, fDev, CoherenceMode.isDev());
+        assertEquals(sMode, fProd, CoherenceMode.isProd());
         assertEquals("hardening:" + sMode, fHardened, CoherenceMode.isSecurityHardeningEnabled());
         assertEquals("allowlist:" + sMode, fHardened, CoherenceMode.isAllowlistEnforced());
-        assertEquals("dynamic:" + sMode, fHardened, CoherenceMode.isDynamicRemoteDefaultDeny());
+        assertFalse("dynamic:" + sMode, CoherenceMode.isDynamicRemoteDefaultDeny());
         assertEquals("executable:" + sMode, fHardened, CoherenceMode.isRemoteExecutableEnforced());
         assertEquals("rest-auth:" + sMode, fHardened, CoherenceMode.isCoherenceRestAuthEnforced());
         assertEquals("rest-passthrough:" + sMode, fHardened,

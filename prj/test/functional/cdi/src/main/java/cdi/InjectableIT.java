@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -58,6 +58,7 @@ class InjectableIT
 
         accounts.invoke("X", new CreditAccount(100L));
         assertThat(accounts.get("X").getBalance(), is(-5000L));
+        assertThat(weld.select(TestObservers.class).get().getOverdrawnAmount(), is(5000L));
         }
 
     // ---- helper classes --------------------------------------------------
@@ -106,6 +107,14 @@ class InjectableIT
             {
             System.out.println(event);
             assertThat(event.getAmount(), is(5000L));
+            m_nOverdrawnAmount = event.getAmount();
             }
+
+        public long getOverdrawnAmount()
+            {
+            return m_nOverdrawnAmount;
+            }
+
+        private long m_nOverdrawnAmount;
         }
     }

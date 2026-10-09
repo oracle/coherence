@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package metrics;
+
+import com.oracle.coherence.testing.util.HttpTestAuth;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -94,6 +96,8 @@ public class MetricsFormatTests
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                     SystemProperty.of(f_sProperty, f_fPropertyValue),
                     SystemProperty.of(MetricsHttpHelper.PROP_METRICS_ENABLED, true),
+                    SystemProperty.of("java.security.auth.login.config", HttpTestAuth.loginConfig()),
+                    SystemProperty.of("coherence.cluster", "MetricsFormat-" + System.nanoTime()),
                     SystemProperty.of("coherence.metrics.http.port", port),
                     IPv4Preferred.yes(),
                     LocalHost.only()))
@@ -103,6 +107,7 @@ public class MetricsFormatTests
             String sURL = "http://127.0.0.1:" + port.get() + "/metrics";
 
             HttpURLConnection con = (HttpURLConnection) URI.create(sURL).toURL().openConnection();
+            HttpTestAuth.authenticate(con);
             con.setRequestProperty("Accept", "text/plain");
             con.setRequestMethod("GET");
 
@@ -151,6 +156,8 @@ public class MetricsFormatTests
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
                     SystemProperty.of(f_sProperty, f_fPropertyValue),
                     SystemProperty.of(MetricsHttpHelper.PROP_METRICS_ENABLED, true),
+                    SystemProperty.of("java.security.auth.login.config", HttpTestAuth.loginConfig()),
+                    SystemProperty.of("coherence.cluster", "MetricsFormat-" + System.nanoTime()),
                     SystemProperty.of("coherence.metrics.http.port", port),
                     IPv4Preferred.yes(),
                     LocalHost.only()))
@@ -160,6 +167,7 @@ public class MetricsFormatTests
             String sURL = "http://127.0.0.1:" + port.get() + "/metrics";
 
             HttpURLConnection con = (HttpURLConnection) URI.create(sURL).toURL().openConnection();
+            HttpTestAuth.authenticate(con);
             con.setRequestProperty("Accept", "text/plain");
             con.setRequestMethod("GET");
 

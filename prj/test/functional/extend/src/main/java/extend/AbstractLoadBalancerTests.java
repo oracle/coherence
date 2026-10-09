@@ -174,6 +174,7 @@ public abstract class AbstractLoadBalancerTests
         try
             {
             Properties props = new Properties();
+            props.setProperty("coherence.invocation.enabled", "true");
             props.setProperty("test.extend.connection.limit", "1");
 
             // start the first proxy server
@@ -241,6 +242,7 @@ public abstract class AbstractLoadBalancerTests
         try
             {
             Properties props = new Properties();
+            props.setProperty("coherence.invocation.enabled", "true");
 
             setPortBefore1(props);
             CoherenceClusterMember clusterMember = startCacheServer(sServer, "extend", m_configCustom, props);
@@ -291,6 +293,7 @@ public abstract class AbstractLoadBalancerTests
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             Properties props = new Properties();
+            props.setProperty("coherence.invocation.enabled", "true");
             props.setProperty(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED);
             props.setProperty(DefaultInvocationServiceProxyDependencies.PROP_INVOCATION_ENABLED, "true");
 
@@ -341,6 +344,7 @@ public abstract class AbstractLoadBalancerTests
         try
             {
             Properties props = new Properties();
+            props.setProperty("coherence.invocation.enabled", "true");
             props.setProperty("coherence.override", SUBJECT_PASSTHROUGH_OVERRIDE);
 
             // start just one proxy server for this test - no redirects needed
@@ -493,6 +497,10 @@ public abstract class AbstractLoadBalancerTests
             if (props == null)
                 {
                 props = new Properties();
+                }
+            if (props.getProperty("coherence.invocation.enabled") == null)
+                {
+                props.setProperty("coherence.invocation.enabled", "true");
                 }
 
             // start the first proxy server

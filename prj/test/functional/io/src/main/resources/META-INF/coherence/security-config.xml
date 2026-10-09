@@ -29,6 +29,7 @@
     <class name="io.PofConfigDiscoveryTests$PofTypeTwo" source="manual"/>
     <class name="io.ProcessWideObjectInputFilterPerformanceTests$TestBufferInput" source="manual"/>
     <class name="io.ProcessWideObjectInputFilterPerformanceTests$TestObjectInputStream" source="manual"/>
+    <class name="java.lang.ClassNotFoundException" source="manual"/>
     <class name="lambda.AbstractRemoteFunctionTests" source="manual" lambda-target="true"/>
   </allowed-classes>
 </security-config>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,7 +17,7 @@ import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 
 import com.tangosol.net.NamedCache;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,6 +29,8 @@ import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
 /**
@@ -91,12 +93,13 @@ public class PathOverrideMetricsTests
             getCacheMetric(s_nMetricsHttpPort, "Coherence.Cache.Size", tags);
             fail("Expected exception");
             }
-        catch (FileNotFoundException e)
+        catch (IOException e)
             {
-            // expected
+            assertThat(e.getMessage(), containsString("returned HTTP 404:"));
             }
         finally
             {
+            m_sPath = PATH;
             cache.destroy();
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@ package ssl;
 import com.oracle.coherence.common.internal.net.WrapperSocket;
 
 import com.oracle.coherence.common.net.SSLSocketProvider;
+
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
 
@@ -34,6 +36,7 @@ import static org.hamcrest.collection.ArrayMatching.arrayContainingInAnyOrder;
 import static org.hamcrest.collection.ArrayMatching.hasItemInArray;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 import static com.oracle.coherence.testing.util.SSLSocketProviderBuilderHelper.loadDependencies;
 
 
@@ -55,7 +58,6 @@ public class SSLSocketProviderProcessorTest
             throws IOException
         {
         SSLSocketProviderDefaultDependencies sslDeps = loadDependencies("ssl-config-client.xml");
-        SSLSocketProvider                    provider = new SSLSocketProvider(sslDeps);
 
         SSLContext ctx = sslDeps.getSSLContext();
         assertThat(ctx, is(notNullValue()));
@@ -63,29 +65,7 @@ public class SSLSocketProviderProcessorTest
         assertThat(sslDeps.getExecutor(), is(notNullValue()));
         assertThat(sslDeps.getHostnameVerifier(), is(nullValue()));
 
-        try
-            {
-            provider.ensureSessionValidity(
-                    sslDeps.getSSLContext().createSSLEngine().getSession(),
-                    new WrapperSocket(provider.openSocket())
-                        {
-                        public InetAddress getInetAddress()
-                            {
-                            try
-                                {
-                                return InetAddress.getLocalHost();
-                                }
-                            catch (UnknownHostException e)
-                                {
-                                throw new IllegalStateException();
-                                }
-                            }
-                        });
-            }
-        catch (SSLException sse)
-            {
-            fail("SSLException: "+sse);
-            }
+        assertUnverifiedSessionPolicy(sslDeps);
         }
 
     @Test
@@ -93,7 +73,6 @@ public class SSLSocketProviderProcessorTest
             throws IOException
         {
         SSLSocketProviderDefaultDependencies sslDeps = loadDependencies("ssl-config-server.xml");
-        SSLSocketProvider                    provider = new SSLSocketProvider(sslDeps);
 
         SSLContext ctx = sslDeps.getSSLContext();
         assertThat(ctx, is(notNullValue()));
@@ -106,29 +85,7 @@ public class SSLSocketProviderProcessorTest
         assertThat(sslDeps.getEnabledProtocolVersions(), is(nullValue()));
         assertThat(sslDeps.getClientAuth(), is(SSLSocketProvider.ClientAuthMode.required));
 
-        try
-            {
-            provider.ensureSessionValidity(
-                    sslDeps.getSSLContext().createSSLEngine().getSession(),
-                    new WrapperSocket(provider.openSocket())
-                        {
-                        public InetAddress getInetAddress()
-                            {
-                            try
-                                {
-                                return InetAddress.getLocalHost();
-                                }
-                            catch (UnknownHostException e)
-                                {
-                                throw new IllegalStateException();
-                                }
-                            }
-                        });
-            }
-        catch (SSLException sse)
-            {
-            fail("SSLException: "+sse);
-            }
+        assertUnverifiedSessionPolicy(sslDeps);
         }
 
     @Test
@@ -151,32 +108,8 @@ public class SSLSocketProviderProcessorTest
         assertThat(ciphers.length, is(greaterThan(0)));
         assertThat(ciphers, not(hasItemInArray("TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256")));
 
-        SSLSocketProvider provider = new SSLSocketProvider(sslDeps);
-        try
-            {
-            provider.ensureSessionValidity(
-                    sslDeps.getSSLContext().createSSLEngine().getSession(),
-                    new WrapperSocket(provider.openSocket())
-                        {
-                        public InetAddress getInetAddress()
-                            {
-                            try
-                                {
-                                return InetAddress.getLocalHost();
-                                }
-                            catch (UnknownHostException e)
-                                {
-                                throw new IllegalStateException();
-                                }
-                            }
-                        });
-            }
-        catch (SSLException sse)
-            {
-            fail("SSLException: "+sse);
-            }
+        assertUnverifiedSessionPolicy(sslDeps);
         }
-
 
     @Test
     public void testCustomConfiguration()
@@ -221,6 +154,39 @@ public class SSLSocketProviderProcessorTest
         catch (SSLException sse)    
             {
             fail("SSLException: "+sse);
+            }
+        }
+
+    /**
+     * An unconnected engine has no peer identity; only compatibility mode accepts it.
+     */
+    private void assertUnverifiedSessionPolicy(SSLSocketProviderDefaultDependencies deps)
+            throws IOException
+        {
+        for (String sMode : new String[] {null, "hardened", "compatibility"})
+            {
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityMode(sMode))
+                {
+                SSLSocketProvider provider = new SSLSocketProvider(deps);
+                try (WrapperSocket socket = new WrapperSocket(provider.openSocket())
+                    {
+                    public InetAddress getInetAddress()
+                        {
+                        return InetAddress.getLoopbackAddress();
+                        }
+                    })
+                    {
+                    if ("compatibility".equals(sMode))
+                        {
+                        provider.ensureSessionValidity(deps.getSSLContext().createSSLEngine().getSession(), socket);
+                        }
+                    else
+                        {
+                        assertThrows(SSLException.class, () -> provider.ensureSessionValidity(
+                                deps.getSSLContext().createSSLEngine().getSession(), socket));
+                        }
+                    }
+                }
             }
         }
     }

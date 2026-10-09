@@ -207,7 +207,7 @@ public class PerformanceOverConsistencyTest {
         start = System.currentTimeMillis();
         // issue 100 entry processor updates which require backup updates
         for (int i = 1; i < 100L; i++) {
-            cache.invoke(i, Processors.update(Customer::setCustomerType, Customer.GOLD));
+            cache.invoke(i, Processors.update("setCustomerType", Customer.GOLD));
         }
         long invokeDuration = System.currentTimeMillis() - start;
 

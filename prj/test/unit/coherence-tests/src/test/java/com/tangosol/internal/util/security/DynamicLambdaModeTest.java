@@ -38,7 +38,7 @@ public class DynamicLambdaModeTest
         }
 
     @Test
-    public void shouldAllowDynamicLambdaInProdCompatibilityModeByDefault()
+    public void shouldAllowDynamicLambdaInProdByDefault()
         {
         setMode("prod", null);
 
@@ -48,13 +48,29 @@ public class DynamicLambdaModeTest
         }
 
     @Test
-    public void shouldRejectDynamicLambdaInHardenedModeByDefault()
+    public void shouldRejectDynamicLambdaInHardenedModeWhenPropertyDenies()
         {
-        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "deny");
 
         SecurityException e = assertThrows(SecurityException.class, () -> realizeDynamicLambda("Aleks"));
 
         assertTrue(e.getMessage().contains(LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE));
+        }
+
+    @Test
+    public void shouldAllowDynamicLambdaInHardenedModeByDefault()
+        {
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
+
+        assertTrue(realizeDynamicLambda("Aleks").test("Aleks"));
+        }
+
+    @Test
+    public void shouldAllowDynamicLambdaInCompatibilityModeByDefault()
+        {
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
+
+        assertTrue(realizeDynamicLambda("Aleks").test("Aleks"));
         }
 
     @Test

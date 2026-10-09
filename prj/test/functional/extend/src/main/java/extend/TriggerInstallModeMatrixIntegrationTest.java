@@ -106,7 +106,7 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("prod", null);
 
         assertTriggerInstalled(new AnnotatedTrigger());
-        assertCounterAbsent("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
         }
 
     @Test
@@ -115,7 +115,7 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("dev", null);
 
         assertTriggerInstalled(new AnnotatedTrigger());
-        assertCounterAbsent("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
         }
 
     @Test
@@ -130,7 +130,7 @@ public class TriggerInstallModeMatrixIntegrationTest
     @Test
     public void unannotatedTriggerShadowedInProd()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertTriggerInstalled(new PlainTrigger());
         assertWouldRejectCounter(PlainTrigger.class, 2L);
@@ -140,7 +140,7 @@ public class TriggerInstallModeMatrixIntegrationTest
     @Test
     public void unannotatedTriggerShadowedInDev()
         {
-        startProxy("dev", null);
+        startProxy("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertTriggerInstalled(new PlainTrigger());
         assertWouldRejectCounter(PlainTrigger.class, 2L);
@@ -150,7 +150,7 @@ public class TriggerInstallModeMatrixIntegrationTest
     @Test
     public void dynamicTriggerShadowedInProd()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertTriggerInstalled(new Generated$$LambdaTrigger());
         assertWouldRejectCounter(Generated$$LambdaTrigger.class, 2L);
@@ -189,7 +189,7 @@ public class TriggerInstallModeMatrixIntegrationTest
     @Test
     public void unallowlistedDynamicTriggerShadowedInProd()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertTriggerInstalled(new Synthetic$$LambdaShapedTrigger());
         assertWouldRejectCounter(Synthetic$$LambdaShapedTrigger.class, 4L);
@@ -235,7 +235,7 @@ public class TriggerInstallModeMatrixIntegrationTest
         cache.put("key", "after");
 
         assertEquals("after", cache.get("key"));
-        assertCounterAbsent("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
         }
 
     @Test
@@ -266,6 +266,33 @@ public class TriggerInstallModeMatrixIntegrationTest
         assertEquals("declared", cache.get("key"));
         Eventually.assertDeferred(() -> m_memberProxy.invoke(new GetDeclaredAdvisoryCount()), is(1));
         assertNoRejectedTriggerCounters();
+        }
+
+    @Test
+    public void unannotatedTriggerRejectedWithHardenedDefault()
+        {
+        startProxy("prod", null);
+
+        assertInstallRejected(new PlainTrigger(), "Remote execution denied for class");
+        assertCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        }
+
+    @Test
+    public void dynamicTriggerInstallsWithHardenedDefault()
+        {
+        startProxy("prod", null);
+
+        assertTriggerInstalled(new Generated$$LambdaTrigger());
+        assertWouldRejectCounterAbsent(Generated$$LambdaTrigger.class);
+        }
+
+    @Test
+    public void dynamicTriggerRejectedInHardenedModeWithExplicitDeny()
+        {
+        startProxy("dev", CoherenceMode.SECURITY_MODE_HARDENED, "deny");
+
+        assertInstallRejected(new Generated$$LambdaTrigger(), "denied-by-mode");
+        assertCounter("dev", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
         }
 
     private void assertTriggerInstalled(MapTrigger<String, String> trigger)

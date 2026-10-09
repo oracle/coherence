@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.bedrock.junit.CoherenceClusterExtension;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
+import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
@@ -75,7 +76,9 @@ public class ConcurrentCacheConfigOverrideTest
                           LocalHost.only(),
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
+                          ClusterName.of("ConcurrentCacheConfigOverrideTest-" + System.nanoTime()),
                           ClusterPort.automatic(),
+                          SystemProperty.of("coherence.concurrent.extend.enabled", true),
                           StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(1,
                              DisplayName.of("storage"),

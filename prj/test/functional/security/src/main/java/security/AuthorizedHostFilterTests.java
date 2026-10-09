@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.tangosol.net.CacheFactory;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
+import org.junit.ClassRule;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -32,6 +33,9 @@ import static org.junit.Assert.*;
 public class AuthorizedHostFilterTests
         extends AbstractFunctionalTest
     {
+    @ClassRule
+    public static final LegacySecurityRule s_legacySecurity = new LegacySecurityRule();
+
     @BeforeClass
     public static void _startup()
         {

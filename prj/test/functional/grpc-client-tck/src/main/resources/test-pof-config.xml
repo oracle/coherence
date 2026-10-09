@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -50,6 +50,46 @@
         <user-type>
             <type-id>2009</type-id>
             <class-name>grpc.client.GetEntryExpiry</class-name>
+        </user-type>
+
+        <user-type>
+            <type-id>2010</type-id>
+            <class-name>grpc.client.TestFunctions$AppendSuffix</class-name>
+            <serializer>
+                <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
+            </serializer>
+        </user-type>
+
+        <user-type>
+            <type-id>2011</type-id>
+            <class-name>grpc.client.TestFunctions$IncreaseAge</class-name>
+            <serializer>
+                <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
+            </serializer>
+        </user-type>
+
+        <user-type>
+            <type-id>2012</type-id>
+            <class-name>grpc.client.TestFunctions$DoubleValue</class-name>
+            <serializer>
+                <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
+            </serializer>
+        </user-type>
+
+        <user-type>
+            <type-id>2013</type-id>
+            <class-name>grpc.client.TestFunctions$RemoveValue</class-name>
+            <serializer>
+                <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
+            </serializer>
+        </user-type>
+
+        <user-type>
+            <type-id>2014</type-id>
+            <class-name>grpc.client.TestFunctions$ReturnResult</class-name>
+            <serializer>
+                <class-name>com.tangosol.io.pof.EnumPofSerializer</class-name>
+            </serializer>
         </user-type>
 
     </user-type-list>

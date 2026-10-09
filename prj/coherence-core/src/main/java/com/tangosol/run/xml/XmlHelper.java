@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.coherence.config.xml.preprocessor.SSLHostnameVerifierPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.SystemPropertyPreprocessor;
 
 import com.tangosol.io.Base64InputStream;
@@ -2158,6 +2159,11 @@ public abstract class XmlHelper extends Base
     */
     public static void replaceSystemProperties(XmlElement xml, String sPropertyAttribute)
         {
+        if ("system-property".equals(sPropertyAttribute))
+            {
+            SSLHostnameVerifierPreprocessor.INSTANCE.resolveLegacyDefault(xml);
+            }
+
         XmlValue attr = xml.getAttribute(sPropertyAttribute);
         if (attr != null)
             {

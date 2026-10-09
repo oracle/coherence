@@ -76,4 +76,9 @@ securityConfig {
     processTestClasses = true
 }
 
+// main classes use the manual security-config.xml resource; generate metadata only for test classes
+tasks.named('securityConfig') {
+    skip = true
+}
+
 apply from: '../../gradle/example-test-network.gradle'

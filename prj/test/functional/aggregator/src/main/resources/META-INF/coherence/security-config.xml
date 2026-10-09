@@ -10,6 +10,7 @@
   <allowed-classes>
     <class name="aggregator.AbstractEntryAggregatorTests$FirstNameComparator" source="manual" executable="true"/>
     <class name="aggregator.AbstractEntryAggregatorTests$NotEmptyAggregator" source="manual" executable="true"/>
+    <class name="aggregator.ContinuousAggregationTests" source="manual" executable="true"/>
     <class name="aggregator.IndexCheckAggregator" source="manual" executable="true"/>
     <class name="aggregator.IndexDumpAggregator" source="manual" executable="true"/>
     <class name="aggregator.PriorityAggregatorTests$SlowAggregator" source="manual" executable="true"/>

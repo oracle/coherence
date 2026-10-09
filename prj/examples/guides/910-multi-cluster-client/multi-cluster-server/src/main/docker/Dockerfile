@@ -30,6 +30,8 @@ ENTRYPOINT ["java", "-cp", "/app/classes:/app/libs/*", "com.tangosol.net.Coheren
 ENV COHERENCE_HEALTH_HTTP_PORT=6676
 # Fix the Extend Proxy to listen on port 20000
 ENV COHERENCE_EXTEND_PORT=20000
+# Approve the Java serializer selected by this guide's gRPC tenant
+ENV COHERENCE_GRPC_SERIALIZER_ALLOWLIST=java
 # Enable Coherence metics
 ENV COHERENCE_METRICS_HTTP_ENABLED=true
 # Set the Coherence log level to debug logging

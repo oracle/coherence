@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -13,6 +13,8 @@
  */
 
 package com.oracle.coherence.io.json.genson.convert;
+
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import static org.junit.Assert.*;
 
@@ -324,7 +326,8 @@ public class JsonDeserializationTest {
 
   @Test
   public void testDeserializeJsonWithClassAlias() {
-    Genson genson = new GensonBuilder().addAlias("rect", Rectangle.class).create();
+    Genson genson = new GensonBuilder().addAlias("rect", Rectangle.class)
+        .addAlias(Rectangle.class.getName(), Rectangle.class).create();
     Shape p = genson.deserialize("{\"@class\":\"rect\"}", Shape.class);
     assertTrue(p instanceof Rectangle);
     p = genson.deserialize("{\"@class\":\"java.awt.Rectangle\"}", Shape.class);
@@ -333,11 +336,16 @@ public class JsonDeserializationTest {
 
   @Test
   public void testDeserializeJsonWithPackageAlias() {
-    Genson genson = new GensonBuilder().addPackageAlias("awt", "java.awt").create();
-    Shape p = genson.deserialize("{\"@class\":\"awt.Rectangle\"}", Shape.class);
-    assertTrue(p instanceof Rectangle);
-    p = genson.deserialize("{\"@class\":\"java.awt.Rectangle\"}", Shape.class);
-    assertTrue(p instanceof Rectangle);
+    try (CoherenceModeHelper.ModeScope ignored =
+            CoherenceModeHelper.securityCompatibility())
+    {
+        Genson genson = new GensonBuilder().addPackageAlias("awt", "java.awt").create();
+        Shape p = genson.deserialize("{\"@class\":\"awt.Rectangle\"}", Shape.class);
+        assertTrue(p instanceof Rectangle);
+        p = genson.deserialize("{\"@class\":\"java.awt.Rectangle\"}", Shape.class);
+        assertTrue(p instanceof Rectangle);
+
+    }
   }
 
   @Test
@@ -392,7 +400,9 @@ public class JsonDeserializationTest {
     assertEquals(Optional.of(true), genson.deserialize("{\"value\":true}", Optional.class));
     assertEquals(Optional.of(false), genson.deserialize("{\"value\":false}", Optional.class));
 
-    Genson genson = new GensonBuilder().useClassMetadata(true).create();
+    Genson genson = new GensonBuilder().useClassMetadata(true)
+        .addAlias(Optional.class.getName(), Optional.class)
+        .addAlias(BeanWithConstructor.class.getName(), BeanWithConstructor.class).create();
     assertEquals(Optional.of(new BeanWithConstructor("Bilbo Baggins", 111, null)),
                  genson.deserialize("{\"@class\":\"java.util.Optional\",\"value\":{\"@class\":\"com.oracle.coherence.io.json.genson.convert.JsonDeserializationTest$BeanWithConstructor\",\"age\":111,\"name\":\"Bilbo Baggins\",\"other\":null}}", Optional.class));
   }

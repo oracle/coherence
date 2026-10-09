@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -424,21 +424,6 @@ public class IndexIntegrityTests
 
     protected static void testBackdoorModificationSameKey(final IndexIntegrityTests test)
         {
-        class Processor
-                extends AbstractProcessor
-            {
-            public Object process(InvocableMap.Entry entry)
-                {
-                BinaryEntry binEntry = (BinaryEntry) entry;
-                Map         mapBM    = binEntry.getBackingMap();
-
-                // test a direct BM insert, followed by BinaryEntry setValue()
-                mapBM.put(binEntry.getBinaryKey(),
-                          binEntry.getContext().getValueToInternalConverter().convert(Integer.valueOf(-1)));
-                binEntry.setValue(entry.getKey());
-                return null;
-                }
-            }
         test.doSingleServerTest("IdxTestBMSK", new Runnable()
                     {
                     public void run()
@@ -446,11 +431,30 @@ public class IndexIntegrityTests
                         NamedCache cache = test.getNamedCache(getCacheName0());
                         cache.addIndex(IdentityExtractor.INSTANCE, false, null);
 
-                        cache.invoke(Integer.valueOf(0), new Processor());
+                        cache.invoke(Integer.valueOf(0), new BackdoorSameKeyProcessor());
 
                         validateIndex(cache);
                         }
                     });
+        }
+
+    /**
+     * Updates the backing map directly before updating the invoked entry.
+     */
+    public static class BackdoorSameKeyProcessor
+            extends AbstractProcessor
+        {
+        public Object process(InvocableMap.Entry entry)
+            {
+            BinaryEntry binEntry = (BinaryEntry) entry;
+            Map         mapBM    = binEntry.getBackingMap();
+
+            // test a direct BM insert, followed by BinaryEntry setValue()
+            mapBM.put(binEntry.getBinaryKey(),
+                      binEntry.getContext().getValueToInternalConverter().convert(Integer.valueOf(-1)));
+            binEntry.setValue(entry.getKey());
+            return null;
+            }
         }
 
     /**

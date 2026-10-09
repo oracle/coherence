@@ -8,8 +8,8 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
-    <class name="cache.BaseAsyncNamedCacheTests" source="manual"/>
     <class name="cache.BackingMapTests$CustomMap" source="manual"/>
+    <class name="cache.BaseAsyncNamedCacheTests" source="manual"/>
     <class name="cache.BinaryEntryExpiryTest$TestProcessor" source="manual" executable="true"/>
     <class name="cache.Bug38748319RegressionTests$ClearCache" source="manual"/>
     <class name="cache.Bug38748319RegressionTests$EnsureListener" source="manual"/>
@@ -30,5 +30,6 @@
     <class name="cache.QueryMapTests$MyObject" source="manual"/>
     <class name="cache.SessionBackingMapTests$Session" source="manual"/>
     <class name="cache.VirtualDaemonPoolCacheTests$InterruptibleSleepProcessor" source="manual" executable="true"/>
+    <class name="java.lang.NullPointerException" source="manual"/>
   </allowed-classes>
 </security-config>

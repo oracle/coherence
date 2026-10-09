@@ -106,12 +106,23 @@ public class MapTriggerInstallGateTest
         }
 
     @Test
-    public void rejectsDynamicTriggerInstall_prod()
+    public void allowsDynamicTriggerInstallInHardenedModeByDefault()
+            throws Exception
+        {
+        setMode("prod", null);
+
+        RemoteInstallGate.enforceMapTriggerInstall(dynamicTrigger(), SerializationRole.EXTEND_PROXY, null);
+
+        assertCounterAbsent("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        }
+
+    @Test
+    public void rejectsDynamicTriggerInstallWithExplicitDeny()
             throws Exception
         {
         MapTrigger<String, String> trigger = dynamicTrigger();
         assertTrue(trigger.getClass().isSynthetic());
-        setMode("prod", null);
+        setMode("prod", "deny");
 
         SecurityException e = assertThrows(SecurityException.class,
                 () -> RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.EXTEND_PROXY, null));
@@ -141,7 +152,7 @@ public class MapTriggerInstallGateTest
     @Test
     public void fqnSubstringHeuristicMatchesGenerated$$LambdaTrigger()
         {
-        setMode("prod", null);
+        setMode("prod", "deny");
 
         SecurityException e = assertThrows(SecurityException.class,
                 () -> RemoteInstallGate.enforceMapTriggerInstall(new Generated$$Lambda$Trigger(),

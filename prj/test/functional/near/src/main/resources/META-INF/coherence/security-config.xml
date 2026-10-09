@@ -9,6 +9,7 @@
                  version="1.0">
   <allowed-classes>
     <class name="near.NearCacheTests" source="manual"/>
+    <class name="near.NearCacheTests$AbstractTestAgent" source="manual"/>
     <class name="near.NearCacheTests$ContentionPutAllAgent" source="manual" executable="true"/>
     <class name="near.NearCacheTests$PutAgent" source="manual" executable="true"/>
     <class name="near.NearCacheTests$PutAllAgent" source="manual" executable="true"/>

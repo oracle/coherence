@@ -58,7 +58,9 @@ import java.util.ArrayList;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -775,51 +777,49 @@ public class CQCTests
 
         Thread.sleep(3000);
 
-        service.submit(() ->
-                       {
-                       String sName = Thread.currentThread().getName();
-                       t1Name.set(sName);
-                       Logger.info(String.format("Starting thread [%s] which will create CQC instances", sName));
-                       while (t1Counter.incrementAndGet() < nAttempts)
-                           {
-                           try
-                               {
-                               new ContinuousQueryCache(raw);
-                               }
-                           catch (IllegalStateException ignored)
-                               {
-                               continue;
-                               }
-                           catch (Throwable t)
-                               {
-                               Logger.err(t);
-                               }
-                           Thread.yield();
-                           }
-                       Logger.info(String.format("Thread [%s] complete", sName));
-                       });
+        Future<?> futureCQC = service.submit(() ->
+            {
+            String sName = Thread.currentThread().getName();
+            t1Name.set(sName);
+            Logger.info(String.format("Starting thread [%s] which will create CQC instances", sName));
+            while (t1Counter.incrementAndGet() < nAttempts)
+                {
+                try
+                    {
+                    new ContinuousQueryCache(raw);
+                    }
+                catch (IllegalStateException ignored)
+                    {
+                    continue;
+                    }
+                Thread.yield();
+                }
+            Logger.info(String.format("Thread [%s] complete", sName));
+            });
 
-        service.submit(() ->
-                       {
-                       String sName = Thread.currentThread().getName();
-                       t2Name.set(sName);
-                       Logger.info(String.format("Starting thread [%s] which will call truncate on distributed cache", sName));
-                       while (t2Counter.incrementAndGet() < nAttempts)
-                           {
-                           raw.truncate();
-                           Thread.yield();
-                           }
-                       Logger.info(String.format("Thread [%s] complete", sName));
-                       });
+        Future<?> futureTruncate = service.submit(() ->
+            {
+            String sName = Thread.currentThread().getName();
+            t2Name.set(sName);
+            Logger.info(String.format("Starting thread [%s] which will call truncate on distributed cache", sName));
+            while (t2Counter.incrementAndGet() < nAttempts)
+                {
+                raw.truncate();
+                Thread.yield();
+                }
+            Logger.info(String.format("Thread [%s] complete", sName));
+            });
 
         try
             {
-            Eventually.assertDeferred(t1Counter::get, is(nAttempts));
-            Eventually.assertDeferred(t2Counter::get, is(nAttempts));
+            futureCQC.get(1, TimeUnit.MINUTES);
+            futureTruncate.get(1, TimeUnit.MINUTES);
+            assertThat(t1Counter.get(), is(nAttempts));
+            assertThat(t2Counter.get(), is(nAttempts));
             }
-        catch (Throwable t)
+        catch (TimeoutException t)
             {
-            String sMsg = "Deadlock detected!  Look for threads %s and %s in the following thread dump:";
+            String sMsg = "Workers timed out!  Look for threads %s and %s in the following thread dump:";
             Logger.err(String.format(sMsg, t1Name.get(), t2Name.get()));
             System.out.println(Threads.getThreadDump(Threads.LockAnalysis.FULL));
             throw t;

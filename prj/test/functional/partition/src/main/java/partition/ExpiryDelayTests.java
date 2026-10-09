@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -297,18 +297,6 @@ public class ExpiryDelayTests
      */
     private static Map getExpiryValues(NamedCache cache, Set keys)
         {
-        class ExpiryValueProcessor
-                extends AbstractProcessor
-            {
-            public Object process(Entry entry)
-                {
-                BinaryEntry                binEntry   = (BinaryEntry) entry;
-                ConfigurableCacheMap       backingMap = (ConfigurableCacheMap) binEntry.getBackingMap();
-                ConfigurableCacheMap.Entry cacheEntry = backingMap.getCacheEntry(binEntry.getBinaryKey());
-                return cacheEntry != null ? Long.valueOf(cacheEntry.getExpiryMillis()) : -1;
-                }
-            }
-
         Map map = new HashMap();
         for (Object key : keys)
             {
@@ -316,6 +304,25 @@ public class ExpiryDelayTests
             }
 
         return map;
+        }
+
+    /**
+     * Return the backing map expiry time for an entry.
+     *
+     * @author phf  2026.09.30
+     * @since 26.10
+     */
+    public static class ExpiryValueProcessor
+            extends AbstractProcessor
+        {
+        @Override
+        public Object process(Entry entry)
+            {
+            BinaryEntry                binEntry   = (BinaryEntry) entry;
+            ConfigurableCacheMap       backingMap = (ConfigurableCacheMap) binEntry.getBackingMap();
+            ConfigurableCacheMap.Entry cacheEntry = backingMap.getCacheEntry(binEntry.getBinaryKey());
+            return cacheEntry != null ? Long.valueOf(cacheEntry.getExpiryMillis()) : -1;
+            }
         }
 
     public static class SleepProcessor

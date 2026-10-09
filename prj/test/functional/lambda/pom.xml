@@ -49,6 +49,26 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>remotable-security-metadata</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>remotable.RemotableTests$SecurityMetadata</mainClass>
+              <arguments>
+                <argument>${project.basedir}/src/main/resources/META-INF/coherence/security-config.xml</argument>
+                <argument>${project.build.outputDirectory}/META-INF/coherence/security-config.xml</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.graalvm.buildtools</groupId>
         <artifactId>native-maven-plugin</artifactId>
         <extensions>true</extensions>

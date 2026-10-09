@@ -280,7 +280,7 @@ public class GrpcTopicTests
 
     public static final int STORAGE_MEMBER_COUNT = 2;
 
-    public static final String CLUSTER_NAME = "RemoteTopicTests";
+    public static final String CLUSTER_NAME = "GrpcTopicTests-" + System.nanoTime();
 
     public static final String CACHE_CONFIG_FILE = "topic-cache-config.xml";
 
@@ -300,6 +300,8 @@ public class GrpcTopicTests
                             SystemProperty.of(GrpcService.PROP_LOG_MESSAGES, System.getProperty(GrpcService.PROP_LOG_MESSAGES)),
                             SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
                             SystemProperty.of("coherence.management.remote", "true"),
+                            SystemProperty.of("coherence.invocation.enabled", true),
+                            SystemProperty.of("coherence.grpc.serializer.allowlist", "java"),
                             SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                             SystemProperty.of("com.oracle.coherence.common.internal.util.HeapDump.Bug-27585336-tmb-migration", "true"),
                             SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,

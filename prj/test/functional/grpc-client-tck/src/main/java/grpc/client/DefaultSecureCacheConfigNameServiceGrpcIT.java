@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -181,7 +181,7 @@ public class DefaultSecureCacheConfigNameServiceGrpcIT
 
     static final Map<String, Session> SESSIONS = new HashMap<>();
 
-    static final String CLUSTER_NAME = "DefaultCacheConfigGrpcIT";
+    static final String CLUSTER_NAME = "DefaultSecureCacheConfigNameServiceGrpcIT-" + System.nanoTime();
 
     static final LocalPlatform PLATFORM = LocalPlatform.get();
 
@@ -201,6 +201,7 @@ public class DefaultSecureCacheConfigNameServiceGrpcIT
                   OperationalOverride.of("test-coherence-override.xml"),
                   Pof.config("test-pof-config.xml"),
                   SystemProperty.of("coherence.serializer", "pof"),
+                  SystemProperty.of("coherence.grpc.serializer.allowlist", "java"),
                   SystemProperty.of("coherence.extend.port", PORTS, Ports.capture()),
                   SystemProperty.of("coherence.grpc.server.socketprovider", "tls-files"),
                   SystemProperty.of("coherence.security.key", () -> KEY_TOOL.getKeyAndCert().getKeyPEMNoPassURI()),

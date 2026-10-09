@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,8 @@ package management;
 
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.coherence.common.base.Exceptions;
+import com.oracle.coherence.testing.SystemPropertyResource;
+import com.oracle.coherence.testing.util.HttpTestAuth;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.discovery.NSLookup;
 import com.tangosol.net.CacheFactory;
@@ -55,7 +57,8 @@ public class ManagementMBeanNameTests
         {
         AvailablePortIterator ports = new AvailablePortIterator(35000);
 
-        System.setProperty("coherence.cluster", "Test");
+        System.setProperty("coherence.cluster", "ManagementMBeanNameTests-" + System.nanoTime());
+        s_loginConfig = new SystemPropertyResource("java.security.auth.login.config", HttpTestAuth.loginConfig());
         System.setProperty("coherence.member", "Storage");
         System.setProperty("coherence.management.http", "all");
         System.setProperty("coherence.management.http.override-port", String.valueOf(ports.next()));
@@ -65,7 +68,7 @@ public class ManagementMBeanNameTests
         CacheFactory.ensureCluster();
         s_coherence = Coherence.clusterMember().start().get(5, TimeUnit.MINUTES);
 
-        s_client = ClientBuilder.newBuilder().build();
+        s_client = ClientBuilder.newBuilder().register(HttpTestAuth.RequestFilter.class).build();
 
         registerMBean();
         }
@@ -75,6 +78,7 @@ public class ManagementMBeanNameTests
         {
         s_coherence.close();
         s_client.close();
+        s_loginConfig.close();
         }
 
     @Test
@@ -163,6 +167,8 @@ public class ManagementMBeanNameTests
     private static Coherence s_coherence;
 
     private static Client s_client;
+
+    private static SystemPropertyResource s_loginConfig;
 
     private URI m_baseURI;
     }

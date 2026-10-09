@@ -49,6 +49,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThrows;
 
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
+
 /**
  * Unit tests for {@link DefaultController}.
  *
@@ -90,7 +93,7 @@ public class DefaultControllerTest
         {
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            DefaultController controller = controller(jksKeystore(), permissions(), "password");
+            DefaultController controller = legacyController(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
             Subject           subject    = subject(store, "manager", "manager");
             ClusterPermission permission = new ClusterPermission("*", "all");
@@ -109,7 +112,7 @@ public class DefaultControllerTest
         {
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            DefaultController controller = controller(jksKeystore(), permissions(), "password");
+            DefaultController controller = legacyController(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
             Subject           subject    = subjectWithCertificates(store, "worker",
                     new String[] {"worker", "manager"}, new String[] {"worker"});
@@ -125,7 +128,7 @@ public class DefaultControllerTest
         {
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            DefaultController controller = controller(jksKeystore(), permissions(), "password");
+            DefaultController controller = legacyController(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
             Subject           subject    = subject(store, "worker", "worker");
             ClusterPermission permission = new ClusterPermission("service=Management", "join");
@@ -145,7 +148,7 @@ public class DefaultControllerTest
         {
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            DefaultController controller = controller(jksKeystore(), permissions(), "password");
+            DefaultController controller = legacyController(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
             Subject           subject    = subject(store, "worker", "manager");
             ClusterPermission permission = new ClusterPermission("service=Management", "join");
@@ -161,7 +164,7 @@ public class DefaultControllerTest
         {
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            DefaultController controller = controller(jksKeystore(), permissions(), "password");
+            DefaultController controller = legacyController(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
             Subject           subject    = subjectWithCertificates(store, "worker",
                     new String[] {"worker", "manager"}, new String[] {"worker"});
@@ -181,7 +184,7 @@ public class DefaultControllerTest
         {
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            DefaultController controller = controller(jksKeystore(), permissions(), "password");
+            DefaultController controller = legacyController(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
             Subject           subject    = subjectWithCertificates(store, "worker",
                     new String[] {"worker", "manager"}, new String[] {"worker", "manager"});
@@ -217,7 +220,7 @@ public class DefaultControllerTest
         {
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            DefaultController controller = controller(jksKeystore(), permissions(), "password");
+            DefaultController controller = legacyController(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
             Subject           subject    = subject(store, "worker", "worker");
             ClusterPermission permission = new ClusterPermission("*", "all");
@@ -240,7 +243,7 @@ public class DefaultControllerTest
         {
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            DefaultController controller = controller(jksKeystore(), permissions(), "password");
+            DefaultController controller = legacyController(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
             Subject           subject    = subjectWithCertPath(store, "manager", "manager");
             ClusterPermission permission = new ClusterPermission("service=Management", "join");
@@ -265,8 +268,16 @@ public class DefaultControllerTest
     public void shouldPreserveLegacyDefaultDsaCompatibilityInForkedVm()
             throws Exception
         {
-        assertProbe(0, null, null, null, "round-trip", path(jksKeystore()), path(permissions()), "JKS",
-                "manager", "manager");
+        assertProbe(0, null, null, SECURITY_MODE_COMPATIBILITY_ARG, "round-trip", path(jksKeystore()),
+                path(permissions()), "JKS", "manager", "manager");
+        }
+
+    @Test
+    public void shouldUseModernDefaultWithoutSecurityModeInForkedVm()
+            throws Exception
+        {
+        assertProbe(0, null, null, null, "algorithm", "SHA256withRSA");
+        assertProbe(0, "prod", null, null, "algorithm", "SHA256withRSA");
         }
 
     @Test
@@ -460,6 +471,17 @@ public class DefaultControllerTest
             "1.3.14.3.2.13",
             "1.3.14.3.2.27"
             };
+        }
+
+    private static DefaultController legacyController(File fileKeystore, File filePermissions, String sPassword)
+            throws Exception
+        {
+        // the default algorithm is fixed at class initialization; forked tests cover that default
+        DefaultController controller = spy(
+                new DefaultController(fileKeystore, filePermissions, false, sPassword));
+        doAnswer(invocation -> Signature.getInstance("SHA1withDSA"))
+                .when(controller).createSignature();
+        return controller;
         }
 
     private static DefaultController controller(File fileKeystore, File filePermissions, String sPassword)

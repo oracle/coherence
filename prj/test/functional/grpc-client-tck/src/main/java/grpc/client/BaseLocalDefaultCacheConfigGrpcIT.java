@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@ package grpc.client;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.oracle.coherence.testing.SystemPropertyResource;
+
 import com.tangosol.io.Serializer;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
@@ -35,6 +37,7 @@ public abstract class BaseLocalDefaultCacheConfigGrpcIT
     {
     static void runCluster(SessionConfiguration... aCfgSession) throws Exception
         {
+        s_serializerAllowlist = new SystemPropertyResource("coherence.grpc.serializer.allowlist", "java");
         System.setProperty("coherence.cluster", CLUSTER_NAME);
         System.setProperty("coherence.ttl", "0");
         System.setProperty("coherence.wka", "127.0.0.1");
@@ -93,7 +96,18 @@ public abstract class BaseLocalDefaultCacheConfigGrpcIT
     @AfterAll
     static void shutdownCoherence()
         {
-        Coherence.closeAll();
+        try
+            {
+            Coherence.closeAll();
+            }
+        finally
+            {
+            if (s_serializerAllowlist != null)
+                {
+                s_serializerAllowlist.close();
+                s_serializerAllowlist = null;
+                }
+            }
         }
 
     @Override
@@ -134,9 +148,11 @@ public abstract class BaseLocalDefaultCacheConfigGrpcIT
 
     static Session s_defaultSession;
 
-    static final String CLUSTER_NAME = "LocalDefaultCacheConfigGrpcIT";
+    static final String CLUSTER_NAME = "LocalDefaultCacheConfigGrpcIT-" + System.nanoTime();
 
     static final LocalPlatform PLATFORM = LocalPlatform.get();
 
     static final AvailablePortIterator PORTS = PLATFORM.getAvailablePorts();
+
+    private static SystemPropertyResource s_serializerAllowlist;
     }

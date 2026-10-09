@@ -129,6 +129,7 @@ public class RemoteDefaultConfigJavaClientJavaClusterTests
                   Logging.at(5),
                   SystemProperty.of("coherence.serializer", "java"),
                   SystemProperty.of("coherence.management", "all"),
+                  SystemProperty.of("coherence.invocation.enabled", true),
                   SystemProperty.of("coherence.management.remote", "true"),
                   SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                   LocalHost.only(),

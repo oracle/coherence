@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -41,10 +41,12 @@ import static org.hamcrest.Matchers.is;
 
 public class BooksIT
     {
+    private static final String CLUSTER_NAME = System.getProperty("coherence.cluster", "BooksIT-" + java.util.UUID.randomUUID());
+
     @BeforeAll
     static void setup() throws Exception
         {
-        System.setProperty(ClusterName.PROPERTY, "BooksIT");
+        System.setProperty(ClusterName.PROPERTY, CLUSTER_NAME);
         System.setProperty(WellKnownAddress.PROPERTY, "127.0.0.1");
         System.setProperty(LocalHost.PROPERTY, "127.0.0.1");
         System.setProperty("coherence.client", "remote");
@@ -123,7 +125,7 @@ public class BooksIT
     @RegisterExtension
     @Order(2)
     static CoherenceClusterExtension s_clusterExtension = new CoherenceClusterExtension()
-            .with(ClusterName.of("BooksIT"),
+            .with(ClusterName.of(CLUSTER_NAME),
                   DisplayName.of("Storage"),
                   IPv4Preferred.yes(),
                   WellKnownAddress.loopback(),

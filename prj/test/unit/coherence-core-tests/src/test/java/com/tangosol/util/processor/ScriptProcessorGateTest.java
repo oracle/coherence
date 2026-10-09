@@ -78,17 +78,15 @@ public class ScriptProcessorGateTest
         }
 
     @Test
-    public void deniesSpInProdByDefault()
+    public void allowsSpInHardenedModeByDefault()
         {
         setMode("prod", null);
 
-        SecurityException e = assertThrows(SecurityException.class,
-                () -> new ScriptProcessor<String, String, String>("js", "EntryEcho")
-                        .process(new SimpleEntry<>("key", "value", true)));
+        assertEquals("value", new ScriptProcessor<String, String, String>("js", "EntryEcho")
+                .process(new SimpleEntry<>("key", "value", true)));
 
-        assertEquals("script-eval-denied-by-mode", e.getMessage());
         assertPolicyCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
+        assertModeGateAbsent("prod");
         }
 
     @Test
@@ -119,7 +117,7 @@ public class ScriptProcessorGateTest
     @Test
     public void enforceRunsBeforeModeGate()
         {
-        setMode("prod", null);
+        setMode("prod", "deny");
 
         assertThrows(SecurityException.class,
                 () -> new ScriptProcessor<String, String, String>("js", "EntryEcho")
@@ -143,7 +141,7 @@ public class ScriptProcessorGateTest
     @Test
     public void scriptFilterUsesSameModeGate()
         {
-        setMode("prod", null);
+        setMode("prod", "deny");
 
         SecurityException e = assertThrows(SecurityException.class,
                 () -> new ScriptFilter<String>("js", "ValuePresentFilter").evaluate("value"));
@@ -160,7 +158,7 @@ public class ScriptProcessorGateTest
     @Test
     public void scriptValueExtractorUsesSameModeGate()
         {
-        setMode("prod", null);
+        setMode("prod", "deny");
 
         SecurityException e = assertThrows(SecurityException.class,
                 () -> new ScriptValueExtractor<String, String>("js", "IdentityExtractor").extract("value"));
@@ -178,7 +176,7 @@ public class ScriptProcessorGateTest
     @Test
     public void scriptAggregatorUsesSameModeGateBeforeDelegateCreation()
         {
-        setMode("prod", null);
+        setMode("prod", "deny");
 
         SecurityException e = assertThrows(SecurityException.class,
                 () -> new ScriptAggregator<String, String, Integer, Integer>("js", "CountAggregator", 0).supply());

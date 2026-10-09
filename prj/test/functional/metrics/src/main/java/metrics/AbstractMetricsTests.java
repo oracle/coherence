@@ -6,6 +6,8 @@
  */
 package metrics;
 
+import com.oracle.coherence.testing.util.HttpTestAuth;
+
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 
@@ -149,7 +151,8 @@ public abstract class AbstractMetricsTests
         Properties props = new Properties();
 
         props.put(PROP_METRICS_ENABLED, "true");
-        props.put("coherence.metrics.http.auth", "none");
+        props.put("coherence.metrics.http.auth", "basic");
+        props.put("java.security.auth.login.config", HttpTestAuth.loginConfig());
         props.put(Logging.PROPERTY_LEVEL, "9");
         props.put(LocalStorage.PROPERTY, "true");
         props.put("coherence.metrics.http.port", Integer.toString(s_nMetricsHttpPort));

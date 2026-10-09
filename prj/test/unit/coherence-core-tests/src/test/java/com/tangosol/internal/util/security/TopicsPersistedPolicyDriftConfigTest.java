@@ -44,14 +44,17 @@ public class TopicsPersistedPolicyDriftConfigTest
     @Test
     public void defaultsBySecurityMode()
         {
-        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
-        assertEquals(TopicsPersistedPolicyDrift.VALUE_REJECT, TopicsPersistedPolicyDrift.current());
+        for (String sMode : new String[] {null, "dev", "prod"})
+            {
+            setMode(sMode, null, null);
+            assertEquals(TopicsPersistedPolicyDrift.VALUE_REJECT, TopicsPersistedPolicyDrift.current());
 
-        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
-        assertEquals(TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, TopicsPersistedPolicyDrift.current());
+            setMode(sMode, CoherenceMode.SECURITY_MODE_HARDENED, null);
+            assertEquals(TopicsPersistedPolicyDrift.VALUE_REJECT, TopicsPersistedPolicyDrift.current());
 
-        setMode("prod", null, null);
-        assertEquals(TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, TopicsPersistedPolicyDrift.current());
+            setMode(sMode, CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
+            assertEquals(TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, TopicsPersistedPolicyDrift.current());
+            }
         }
 
     @Test

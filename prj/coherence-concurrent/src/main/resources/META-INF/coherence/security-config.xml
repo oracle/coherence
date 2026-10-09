@@ -8,15 +8,27 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="com.oracle.coherence.concurrent.Latches" source="manual"/>
     <class name="com.oracle.coherence.concurrent.PermitAcquirer" source="manual"/>
     <class name="com.oracle.coherence.concurrent.RemoteCountDownLatch$Sync" source="manual"/>
     <class name="com.oracle.coherence.concurrent.RemoteSemaphore$Sync" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.Semaphores" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.atomic.AsyncRemoteAtomicBoolean" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.atomic.AsyncRemoteAtomicInteger" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.atomic.AsyncRemoteAtomicLong" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.atomic.AsyncRemoteAtomicMarkableReference" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.atomic.AsyncRemoteAtomicReference" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.atomic.AsyncRemoteAtomicStampedReference" source="manual"/>
     <class name="com.oracle.coherence.concurrent.atomic.Atomics$SerializableAtomicMarkableReference" source="manual"/>
     <class name="com.oracle.coherence.concurrent.atomic.Atomics$SerializableAtomicStampedReference" source="manual"/>
     <class name="com.oracle.coherence.concurrent.atomic.LocalAtomicInteger" source="manual"/>
     <class name="com.oracle.coherence.concurrent.atomic.LocalAtomicLong" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.atomic.RemoteAtomicBoolean" source="manual"/>
     <class name="com.oracle.coherence.concurrent.atomic.RemoteAtomicInteger" source="manual"/>
     <class name="com.oracle.coherence.concurrent.atomic.RemoteAtomicLong" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.atomic.RemoteAtomicMarkableReference" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.atomic.RemoteAtomicReference" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.atomic.RemoteAtomicStampedReference" source="manual"/>
     <class name="com.oracle.coherence.concurrent.cdi.Count$Literal" source="manual"/>
     <class name="com.oracle.coherence.concurrent.cdi.Permits$Literal" source="manual"/>
     <class name="com.oracle.coherence.concurrent.executor.ClusteredAssignment" source="manual"/>

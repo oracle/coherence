@@ -65,9 +65,7 @@ public class ExecutorBasicTests {
         map.truncate(); //<3>
         assertTrue(map.isEmpty());
 
-        Future<?> result = defaultExecutor.submit((Remote.Runnable) ()->
-                Coherence.getInstance()
-                         .getSession().getMap("data").put("key-1", "value-1")); // <4>
+        Future<?> result = defaultExecutor.submit(new PutValue()); // <4>
 
         result.get(); // <5>
 
@@ -89,8 +87,7 @@ public class ExecutorBasicTests {
 
         map.put("key-1", "value-1"); // <4>
 
-        Future<String> result = defaultExecutor.submit((Remote.Callable<String>) ()->
-                (String) Coherence.getInstance().getSession().getMap("data").put("key-1", "value-2")); // <5>
+        Future<String> result = defaultExecutor.submit(new ReplaceValue()); // <5>
 
         String sResult = result.get(); // <6>
         String sValue  = map.get("key-1"); // <7>
@@ -108,11 +105,7 @@ public class ExecutorBasicTests {
 
         List<Remote.Callable<String>> listCallables = new ArrayList<>(5); // <2>
         for (int i = 0; i < 10; i++) {
-            listCallables.add(()->
-            {
-                Thread.sleep(1000);
-                return Thread.currentThread().getName();
-            });
+            listCallables.add(new ThreadName());
         }
 
         List<Future<String>> listFutures = fixed5.invokeAll(listCallables); // <3>
@@ -135,4 +128,49 @@ public class ExecutorBasicTests {
         return session.getMap("data"); // <3>
     }
     // # end::get-map[]
+
+    // # tag::tasks[]
+    /**
+     * Store a value on the executor's member.
+     *
+     * @author fryp  2026.09.28
+     * @since 26.07
+     */
+    @Remote.Executable
+    public static class PutValue implements Remote.Runnable {
+        @Override
+        public void run() {
+            Coherence.getInstance().getSession().getMap("data").put("key-1", "value-1");
+        }
+    }
+
+    /**
+     * Replace a value and return its previous value.
+     *
+     * @author fryp  2026.09.28
+     * @since 26.07
+     */
+    @Remote.Executable
+    public static class ReplaceValue implements Remote.Callable<String> {
+        @Override
+        public String call() {
+            return (String) Coherence.getInstance().getSession().getMap("data").put("key-1", "value-2");
+        }
+    }
+
+    /**
+     * Report the executor thread that runs the task.
+     *
+     * @author fryp  2026.09.28
+     * @since 26.07
+     */
+    @Remote.Executable
+    public static class ThreadName implements Remote.Callable<String> {
+        @Override
+        public String call() throws InterruptedException {
+            Thread.sleep(1000);
+            return Thread.currentThread().getName();
+        }
+    }
+    // # end::tasks[]
 }

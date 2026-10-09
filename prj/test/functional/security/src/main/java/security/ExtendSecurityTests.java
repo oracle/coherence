@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,6 +29,7 @@ import com.tangosol.coherence.component.util.SafeService;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 import com.oracle.coherence.testing.TestHelper;
 
+import org.junit.ClassRule;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -59,6 +60,9 @@ import static org.junit.Assert.*;
 public class ExtendSecurityTests
         extends AbstractFunctionalTest
     {
+    @ClassRule
+    public static final LegacySecurityRule s_legacySecurity = new LegacySecurityRule();
+
     // ----- constructors ---------------------------------------------------
 
     /**

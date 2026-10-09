@@ -69,5 +69,8 @@
     <class name="com.tangosol.util.filter.AllFilterTest$CountingFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.AnyFilterTest$CountingFilter" source="manual" executable="true"/>
     <class name="java.util.function.Function" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.internal.federation.journal.JournalRecordHelperTest$RoleAwareValue" source="manual"/>
+    <class name="com.tangosol.net.cache.BinaryStoreCacheStoreTest$RoleAwareValue" source="manual"/>
+    <class name="com.tangosol.net.cache.BinaryStoreCacheStoreTest$RejectingRoleAwareValue" source="manual"/>
   </allowed-classes>
 </security-config>

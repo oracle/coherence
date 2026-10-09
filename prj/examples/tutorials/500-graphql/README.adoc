@@ -50,6 +50,14 @@ include::../../internal/includes/what-you-need.adoc[tag=text]
 
 ==== Building the Example Code
 
+The completed example uses the default DYNAMIC lambda serialization. The
+`@Remote.Allowed` annotation on `CustomerApi` generates security metadata for
+its remote order-update lambda. When working through the `initial` project,
+add this annotation to `CustomerApi` before adding that operation. Dynamic
+remote execution must be allowed on participating members, as it is by default
+during the 26.1.0.0.0 integration phase.
+
+
 Whenever you are asked to build the code, please refer to the instructions below.
 
 include::../../internal/includes/simple-build.adoc[tag=text]

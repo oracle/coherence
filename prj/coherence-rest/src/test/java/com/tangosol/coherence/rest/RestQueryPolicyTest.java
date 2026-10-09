@@ -11,6 +11,10 @@ import com.oracle.coherence.testing.util.CoherenceModeHelper;
 import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dsltools.precedence.OPParser;
 import com.tangosol.coherence.dsltools.termtrees.Term;
+import com.tangosol.coherence.rest.config.DirectQuery;
+import com.tangosol.coherence.rest.config.QueryConfig;
+
+import jakarta.ws.rs.BadRequestException;
 
 import java.util.Collections;
 import java.util.Map;
@@ -18,7 +22,9 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 /**
@@ -33,6 +39,24 @@ public class RestQueryPolicyTest
     public void cleanup()
         {
         CoherenceModeHelper.clear();
+        }
+
+    @Test
+    public void shouldRejectMalformedDirectQueryWithBadRequest()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            QueryConfig config = new QueryConfig();
+            config.setDirectQuery(new DirectQuery(null, -1));
+
+            for (String sQuery : new String[] {"invalid COH query", "name == 'unterminated", "(age == 36", "age =="})
+                {
+                assertNotNull(sQuery, RestQueryPolicy.checkDirectQuery(config, sQuery));
+                assertEquals(sQuery, 400, RestQueryPolicy.checkDirectQuery(config, sQuery).getStatus());
+                assertThrows(sQuery, BadRequestException.class,
+                        () -> RestQueryPolicy.assertDirectQueryAllowed(config, sQuery));
+                }
+            }
         }
 
     @Test

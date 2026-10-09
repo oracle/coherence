@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -42,6 +42,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author Gunnar Hillert  2022.09.22
  */
 class LoadBalancingTests {
+    private static final String CLUSTER_NAME = System.getProperty("coherence.cluster", "LoadBalancingTests-" + java.util.UUID.randomUUID());
+
     // # tag::testLoadBalancingUseCase[]
     @Test
     void testCoherenceExtendConnection() throws InterruptedException {
@@ -62,7 +64,7 @@ class LoadBalancingTests {
                         LocalHost.only(),
                         Logging.atInfo(),
                         IPv4Preferred.yes(),
-                        ClusterName.of("myCluster"),
+                        ClusterName.of(CLUSTER_NAME),
                         RoleName.of("server"),
                         SystemProperty.of("coherence.log.level", "5"),
                         DisplayName.of("server-" + i));
@@ -85,7 +87,7 @@ class LoadBalancingTests {
                         SystemProperty.of("coherence.client", "remote"),
                         SystemProperty.of("coherence.tcmp.enabled", "false"),
                         SystemProperty.of("coherence.log.level", "5"),
-                        ClusterName.of("myCluster"),
+                        ClusterName.of(CLUSTER_NAME),
                         RoleName.of("client"),
                         DisplayName.of("client-" + i));
                 clients.add(client);

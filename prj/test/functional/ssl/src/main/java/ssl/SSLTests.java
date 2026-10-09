@@ -142,17 +142,29 @@ public class SSLTests
         }
 
     @Test
-    public void testGuestServerConfigDevRejectsDefaultHostnameMismatch()
+    public void testDefaultSecurityModeRejectsHostnameMismatch()
             throws IOException
         {
-        assertGuestServerDefaultHostnameMismatchRejected(CoherenceModeHelper.securityHardened());
+        assertDefaultHostnameMismatchRejected(CoherenceModeHelper.securityMode(null));
         }
 
     @Test
-    public void testGuestServerConfigProdRejectsDefaultHostnameMismatch()
+    public void testHardenedSecurityModeRejectsHostnameMismatch()
             throws IOException
         {
-        assertGuestServerDefaultHostnameMismatchRejected(CoherenceModeHelper.securityHardened());
+        assertDefaultHostnameMismatchRejected(CoherenceModeHelper.securityHardened());
+        }
+
+    @Test
+    public void testCompatibilitySecurityModeAllowsHostnameMismatch()
+            throws IOException
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            EchoClient client = createClient("provider-config-client-trust.xml");
+            EchoServer server = createServer("provider-config-hostname-mismatch.xml");
+            trustedServerConfigTest(client, server);
+            }
         }
 
     @Test
@@ -410,7 +422,7 @@ public class SSLTests
             throws IOException
         {
         EchoClient client = createClient("provider-config-client-hostname-default.xml");
-        EchoServer server = createServer("provider-config-guest.xml");
+        EchoServer server = createServer("provider-config-hostname-mismatch.xml");
 
         final String sMsg = "HELLO!";
 
@@ -436,21 +448,24 @@ public class SSLTests
     public void testClientAllowHostnameVerifierConfig()
             throws IOException
         {
-        EchoClient client = createClient("provider-config-client-hostname-allow.xml");
-        EchoServer server = createServer("provider-config-guest.xml");
-
-        final String sMsg = "HELLO!";
-
-        server.start();
-        try
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            assertEquals(server.getConnectionCount(), 0);
-            client.echo(sMsg);
-            }
-        finally
-            {
-            client.disconnect();
-            server.stop();
+            EchoClient client = createClient("provider-config-client-hostname-allow.xml");
+            EchoServer server = createServer("provider-config-hostname-mismatch.xml");
+
+            final String sMsg = "HELLO!";
+
+            server.start();
+            try
+                {
+                assertEquals(server.getConnectionCount(), 0);
+                client.echo(sMsg);
+                }
+            finally
+                {
+                client.disconnect();
+                server.stop();
+                }
             }
         }
 
@@ -483,7 +498,7 @@ public class SSLTests
     @Test
     public void testServerDefaultHostnameVerifierConfig()
         {
-        EchoClient client = createClient("provider-config-client-trust.xml");
+        EchoClient client = createClient("provider-config-hostname-mismatch.xml");
         EchoServer server = createServer("provider-config-server-hostname-default.xml");
 
         final String sMsg = "HELLO!";
@@ -532,7 +547,7 @@ public class SSLTests
     @Test
     public void testServerRejectHostnameVerifierConfig()
         {
-        EchoClient client = createClient("provider-config-client-trust.xml");
+        EchoClient client = createClient("provider-config-hostname-mismatch.xml");
         EchoServer server = createServer("provider-config-server-hostname-default.xml");
 
         final String sMsg = "HELLO!";
@@ -583,21 +598,39 @@ public class SSLTests
     public void testServerAcceptHostnameVerifierConfig()
             throws IOException
         {
-        EchoClient client = createClient("provider-config-client-trust.xml");
-        EchoServer server = createServer("provider-config-server-hostname-accept.xml");
-
-        final String sMsg = "HELLO!";
-
-        server.start();
-        try
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            assertEquals(server.getConnectionCount(), 0);
-            client.echo(sMsg);
+            EchoClient client = createClient("provider-config-hostname-mismatch.xml");
+            EchoServer server = createServer("provider-config-server-hostname-accept.xml");
+
+            final String sMsg = "HELLO!";
+
+            server.start();
+            try
+                {
+                assertEquals(server.getConnectionCount(), 0);
+                client.echo(sMsg);
+                }
+            finally
+                {
+                client.disconnect();
+                server.stop();
+                }
             }
-        finally
+        }
+
+    @Test
+    public void testHardenedSecurityModeRejectsAllowHostnameVerifierConfig()
+        {
+        for (String sMode : new String[] {null, "hardened"})
             {
-            client.disconnect();
-            server.stop();
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityMode(sMode))
+                {
+                assertThrows(IllegalArgumentException.class,
+                        () -> createClient("provider-config-client-hostname-allow.xml"));
+                assertThrows(IllegalArgumentException.class,
+                        () -> createServer("provider-config-server-hostname-accept.xml"));
+                }
             }
         }
 
@@ -670,13 +703,13 @@ public class SSLTests
         trustedServerConfigTest(client, server);
         }
 
-    protected void assertGuestServerDefaultHostnameMismatchRejected(CoherenceModeHelper.ModeScope scope)
+    protected void assertDefaultHostnameMismatchRejected(CoherenceModeHelper.ModeScope scope)
             throws IOException
         {
         try (CoherenceModeHelper.ModeScope ignored = scope)
             {
-            EchoClient client = createClient("provider-config-client.xml");
-            EchoServer server = createServer("provider-config-guest.xml");
+            EchoClient client = createClient("provider-config-client-trust.xml");
+            EchoServer server = createServer("provider-config-hostname-mismatch.xml");
 
             final String sMsg = "HELLO!";
 

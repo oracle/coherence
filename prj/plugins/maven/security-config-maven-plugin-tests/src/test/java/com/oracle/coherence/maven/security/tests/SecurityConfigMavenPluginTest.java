@@ -21,15 +21,23 @@ import com.oracle.coherence.maven.security.tests.portable.PortableThing;
 import com.oracle.coherence.maven.security.tests.type.NonRecursiveAllowedType;
 import com.oracle.coherence.maven.security.tests.type.RecursiveAllowedType;
 
+import java.io.StringReader;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import org.xml.sax.InputSource;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -82,20 +90,42 @@ public class SecurityConfigMavenPluginTest
         }
 
     private static void assertEntry(String sXml, String sName, String sSource)
+            throws Exception
         {
-        assertThat(sXml, containsString("<class name=\"" + sName + "\" source=\"" + sSource + "\"/>"));
+        assertEntry(sXml, sName, sSource, "", "");
         }
 
     private static void assertExecutableEntry(String sXml, String sName)
+            throws Exception
         {
-        assertThat(sXml, containsString("<class name=\"" + sName
-                + "\" source=\"@Remote.Executable\" executable=\"true\"/>"));
+        assertEntry(sXml, sName, "@Remote.Executable", "true", "");
         }
 
     private static void assertLambdaTargetEntry(String sXml, String sName)
+            throws Exception
         {
-        assertThat(sXml, containsString("<class name=\"" + sName
-                + "\" source=\"@Remote.Executable\" lambda-target=\"true\"/>"));
+        assertEntry(sXml, sName, "@Remote.Executable", "", "true");
+        }
+
+    private static void assertEntry(String sXml, String sName, String sSource,
+                                    String sExecutable, String sLambdaTarget)
+            throws Exception
+        {
+        NodeList nodes = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                .parse(new InputSource(new StringReader(sXml))).getElementsByTagName("class");
+        int cMatches = 0;
+        for (int i = 0; i < nodes.getLength(); i++)
+            {
+            Element element = (Element) nodes.item(i);
+            if (sName.equals(element.getAttribute("name")))
+                {
+                ++cMatches;
+                assertEquals(sName, sSource, element.getAttribute("source"));
+                assertEquals(sName, sExecutable, element.getAttribute("executable"));
+                assertEquals(sName, sLambdaTarget, element.getAttribute("lambda-target"));
+                }
+            }
+        assertEquals("one registration for " + sName, 1, cMatches);
         }
 
     private static String read(String sPath)

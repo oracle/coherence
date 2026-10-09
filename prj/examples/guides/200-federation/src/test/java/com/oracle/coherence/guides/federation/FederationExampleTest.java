@@ -17,6 +17,7 @@ import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
@@ -40,6 +41,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FederationExampleTest {
+    private static final String CLUSTER_SUFFIX = java.util.UUID.randomUUID().toString();
+    private static final String PRIMARY_CLUSTER = "ClusterA-" + CLUSTER_SUFFIX;
+    private static final String SECONDARY_CLUSTER = "ClusterB-" + CLUSTER_SUFFIX;
 
     protected static AvailablePortIterator availablePortIteratorWKA;
     protected static CoherenceCacheServer  primaryMember   = null;
@@ -60,11 +64,13 @@ public class FederationExampleTest {
         int primaryClusterPort   = availablePortIteratorWKA.next();
         int secondaryClusterPort = availablePortIteratorWKA.next();
 
-        OptionsByType primaryClusterOptions = createCacheServerOptions("ClusterA", primaryClusterPort, primaryClusterPort,
-                secondaryClusterPort);
-        OptionsByType secondaryClusterOptions = createCacheServerOptions("ClusterB", secondaryClusterPort,
-                primaryClusterPort,
-                secondaryClusterPort);
+        int primaryFederationPort   = availablePortIteratorWKA.next();
+        int secondaryFederationPort = availablePortIteratorWKA.next();
+
+        OptionsByType primaryClusterOptions = createCacheServerOptions(PRIMARY_CLUSTER, primaryClusterPort,
+                primaryFederationPort, primaryFederationPort, secondaryFederationPort);
+        OptionsByType secondaryClusterOptions = createCacheServerOptions(SECONDARY_CLUSTER, secondaryClusterPort,
+                secondaryFederationPort, primaryFederationPort, secondaryFederationPort);
 
         primaryMember = platform.launch(CoherenceCacheServer.class, primaryClusterOptions.asArray());
         secondaryMember = platform.launch(CoherenceCacheServer.class, secondaryClusterOptions.asArray());
@@ -116,7 +122,7 @@ public class FederationExampleTest {
         Eventually.assertDeferred(ncPrimary::size, is(0));
     }
 
-    protected static OptionsByType createCacheServerOptions(String clusterName, int clusterPort,
+    protected static OptionsByType createCacheServerOptions(String clusterName, int clusterPort, int federationPortLocal,
                                                             int federationPortPrimary, int federationPortSecondary) {
         String        hostName      = "127.0.0.1";
         OptionsByType optionsByType = OptionsByType.empty();
@@ -125,14 +131,18 @@ public class FederationExampleTest {
         optionsByType.addAll(JMXManagementMode.ALL,
                 JmxProfile.enabled(),
                 LocalStorage.enabled(),
+                LocalHost.only(),
                 WellKnownAddress.of(hostName),
                 Multicast.ttl(0),
                 CacheConfig.of(CACHE_CONFIG),
                 Logging.at(3),
                 ClusterName.of(clusterName),
+                SystemProperty.of("test.primary.cluster.name", PRIMARY_CLUSTER),
+                SystemProperty.of("test.secondary.cluster.name", SECONDARY_CLUSTER),
                 ClusterPort.of(clusterPort),
-                SystemProperty.of("test.primary.cluster.port", Integer.toString(federationPortPrimary)),
-                SystemProperty.of("test.secondary.cluster.port", Integer.toString(federationPortSecondary)));
+                SystemProperty.of("federation.local.port", federationPortLocal),
+                SystemProperty.of("federation.primary.port", federationPortPrimary),
+                SystemProperty.of("federation.secondary.port", federationPortSecondary));
 
         if (mode != null && !mode.isBlank()) {
             optionsByType.add(SystemProperty.of("coherence.mode", mode));

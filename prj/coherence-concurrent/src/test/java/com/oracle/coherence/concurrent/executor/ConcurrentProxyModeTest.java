@@ -45,8 +45,16 @@ public class ConcurrentProxyModeTest
     @Test
     public void shouldEnableShippedDefaultWhenHardeningIsDisabled()
         {
-        assertResolved("prod", null, null, shipped(), true);
-        assertResolved("dev", null, null, shipped(), true);
+        assertResolved("prod", "compatibility", null, shipped(), true);
+        assertResolved("dev", "compatibility", null, shipped(), true);
+        }
+
+    @Test
+    public void shouldDisableShippedDefaultWhenSecurityModeIsAbsent()
+        {
+        assertResolved(null, null, null, shipped(), false);
+        assertResolved("prod", null, null, shipped(), false);
+        assertResolved("dev", null, null, shipped(), false);
         }
 
     @Test
@@ -60,6 +68,8 @@ public class ConcurrentProxyModeTest
     public void shouldLetPropertyOverrideHardeningAndXml()
         {
         assertResolved("prod", "hardened", "true", shipped(), true);
+        assertResolved("dev", null, "true", shipped(), true);
+        assertResolved("prod", "compatibility", "false", shipped(), false);
         assertResolved("dev", null, "false", shipped(), false);
         }
 

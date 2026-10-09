@@ -253,6 +253,7 @@ public class RemoteTopicTests
                             SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
                             SystemProperty.of("coherence.topic.reconnect.wait", "1s"),
                             SystemProperty.of("coherence.management.remote", "true"),
+                            SystemProperty.of("coherence.invocation.enabled", true),
                             SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                             SystemProperty.of("com.oracle.coherence.common.internal.util.HeapDump.Bug-27585336-tmb-migration", "true"),
                             SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,

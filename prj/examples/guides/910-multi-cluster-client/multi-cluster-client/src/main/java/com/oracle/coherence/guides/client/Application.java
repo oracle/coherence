@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.oracle.coherence.guides.client;
 
 import com.oracle.coherence.guides.client.model.TenantMetaData;
+import com.oracle.coherence.guides.client.model.User;
 import com.oracle.coherence.guides.client.webserver.WebServer;
 
 import com.oracle.coherence.io.json.JsonSerializer;
@@ -26,7 +27,8 @@ public class Application
         implements Coherence.LifecycleListener {
     public static final JsonSerializer SERIALIZER = new JsonSerializer(null, builder->
     {
-        builder.setEnforceTypeAliases(false);
+        builder.addAlias("tenant", TenantMetaData.class);
+        builder.addAlias("user", User.class);
         return builder.useIndentation(true);
     }, false);
 

@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package management;
+
+import com.oracle.coherence.testing.util.HttpTestAuth;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.ServiceStatus;
@@ -58,6 +60,7 @@ public class ScopedServicesTests
         System.setProperty("coherence.management", "dynamic");
 
         Properties propsServer1 = new Properties();
+        propsServer1.setProperty("java.security.auth.login.config", HttpTestAuth.loginConfig());
         propsServer1.setProperty("coherence.cluster", CLUSTER_NAME);
         propsServer1.setProperty("coherence.management.extendedmbeanname", "true");
         propsServer1.setProperty("coherence.member", SERVER_PREFIX + "-1");
@@ -80,6 +83,7 @@ public class ScopedServicesTests
                               is(ServiceStatus.NODE_SAFE));
 
         m_client = ClientBuilder.newBuilder()
+                .register(HttpTestAuth.RequestFilter.class)
                 .register(MapProvider.class)
                 .build();
         }
@@ -225,5 +229,5 @@ public class ScopedServicesTests
     /**
      * Name of the Coherence cluster.
      */
-    public static final String CLUSTER_NAME = "ScopedServicesTests";
+    public static final String CLUSTER_NAME = "ScopedServicesTests" + "-" + System.nanoTime();
     }

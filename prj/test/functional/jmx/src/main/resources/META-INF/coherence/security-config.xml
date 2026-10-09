@@ -8,6 +8,7 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="javax.management.AttributeChangeNotification" source="manual"/>
     <class name="jmx.BaseMBeanServerProxyNotificationTests$ModFourPredicate" source="manual"/>
     <class name="jmx.BaseMBeanServerProxyNotificationTests$ModThreePredicate" source="manual"/>
     <class name="jmx.CacheMBeanTests" source="manual"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,6 +32,7 @@ import com.oracle.coherence.grpc.proxy.common.ProxyServiceChannel;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
@@ -184,7 +185,21 @@ public class TopicSubscriberProxyIT
         assertThat(groupId.getGroupName(), is(sGroup));
 
         RequestIncompleteException error = assertThrows(RequestIncompleteException.class, () -> ensureSubscriber(channel, observer, sTopicName, sGroup, filterTwo, serializer));
-        assertThat(error.getMessage(), containsString("Cannot change the Filter"));
+        if (CoherenceMode.isSecurityHardeningEnabled())
+            {
+            assertThat(error.getMessage(), is(ErrorsHelper.SAFE_INTERNAL_ERROR_MESSAGE));
+            assertThat(error.getCause(), is(nullValue()));
+            }
+        else
+            {
+            assertThat(error.getMessage(), containsString("Cannot change the Filter"));
+            }
+        NamedTopic<?>          topic          = ensureTopic(sScope, sTopicName);
+        PagedTopicService      service        = (PagedTopicService) topic.getTopicService();
+        long                   subscriptionId = service.getSubscriptionId(sTopicName, groupId);
+        PagedTopicSubscription subscription   = service.getSubscription(subscriptionId);
+        assertThat(subscription, is(notNullValue()));
+        assertThat(subscription.getFilter(), is(filterOne));
         }
 
     // ----- helper methods -------------------------------------------------

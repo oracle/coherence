@@ -19,6 +19,7 @@ import com.oracle.coherence.grpc.messages.proxy.v1.InitResponse;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyResponse;
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
+import com.oracle.coherence.testing.SystemPropertyResource;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
@@ -124,7 +125,8 @@ public class ProxyServiceIT
     @MethodSource("clientSerializerProtocols")
     public void shouldRejectUnsafeClientSerializerInProd(String sProtocol, int nVersion) throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+        try (SystemPropertyResource allowed = new SystemPropertyResource("coherence.grpc.serializer.allowlist", "");
+             CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertInitRejected(sProtocol, nVersion, "java", Status.INVALID_ARGUMENT);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,11 +22,13 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class SimpleControllerIT {
+    private static final String CLUSTER_NAME = System.getProperty("coherence.cluster", "SimpleControllerIT-" + java.util.UUID.randomUUID());
+
     @BeforeAll
     static void startCoherence() throws Exception {
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.localhost", "127.0.0.1");
-        System.setProperty("coherence.cluster", "SimpleControllerIT");
+        System.setProperty("coherence.cluster", CLUSTER_NAME);
 
         SessionConfiguration sessionConfiguration = SessionConfiguration.create("controllable-cachestore-cache-config.xml");
         CoherenceConfiguration configuration = CoherenceConfiguration.builder()

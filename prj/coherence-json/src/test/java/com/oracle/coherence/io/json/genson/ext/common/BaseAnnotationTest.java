@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -30,7 +30,11 @@ public abstract class BaseAnnotationTest {
 
   @Before
   public void setUp() {
-    genson = new GensonBuilder().withBundle(createTestBundle())
+    GensonBuilder builder = new GensonBuilder();
+    for (Class<?> type : Data.class.getDeclaredClasses()) {
+      builder.addAlias(type.getName(), type);
+    }
+    genson = builder.withBundle(createTestBundle())
         .useClassMetadata(true)
         .useConstructorWithArguments(true)
         .useIndentation(true)

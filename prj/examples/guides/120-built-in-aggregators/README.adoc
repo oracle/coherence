@@ -129,6 +129,11 @@ code comments for explanations of what each aggregator is doing.
 include::src/main/java/com/oracle/coherence/guides/aggregations/SimpleAggregationExample.java[tag=runExample]
 ----
 
+The `doubleSum`, `doubleMin`, and `bigDecimalSum` methods accept value extractors.
+Coherence converts these getter method references into reflection extractors, so
+the example runs with the default hardened security mode without requiring
+dynamically generated remote code.
+
 [#run-example-1]
 === Run the Example
 

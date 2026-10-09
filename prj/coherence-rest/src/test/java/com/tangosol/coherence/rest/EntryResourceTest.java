@@ -165,7 +165,10 @@ public class EntryResourceTest
     public void testGetPartial()
         {
         EntryResource resource = createEntryResource(m_cache, 1, Person.class);
-        Response      response = resource.get("name,dateOfBirth,address:(city,state)", GET_REQUEST);
+        resource.setExpressionAliases(ExpressionAliasConfig.builder()
+                .addProjectionAlias("details", "name,dateOfBirth,address:(city,state)")
+                .build());
+        Response      response = resource.get("details", GET_REQUEST);
 
         assertEquals(200 /* OK */, response.getStatus());
 

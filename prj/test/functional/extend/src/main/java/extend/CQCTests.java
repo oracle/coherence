@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,6 +24,7 @@ import com.oracle.coherence.testing.TestContact;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Properties;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -61,7 +62,10 @@ public class CQCTests
     @BeforeClass
     public static void startup()
         {
-        CoherenceClusterMember memberProxy = startCacheServer("CQCTestServer", "extend", FILE_SERVER_CFG_CACHE);
+        Properties props = new Properties();
+        props.setProperty("coherence.invocation.enabled", "true");
+
+        CoherenceClusterMember memberProxy = startCacheServer("CQCTestServer", "extend", FILE_SERVER_CFG_CACHE, props);
         Eventually.assertThat(invoking(memberProxy).isServiceRunning("ExtendTcpProxyService"), is(true));
         }
 

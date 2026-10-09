@@ -6,6 +6,8 @@
  */
 package management;
 
+import com.oracle.coherence.testing.util.HttpTestAuth;
+
 import com.oracle.coherence.common.net.SSLSocketProvider;
 
 import com.tangosol.coherence.management.internal.MapProvider;
@@ -53,6 +55,7 @@ public class ManagementInfoResourceSSLTests
     public static void startup()
         {
         m_client = createSslClient(ClientBuilder.newBuilder()
+                .register(HttpTestAuth.RequestFilter.class)
                 .register(MapProvider.class));
         }
 

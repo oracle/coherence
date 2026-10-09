@@ -129,6 +129,7 @@ public class RemoteDefaultConfigPofClientJavaClusterTests
                   Logging.at(5),
                   SystemProperty.of("coherence.extend.serializer", "pof"),
                   SystemProperty.of("coherence.management", "all"),
+                  SystemProperty.of("coherence.invocation.enabled", true),
                   SystemProperty.of("coherence.management.remote", "true"),
                   SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                   LocalHost.only(),

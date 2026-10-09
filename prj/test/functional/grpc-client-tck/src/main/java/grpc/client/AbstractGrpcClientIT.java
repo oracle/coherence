@@ -113,6 +113,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -1080,7 +1081,7 @@ public abstract class AbstractGrpcClientIT
 
         NamedCache<String, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
 
-        grpcClient.replaceAll(keys, (k, v) ->
+        grpcClient.replaceAll(keys, serializer instanceof JsonSerializer ? TestFunctions.AppendSuffix.INSTANCE : (k, v) ->
            {
            v = v + "1";
            return v;
@@ -1107,7 +1108,7 @@ public abstract class AbstractGrpcClientIT
 
         NamedCache<TestAssociatedKey, String> grpcClient = createClient(cacheName, sSerializerName, serializer);
 
-        grpcClient.replaceAll(keys, (k, v) ->
+        grpcClient.replaceAll(keys, serializer instanceof JsonSerializer ? TestFunctions.AppendSuffix.INSTANCE : (k, v) ->
            {
            v = v + "1";
            return v;
@@ -1138,7 +1139,7 @@ public abstract class AbstractGrpcClientIT
 
         NamedCache<String, Person> grpcClient = createClient(cacheName, sSerializerName, serializer);
 
-        grpcClient.replaceAll(filter, (k, v) ->
+        grpcClient.replaceAll(filter, serializer instanceof JsonSerializer ? TestFunctions.IncreaseAge.INSTANCE : (k, v) ->
             {
             v.setAge(v.getAge() + 10);
             return v;
@@ -1254,10 +1255,12 @@ public abstract class AbstractGrpcClientIT
         NamedCache<String, Integer> grpcClient = createClient(cacheName, sSerializerName, serializer);
 
         //noinspection ConstantConditions
-        int newValue = grpcClient.compute("k1", (k, v) -> v + v);
+        int newValue = grpcClient.compute("k1",
+                serializer instanceof JsonSerializer ? TestFunctions.DoubleValue.INSTANCE : (k, v) -> v + v);
         assertThat(newValue, is(2));
 
-        grpcClient.compute("k2", (k, v) -> null);
+        grpcClient.compute("k2",
+                serializer instanceof JsonSerializer ? TestFunctions.RemoveValue.INSTANCE : (k, v) -> null);
 
         assertThat(cache.get("k2"), is(nullValue()));
         }
@@ -1279,10 +1282,12 @@ public abstract class AbstractGrpcClientIT
         NamedCache<TestAssociatedKey, Integer> grpcClient = createClient(cacheName, sSerializerName, serializer);
 
         //noinspection ConstantConditions
-        int newValue = grpcClient.compute(key1, (k, v) -> v + v);
+        int newValue = grpcClient.compute(key1,
+                serializer instanceof JsonSerializer ? TestFunctions.DoubleValue.INSTANCE : (k, v) -> v + v);
         assertThat(newValue, is(2));
 
-        grpcClient.compute(key2, (k, v) -> null);
+        grpcClient.compute(key2,
+                serializer instanceof JsonSerializer ? TestFunctions.RemoveValue.INSTANCE : (k, v) -> null);
 
         assertThat(cache.get(key2), is(nullValue()));
         }
@@ -1655,6 +1660,11 @@ public abstract class AbstractGrpcClientIT
         grpcClient.put(1, 10L);
         grpcClient.put(2, 20L);
 
+        if (assertContinuousAggregationUnsupported(grpcClient, AlwaysFilter.INSTANCE()))
+            {
+            return;
+            }
+
         ContinuousAggregator<Integer, Long, Integer> count = grpcClient.addAggregator(new Count<>());
         try
             {
@@ -1699,6 +1709,11 @@ public abstract class AbstractGrpcClientIT
                 AlwaysFilter.INSTANCE(), "customer-1");
         KeyAssociatedFilter<Long> filterOther = new KeyAssociatedFilter<>(
                 AlwaysFilter.INSTANCE(), "customer-2");
+        if (assertContinuousAggregationUnsupported(grpcClient, filterOne))
+            {
+            return;
+            }
+
         ContinuousAggregator<CompositeKey<String, Integer>, Long, Integer> countOne =
                 grpcClient.addAggregator(filterOne, new Count<>());
         ContinuousAggregator<CompositeKey<String, Integer>, Long, Integer> countOther =
@@ -1709,10 +1724,12 @@ public abstract class AbstractGrpcClientIT
             {
             assertThat(countOne.aggregate(), is(2));
             assertThat(countOther.aggregate(), is(1));
-            assertThat(countAll.invoke(keyOne, result -> result), is(2));
+            assertThat(countAll.invoke(keyOne,
+                    serializer instanceof JsonSerializer ? IdentityExtractor.INSTANCE() : result -> result), is(2));
 
             Map<CompositeKey<String, Integer>, Integer> results = countAll.invokeAll(
-                    Arrays.asList(keyOne, keyOther), (key, result) -> result);
+                    Arrays.asList(keyOne, keyOther),
+                    serializer instanceof JsonSerializer ? TestFunctions.ReturnResult.INSTANCE : (key, result) -> result);
             assertThat(results.get(keyOne), is(2));
             assertThat(results.get(keyOther), is(1));
 
@@ -1804,7 +1821,7 @@ public abstract class AbstractGrpcClientIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        Filter<Person> filter = new EqualsFilter<>("getAge", 25);
+        Filter<Person> filter = new EqualsFilter<>(new UniversalExtractor<>("age"), 25);
 
         Collection<Person> expected = cache.values(filter);
 
@@ -1854,7 +1871,7 @@ public abstract class AbstractGrpcClientIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        Filter<Person> filter = new EqualsFilter<>("getAge", 100);
+        Filter<Person> filter = new EqualsFilter<>(new UniversalExtractor<>("age"), 100);
 
         Collection<Person> expected = cache.values(filter);
 
@@ -2457,7 +2474,7 @@ public abstract class AbstractGrpcClientIT
         Vector<float[]> vector = chunk.vector();
 
         NamedCache<Integer, DocumentChunk>             grpcClient = createClient(cacheName, sSerializerName, serializer);
-        ValueExtractor<DocumentChunk, Vector<float[]>> extractor  = ValueExtractor.of(DocumentChunk::vector);
+        ValueExtractor<DocumentChunk, Vector<float[]>> extractor  = new UniversalExtractor<>("vector()");
 
         List<QueryResult<Integer, DocumentChunk>> result = grpcClient.aggregate(new SimilaritySearch<>(extractor, vector, 2));
         assertThat(result.size(), is(2));
@@ -2542,6 +2559,36 @@ public abstract class AbstractGrpcClientIT
      */
     protected boolean isContinuousAggregationSupported()
         {
+        return true;
+        }
+
+    /**
+     * Verify the rejection contract for a client using an older protocol.
+     *
+     * @return {@code true} if continuous aggregation is unsupported
+     */
+    private <K, V> boolean assertContinuousAggregationUnsupported(NamedCache<K, V> cache, Filter<?> filter)
+        {
+        NamedCache<?, ?> client = cache;
+        if (client instanceof SessionNamedCache)
+            {
+            client = ((SessionNamedCache<?, ?>) client).getInternalNamedCache();
+            }
+        if (client instanceof SafeNamedCache)
+            {
+            client = ((SafeNamedCache) client).getNamedCache();
+            }
+
+        assertThat(client, is(instanceOf(NamedCacheClient.class)));
+        NamedCacheClientChannel channel = ((NamedCacheClient<?, ?>) client).getAsyncClient().getClientProtocol();
+        if (channel.getVersion() >= 2)
+            {
+            return false;
+            }
+
+        UnsupportedOperationException exception = assertThrows(UnsupportedOperationException.class,
+                () -> cache.addAggregator(filter, new Count<>()));
+        assertThat(exception.getMessage(), containsString("protocol version 2"));
         return true;
         }
 

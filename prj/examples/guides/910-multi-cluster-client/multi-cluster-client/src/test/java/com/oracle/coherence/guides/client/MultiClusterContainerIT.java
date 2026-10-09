@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -55,11 +55,11 @@ public class MultiClusterContainerIT
     static GenericContainer<?> tenants = new GenericContainer<>(DockerImageName.parse(SERVER_IMAGE))
             .withImagePullPolicy(NeverPull.INSTANCE)
             .withNetwork(network)
-            .withNetworkAliases("webserver")
+            .withNetworkAliases("tenants")
             .withExposedPorts(20000)
             .withLogConsumer(new ConsoleLogConsumer(testLogs.builder().build("webserver")))
-            .withEnv("COHERENCE_WKA", "webserver")
-            .withEnv("COHERENCE_CLUSTER", "webserver");
+            .withEnv("COHERENCE_WKA", "tenants")
+            .withEnv("COHERENCE_CLUSTER", "tenants");
 
     @Container
     @Order(2)
@@ -91,8 +91,8 @@ public class MultiClusterContainerIT
             .withNetworkAliases("webserver")
             .withExposedPorts(8080)
             .withLogConsumer(new ConsoleLogConsumer(testLogs.builder().build("webserver")))
-            .withEnv("COHERENCE_EXTEND_ADDRESS", "127.0.0.1")
-            .withEnv("COHERENCE_EXTEND_PORT", String.valueOf(tenants.getMappedPort(20000)));
+            .withEnv("COHERENCE_EXTEND_ADDRESS", "tenants")
+            .withEnv("COHERENCE_EXTEND_PORT", "20000");
 
     /**
      * Configure the tenants using the admin endpoints.

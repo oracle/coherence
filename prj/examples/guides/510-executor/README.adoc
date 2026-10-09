@@ -102,6 +102,17 @@ include::src/test/java/com/oracle/coherence/guides/executor/ExecutorBasicTests.j
 Now that the basic framework of the test is in place, tests may now be added to demonstrate some simple
 api usages of `RemoteExecutor`.
 
+The tasks are named classes annotated with `@Remote.Executable`, which approves
+both serialization and task execution. The security
+configuration plugin generates their approvals, allowing them to run with the
+default hardened security mode. Deploy these classes and their generated
+security configuration on every executor member.
+
+[source,java]
+----
+include::src/test/java/com/oracle/coherence/guides/executor/ExecutorBasicTests.java[tag=tasks]
+----
+
 === Submitting a Runnable to the Grid
 
 The first test will demonstrate submitting a single `Remote.Runnable` task to the grid.
@@ -116,7 +127,7 @@ include::src/test/java/com/oracle/coherence/guides/executor/ExecutorBasicTests.j
 <2> Obtain a reference to the default `RemoteExecutor`.
 <3> Truncate the map to ensure no data is present.
 <4> Submit a `Remote.Runnable` to the grid which will obtain a reference to the `NamedMap`, `data`, and insert an entry.
-The `map` reference isn't used in the lambda as the `Remote.Runnable` may be executed in a remote JVM, therefore,
+The task obtains its own `map` reference because the `Remote.Runnable` may execute in a remote JVM, therefore,
 a reference local to the executing JVM is obtained instead.
 <5> Wait for the `Future` to complete.
 <6> Get the value for `key-1` from the local `NamedMap` reference.

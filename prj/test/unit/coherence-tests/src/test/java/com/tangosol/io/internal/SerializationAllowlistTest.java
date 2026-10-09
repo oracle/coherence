@@ -7,19 +7,41 @@
 package com.tangosol.io.internal;
 
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
+import com.oracle.coherence.ai.search.BaseQueryResult;
+import com.oracle.coherence.ai.search.BinaryQueryResult;
+import com.oracle.coherence.ai.search.SimpleQueryResult;
 
 import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.SecurityConfig;
+import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.Binary;
+import com.tangosol.util.extractor.AbstractExtractor;
+import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.function.Remote;
+import com.tangosol.util.stream.RemoteCollector;
+import com.tangosol.util.stream.RemoteCollectors;
 
 import java.io.IOException;
 import java.io.InvalidClassException;
+import java.io.NotSerializableException;
 import java.io.ObjectInputFilter;
+import java.io.ObjectInputStream;
 import java.io.ObjectStreamException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.management.Attribute;
+import javax.management.AttributeChangeNotification;
 import javax.management.BadAttributeValueExpException;
 import javax.management.ImmutableDescriptor;
 import javax.management.MBeanAttributeInfo;
@@ -29,6 +51,7 @@ import javax.management.MBeanInfo;
 import javax.management.MBeanNotificationInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
+import javax.management.Notification;
 import javax.management.ObjectName;
 import javax.management.modelmbean.DescriptorSupport;
 import javax.management.openmbean.CompositeDataSupport;
@@ -41,8 +64,10 @@ import javax.naming.Reference;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -83,6 +108,7 @@ public class SerializationAllowlistTest
         assertAllowedInDevAndProd(Object[].class);
         assertAllowedInDevAndProd(Exception.class);
         assertAllowedInDevAndProd(RuntimeException.class);
+        assertAllowedInDevAndProd(IllegalArgumentException.class);
         assertAllowedInDevAndProd(IllegalStateException.class);
         assertAllowedInDevAndProd(SecurityException.class);
         assertAllowedInDevAndProd(Error.class);
@@ -110,6 +136,396 @@ public class SerializationAllowlistTest
         assertAllowedInDevAndProd(ObjectName.class);
         assertAllowedInDevAndProd(CompositeName.class);
         assertAllowedInDevAndProd(CompoundName.class);
+        }
+
+    @Test
+    public void testTriggerRollbackExceptionRoundTrip()
+        {
+        for (String sMode : new String[] {null, "dev", "prod"})
+            {
+            for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED})
+                {
+                withProperties(sMode, sSecurityMode, null, () ->
+                    {
+                    IllegalArgumentException original = new IllegalArgumentException("Trigger rejected value",
+                            new IllegalStateException("rollback"));
+                    original.addSuppressed(new IOException("suppressed"));
+
+                    IllegalArgumentException copy = ExternalizableHelper.fromBinary(
+                            ExternalizableHelper.toBinary(original));
+
+                    assertEquals(original.getMessage(), copy.getMessage());
+                    assertEquals(IllegalStateException.class, copy.getCause().getClass());
+                    assertEquals("rollback", copy.getCause().getMessage());
+                    assertEquals(1, copy.getSuppressed().length);
+                    assertEquals(IOException.class, copy.getSuppressed()[0].getClass());
+                    assertEquals("suppressed", copy.getSuppressed()[0].getMessage());
+                    assertArrayEquals(original.getStackTrace(), copy.getStackTrace());
+                    });
+                }
+            }
+        }
+
+    @Test
+    public void testOperationExceptionsRoundTrip()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                UnsupportedOperationException operation = new UnsupportedOperationException(
+                        "operation failed", new IllegalStateException("not ready"));
+                operation.addSuppressed(new IOException("suppressed operation failure"));
+                InvocationTargetException invocation = new InvocationTargetException(operation, "invocation failed");
+                invocation.addSuppressed(new IllegalArgumentException("suppressed invocation failure"));
+
+                for (Throwable original : new Throwable[] {operation, invocation})
+                    {
+                    Throwable copy = ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(original));
+                    assertExceptionState(original, copy);
+                    }
+                });
+            }
+        }
+
+    @Test
+    public void testOperationExceptionGraphsRejectUnregisteredTypes()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                UnsupportedOperationException operation = new UnsupportedOperationException("operation failed");
+                operation.addSuppressed(new UnregisteredInvocationTargetException());
+                InvocationTargetException invocation = new InvocationTargetException(new IllegalStateException());
+                invocation.addSuppressed(new UnregisteredOperationException());
+
+                for (Throwable original : new Throwable[]
+                        {
+                        new UnregisteredOperationException(), new UnregisteredInvocationTargetException(),
+                        new InvocationTargetException(new UnregisteredOperationException()),
+                        new UnsupportedOperationException(new UnregisteredInvocationTargetException()),
+                        operation, invocation
+                        })
+                    {
+                    s_fUnregisteredExceptionRead = false;
+                    Binary binary = ExternalizableHelper.toBinary(original);
+                    if (CoherenceMode.SECURITY_MODE_COMPATIBILITY.equals(sSecurityMode))
+                        {
+                        Throwable copy = ExternalizableHelper.fromBinary(binary);
+                        assertEquals(original.getClass(), copy.getClass());
+                        assertTrue(s_fUnregisteredExceptionRead);
+                        }
+                    else
+                        {
+                        Throwable error = assertThrows(RuntimeException.class,
+                                () -> ExternalizableHelper.fromBinary(binary));
+                        while (error.getCause() != null)
+                            {
+                            error = error.getCause();
+                            }
+                        assertTrue(error.toString(), error instanceof InvalidClassException);
+                        assertFalse(s_fUnregisteredExceptionRead);
+                        }
+                    }
+                });
+            }
+        }
+
+    private static void assertExceptionState(Throwable expected, Throwable actual)
+        {
+        assertEquals(expected.getClass(), actual.getClass());
+        assertEquals(expected.getMessage(), actual.getMessage());
+        assertArrayEquals(expected.getStackTrace(), actual.getStackTrace());
+        if (expected.getCause() == null)
+            {
+            assertEquals(null, actual.getCause());
+            }
+        else
+            {
+            assertExceptionState(expected.getCause(), actual.getCause());
+            }
+        assertEquals(expected.getSuppressed().length, actual.getSuppressed().length);
+        for (int i = 0; i < expected.getSuppressed().length; i++)
+            {
+            assertExceptionState(expected.getSuppressed()[i], actual.getSuppressed()[i]);
+            }
+        }
+
+    @Test
+    public void testNotificationRoundTrip()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                Notification original = new Notification("snapshot.create.end", "Persistence", 7L,
+                        123456L, "Snapshot created");
+                original.setUserData(Map.of("snapshot", "snapshot-1", "duration", 42L));
+
+                Notification copy = ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(original));
+
+                assertEquals(Notification.class, copy.getClass());
+                assertEquals(original.getType(), copy.getType());
+                assertEquals(original.getSource(), copy.getSource());
+                assertEquals(original.getSequenceNumber(), copy.getSequenceNumber());
+                assertEquals(original.getTimeStamp(), copy.getTimeStamp());
+                assertEquals(original.getMessage(), copy.getMessage());
+                assertEquals(original.getUserData(), copy.getUserData());
+                });
+            }
+        }
+
+    @Test
+    public void testAttributeChangeNotificationRequiresRegistration()
+        {
+        AttributeChangeNotification original = new AttributeChangeNotification("TestEmitter", 7L,
+                123456L, "CacheSize changed", "CacheSize", "int", 25, 75);
+
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                Binary binary = ExternalizableHelper.toBinary(original);
+                if (CoherenceMode.SECURITY_MODE_COMPATIBILITY.equals(sSecurityMode))
+                    {
+                    assertEquals(AttributeChangeNotification.class,
+                            ExternalizableHelper.fromBinary(binary).getClass());
+                    }
+                else
+                    {
+                    assertRejectedSerialization(binary);
+                    }
+                });
+
+            withProperties("dev", sSecurityMode, AttributeChangeNotification.class.getName(), () ->
+                {
+                AttributeChangeNotification copy = ExternalizableHelper.fromBinary(
+                        ExternalizableHelper.toBinary(original));
+
+                assertEquals(original.getType(), copy.getType());
+                assertEquals(original.getSource(), copy.getSource());
+                assertEquals(original.getSequenceNumber(), copy.getSequenceNumber());
+                assertEquals(original.getTimeStamp(), copy.getTimeStamp());
+                assertEquals(original.getMessage(), copy.getMessage());
+                assertEquals(original.getAttributeName(), copy.getAttributeName());
+                assertEquals(original.getAttributeType(), copy.getAttributeType());
+                assertEquals(original.getOldValue(), copy.getOldValue());
+                assertEquals(original.getNewValue(), copy.getNewValue());
+                });
+            }
+        }
+
+    @Test
+    public void testNotificationGraphsRejectUnregisteredTypes()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, AttributeChangeNotification.class.getName(), () ->
+                {
+                Notification source = new Notification("test", new UnregisteredOperationException(), 1L);
+                Notification userData = new Notification("test", "source", 2L);
+                userData.setUserData(new UnregisteredOperationException());
+
+                for (Notification original : new Notification[]
+                        {
+                        source, userData,
+                        new AttributeChangeNotification("source", 3L, 123456L, "changed", "value", "Object",
+                                new UnregisteredOperationException(), "new"),
+                        new AttributeChangeNotification("source", 4L, 123456L, "changed", "value", "Object",
+                                "old", new UnregisteredOperationException())
+                        })
+                    {
+                    s_fUnregisteredExceptionRead = false;
+                    Binary binary = ExternalizableHelper.toBinary(original);
+                    if (CoherenceMode.SECURITY_MODE_COMPATIBILITY.equals(sSecurityMode))
+                        {
+                        Notification copy = ExternalizableHelper.fromBinary(binary);
+                        assertEquals(original.getClass(), copy.getClass());
+                        assertTrue(s_fUnregisteredExceptionRead);
+                        }
+                    else
+                        {
+                        assertRejectedSerialization(binary);
+                        assertFalse(s_fUnregisteredExceptionRead);
+                        }
+                    }
+                });
+            }
+        }
+
+    private static void assertRejectedSerialization(Binary binary)
+        {
+        Throwable error = assertThrows(RuntimeException.class, () -> ExternalizableHelper.fromBinary(binary));
+        while (error.getCause() != null)
+            {
+            error = error.getCause();
+            }
+        assertTrue(error.toString(), error instanceof InvalidClassException);
+        }
+
+    @Test
+    public void testOrderedGroupingResultRoundTrip()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                for (boolean fReverse : new boolean[] {false, true})
+                    {
+                    Comparator<String> comparator = new ReflectionExtractor<>("length");
+                    SortedSet<String> values = new TreeSet<>(fReverse ? comparator.reversed() : comparator);
+                    values.addAll(List.of("ccc", "a", "bb"));
+                    Map<String, SortedSet<String>> original = new HashMap<>();
+                    original.put("group", values);
+
+                    Map<String, SortedSet<String>> copy = ExternalizableHelper.fromBinary(
+                            ExternalizableHelper.toBinary(original));
+                    SortedSet<String> copiedValues = copy.get("group");
+                    copiedValues.add("dddd");
+                    assertEquals(fReverse ? List.of("dddd", "ccc", "bb", "a")
+                                          : List.of("a", "bb", "ccc", "dddd"),
+                            new ArrayList<>(copiedValues));
+                    }
+                });
+            }
+        }
+
+    @Test
+    public void testGroupingCollectorRoundTrip()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                assertGroupingCollectorRoundTrip(RemoteCollectors.groupingBy(
+                        new ReflectionExtractor<String, Integer>("length"),
+                        RemoteCollectors.toSortedSet(Remote.Comparator.<String>naturalOrder())));
+                });
+            }
+        }
+
+    @Test
+    public void testGroupingCollectorOptionalResultRoundTrip()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                Map<Integer, Optional<String>> original = List.of("a", "bb", "cc").stream().collect(
+                        RemoteCollectors.groupingBy(new ReflectionExtractor<String, Integer>("length"),
+                                RemoteCollectors.maxBy(Remote.Comparator.<String>naturalOrder())));
+                Map<Integer, Optional<String>> copy = ExternalizableHelper.fromBinary(
+                        ExternalizableHelper.toBinary(original));
+
+                assertEquals(Map.of(1, Optional.of("a"), 2, Optional.of("cc")), copy);
+                });
+            }
+        }
+
+    @Test
+    public void testNotSerializableExceptionRoundTrip()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                NotSerializableException original = new NotSerializableException("java.util.Optional");
+                NotSerializableException copy = ExternalizableHelper.fromBinary(
+                        ExternalizableHelper.toBinary(original));
+
+                assertEquals(NotSerializableException.class, copy.getClass());
+                assertEquals(original.getMessage(), copy.getMessage());
+                assertArrayEquals(original.getStackTrace(), copy.getStackTrace());
+                });
+            }
+        }
+
+    @Test
+    public void testExtractorSubclassIsNotImplicitlyAllowed()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                assertEquals(ObjectInputFilter.Status.REJECTED, check(UnregisteredExtractor.class));
+                RuntimeException error = assertThrows(RuntimeException.class,
+                        () -> ExternalizableHelper.fromBinary(
+                                ExternalizableHelper.toBinary(new UnregisteredExtractor())));
+                Throwable cause = error;
+                while (cause.getCause() != null)
+                    {
+                    cause = cause.getCause();
+                    }
+                assertTrue(cause.toString(), cause instanceof InvalidClassException);
+                });
+            }
+        }
+
+    @Test
+    public void testVectorQueryResultsRoundTrip()
+        {
+        for (String sMode : new String[] {null, "dev", "prod"})
+            {
+            for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED})
+                {
+                withProperties(sMode, sSecurityMode, null, () ->
+                    {
+                    Binary binary = new Binary(new byte[] {1, 2, 3});
+                    List<BaseQueryResult<?, ?>> results = new ArrayList<>();
+                    results.add(new BinaryQueryResult(0.25, binary, binary));
+                    results.add(new SimpleQueryResult<>(0.5, "key", "value"));
+                    List<BaseQueryResult<?, ?>> copy = ExternalizableHelper.fromBinary(
+                            ExternalizableHelper.toBinary(results));
+
+                    assertEquals(results.size(), copy.size());
+                    for (int i = 0; i < results.size(); i++)
+                        {
+                        assertEquals(results.get(i).getClass(), copy.get(i).getClass());
+                        assertEquals(results.get(i).getDistance(), copy.get(i).getDistance(), 0.0);
+                        assertEquals(results.get(i).getKey(), copy.get(i).getKey());
+                        assertEquals(results.get(i).getValue(), copy.get(i).getValue());
+                        }
+
+                    BaseQueryResult<?, ?>[] array = results.toArray(new BaseQueryResult[0]);
+                    BaseQueryResult<?, ?>[] arrayCopy = ExternalizableHelper.fromBinary(
+                            ExternalizableHelper.toBinary(array));
+                    assertEquals(array.length, arrayCopy.length);
+                    assertEquals(binary, arrayCopy[0].getKey());
+                    assertEquals("value", arrayCopy[1].getValue());
+                    });
+                }
+            }
+        }
+
+    @Test
+    public void testRollbackExceptionSubclassIsNotImplicitlyAllowed()
+        {
+        IllegalArgumentException exception = new NumberFormatException("unregistered");
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                assertEquals(ObjectInputFilter.Status.REJECTED, check(exception.getClass()));
+                RuntimeException error = assertThrows(RuntimeException.class,
+                        () -> ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(exception)));
+                Throwable cause = error;
+                while (cause.getCause() != null)
+                    {
+                    cause = cause.getCause();
+                    }
+                assertTrue(cause.toString(), cause instanceof InvalidClassException);
+                });
+            }
         }
 
     @Test
@@ -352,6 +768,26 @@ public class SerializationAllowlistTest
             }
         }
 
+    private static <A> void assertGroupingCollectorRoundTrip(
+            RemoteCollector<String, A, Map<Integer, SortedSet<String>>> collector)
+        {
+        A partial = collector.supplier().get();
+        for (String value : List.of("a", "cc", "bb"))
+            {
+            collector.accumulator().accept(partial, value);
+            }
+
+        A copiedPartial = ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(partial));
+        collector.accumulator().accept(copiedPartial, "aa");
+        Map<Integer, SortedSet<String>> result = collector.finisher().apply(copiedPartial);
+        Map<Integer, SortedSet<String>> copy = ExternalizableHelper.fromBinary(
+                ExternalizableHelper.toBinary(result));
+
+        assertEquals(2, copy.size());
+        assertEquals(List.of("a"), new ArrayList<>(copy.get(1)));
+        assertEquals(List.of("aa", "bb", "cc"), new ArrayList<>(copy.get(2)));
+        }
+
     private static void assertDeniedInDevAndProd(Class<?> clz)
         {
         for (String sMode : new String[] {"dev", "prod"})
@@ -425,6 +861,58 @@ public class SerializationAllowlistTest
             System.setProperty(sName, sValue);
             }
         }
+
+    /**
+     * Unregistered subclass used to verify exact extractor allowlisting.
+     *
+     * @author phf  2026.09.29
+     * @since 26.10
+     */
+    public static class UnregisteredExtractor
+            extends AbstractExtractor<String, Integer>
+        {
+        @Override
+        public Integer extract(String value)
+            {
+            return value.length();
+            }
+        }
+
+    /**
+     * Unregistered operation exception with a deserialization marker.
+     *
+     * @author phf  2026.09.30
+     * @since 26.10
+     */
+    private static class UnregisteredOperationException
+            extends UnsupportedOperationException
+        {
+        private void readObject(ObjectInputStream in)
+                throws IOException, ClassNotFoundException
+            {
+            s_fUnregisteredExceptionRead = true;
+            in.defaultReadObject();
+            }
+        }
+
+    /**
+     * Unregistered invocation exception with a deserialization marker.
+     *
+     * @author phf  2026.09.30
+     * @since 26.10
+     */
+    private static class UnregisteredInvocationTargetException
+            extends InvocationTargetException
+        {
+        private void readObject(ObjectInputStream in)
+                throws IOException, ClassNotFoundException
+            {
+            s_fUnregisteredExceptionRead = true;
+            in.defaultReadObject();
+            }
+        }
+
+    private static boolean s_fUnregisteredExceptionRead;
 
     private record TestFilterInfo(Class<?> serialClass)
             implements ObjectInputFilter.FilterInfo

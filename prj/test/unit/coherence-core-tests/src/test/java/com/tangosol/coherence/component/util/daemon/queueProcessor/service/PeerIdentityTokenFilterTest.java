@@ -14,7 +14,11 @@ import com.tangosol.io.pof.PofPrincipal;
 
 import com.tangosol.net.security.DefaultIdentityAsserter;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -37,8 +41,42 @@ import static org.junit.Assert.assertTrue;
  *
  * @author OpenAI  2026.05.16
  */
+@RunWith(Parameterized.class)
 public class PeerIdentityTokenFilterTest
     {
+    @Parameterized.Parameters(name = "security={0}")
+    public static Object[] modes()
+        {
+        return new Object[] {"compatibility", "hardened"};
+        }
+
+    public PeerIdentityTokenFilterTest(String sSecurityMode)
+        {
+        f_sSecurityMode = sSecurityMode;
+        }
+
+    @Before
+    public void setUp()
+        {
+        m_scope = CoherenceModeHelper.securityMode(f_sSecurityMode);
+        m_sAllowed = System.getProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED);
+        System.clearProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED);
+        }
+
+    @After
+    public void tearDown()
+        {
+        if (m_sAllowed == null)
+            {
+            System.clearProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED);
+            }
+        else
+            {
+            System.setProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED, m_sAllowed);
+            }
+        m_scope.close();
+        }
+
     @Test
     public void shouldReturnNullIdentityToken()
         {
@@ -46,8 +84,9 @@ public class PeerIdentityTokenFilterTest
         }
 
     @Test
-    public void shouldDeserializePassiveSubjectIdentityToken()
+    public void shouldApplyModeWhenAssertingPassiveSubjectIdentityToken()
         {
+        allowPassiveSubjectFixture();
         Peer    peer    = peer();
         Subject subject = new Subject();
 
@@ -57,28 +96,26 @@ public class PeerIdentityTokenFilterTest
 
         assertTrue(oToken instanceof Subject);
         assertTrue(((Subject) oToken).getPrincipals().contains(new PofPrincipal("CN=Manager, OU=MyUnit")));
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+        if ("hardened".equals(f_sSecurityMode))
+            {
+            // allowing passive decoding does not make the token proof of identity
+            assertThrows(SecurityException.class, () -> DefaultIdentityAsserter.INSTANCE.assertIdentity(oToken, null));
+            }
+        else
             {
             assertSame(oToken, DefaultIdentityAsserter.INSTANCE.assertIdentity(oToken, null));
             }
         }
 
     @Test
-    public void shouldRejectPassiveSubjectIdentityTokenInHardenedMode()
+    public void shouldRejectUnconfiguredSubjectIdentityTokenInHardenedMode()
         {
-        Peer    peer    = peer();
-        Subject subject = new Subject();
-
-        subject.getPrincipals().add(new PofPrincipal("CN=Manager, OU=MyUnit"));
-
-        Object oToken = peer.deserializeIdentityToken(peer.serializeIdentityToken(subject));
-
-        assertTrue(oToken instanceof Subject);
-        assertTrue(((Subject) oToken).getPrincipals().contains(new PofPrincipal("CN=Manager, OU=MyUnit")));
-
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
-            assertThrows(SecurityException.class, () -> DefaultIdentityAsserter.INSTANCE.assertIdentity(oToken, null));
+            Peer   peer    = peer();
+            byte[] abToken = peer.serializeIdentityToken(new Subject());
+
+            assertThrows(SecurityException.class, () -> peer.deserializeIdentityToken(abToken));
             }
         }
 
@@ -97,6 +134,7 @@ public class PeerIdentityTokenFilterTest
     @Test
     public void shouldRejectSubjectPrincipalCustomNumberBeforeReadObject()
         {
+        allowPassiveSubjectFixture();
         Peer    peer    = peer();
         Subject subject = new Subject();
 
@@ -137,6 +175,17 @@ public class PeerIdentityTokenFilterTest
                 {
                 System.setProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED, sCurrent);
                 }
+            }
+        }
+
+    private void allowPassiveSubjectFixture()
+        {
+        if ("hardened".equals(f_sSecurityMode))
+            {
+            System.setProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED, String.join(";",
+                    "javax.security.auth.Subject",
+                    "javax.security.auth.Subject$SecureSet",
+                    "com.tangosol.io.pof.PofPrincipal"));
             }
         }
 
@@ -245,4 +294,10 @@ public class PeerIdentityTokenFilterTest
 
         private static final long serialVersionUID = 1L;
         }
+
+    private CoherenceModeHelper.ModeScope m_scope;
+
+    private String m_sAllowed;
+
+    private final String f_sSecurityMode;
     }

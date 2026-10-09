@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -212,8 +212,13 @@ public abstract class AbstractExtendTest
     protected static CoherenceClusterMember startCacheServerWithProxy(String sServer, String sProject,
             String sBuild, String sCacheConfig, Properties props, boolean fGraceful, String sClassPath)
         {
+        Properties propsServer = props == null ? new Properties() : (Properties) props.clone();
+        if (propsServer.getProperty("coherence.invocation.enabled") == null)
+            {
+            propsServer.setProperty("coherence.invocation.enabled", "true");
+            }
         CoherenceClusterMember member = startCacheServer(sServer, sProject, sCacheConfig,
-            props, fGraceful, sClassPath);
+            propsServer, fGraceful, sClassPath);
 
         Eventually.assertThat(member, new AreAllProxyServicesRunning(), is(true));
         return member;

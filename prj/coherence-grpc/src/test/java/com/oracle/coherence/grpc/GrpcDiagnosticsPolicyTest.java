@@ -39,15 +39,18 @@ class GrpcDiagnosticsPolicyTest
     @Test
     void shouldResolveChannelzAutoByHardening()
         {
-        try (ModeScope ignored = scope("prod", null))
+        for (String sMode : new String[] {null, "dev", "prod"})
             {
-            assertTrue(GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_AUTO));
-            }
-        try (ModeScope ignored = scope("dev", SECURITY_MODE_HARDENED))
-            {
-            assertFalse(GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_AUTO));
-            assertTrue(GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_ENABLED));
-            assertFalse(GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_DISABLED));
+            for (String sSecurityMode : new String[] {null, SECURITY_MODE_HARDENED, SECURITY_MODE_COMPATIBILITY})
+                {
+                try (ModeScope ignored = scope(sMode, sSecurityMode))
+                    {
+                    assertEquals(SECURITY_MODE_COMPATIBILITY.equals(sSecurityMode),
+                            GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_AUTO));
+                    assertTrue(GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_ENABLED));
+                    assertFalse(GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_DISABLED));
+                    }
+                }
             }
         }
 
@@ -64,15 +67,18 @@ class GrpcDiagnosticsPolicyTest
     @Test
     void shouldResolveErrorDisclosureAutoByHardening()
         {
-        try (ModeScope ignored = scope("prod", null))
+        for (String sMode : new String[] {null, "dev", "prod"})
             {
-            assertFalse(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_AUTO));
-            }
-        try (ModeScope ignored = scope("dev", SECURITY_MODE_HARDENED))
-            {
-            assertTrue(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_AUTO));
-            assertTrue(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_SAFE));
-            assertFalse(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC));
+            for (String sSecurityMode : new String[] {null, SECURITY_MODE_HARDENED, SECURITY_MODE_COMPATIBILITY})
+                {
+                try (ModeScope ignored = scope(sMode, sSecurityMode))
+                    {
+                    assertEquals(!SECURITY_MODE_COMPATIBILITY.equals(sSecurityMode),
+                            GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_AUTO));
+                    assertTrue(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_SAFE));
+                    assertFalse(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC));
+                    }
+                }
             }
         }
 
@@ -87,6 +93,8 @@ class GrpcDiagnosticsPolicyTest
         }
 
     private static final String SECURITY_MODE_HARDENED = "hardened";
+
+    private static final String SECURITY_MODE_COMPATIBILITY = "compatibility";
 
     private static void resetMode()
         {

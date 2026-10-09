@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -154,7 +154,7 @@ public class SimpleAggregationExample {
         Logger.info("Order Count = " + orderCount);
 
         // get the total value of all orders - requires index on Order::getOrderTotal to be efficient
-        Double totalOrders = orders.aggregate(Aggregators.sum(Order::getOrderTotal));
+        Double totalOrders = orders.aggregate(Aggregators.doubleSum(Order::getOrderTotal));
         Logger.info("Total Order Value " + formatMoney(totalOrders));
 
         // get the average order value across all orders - requires index to be efficient
@@ -163,13 +163,13 @@ public class SimpleAggregationExample {
 
         // get the minimum order value where then is only 1 order line - requires index on Order::getOrderLineCount to be efficient
         Double minOrderValue1Line = orders.aggregate(Filters.equal(Order::getOrderLineCount, 1),
-                Aggregators.min(Order::getOrderTotal));
+                Aggregators.doubleMin(Order::getOrderTotal));
         Logger.info("Min Order Value for orders with 1 line " + formatMoney(minOrderValue1Line));
 
         // get the outstanding balances by state - requires index on the full ValueExtractor to be efficient
         ValueExtractor<Customer, String> officeState = ValueExtractor.of(Customer::getOfficeAddress).andThen(Address::getState);
         Map<String, BigDecimal> mapOutstandingByState = customers.aggregate(
-                GroupAggregator.createInstance(officeState, Aggregators.sum(Customer::getOutstandingBalance)));
+                GroupAggregator.createInstance(officeState, Aggregators.bigDecimalSum(Customer::getOutstandingBalance)));
         mapOutstandingByState.forEach((k, v) -> Logger.info("State: " + k + ", outstanding total is " + formatMoney(v)));
 
         // get the top 5 order totals by value

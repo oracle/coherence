@@ -124,13 +124,27 @@ public class CacheNamedCacheInstallGateTest
         }
 
     @Test
-    public void rejectsDynamicInstallInProd()
+    public void allowsDynamicInstallInHardenedModeByDefault()
+        {
+        for (GateCase gate : GATES)
+            {
+            setMode("prod", null);
+
+            gate.enforce(gate.dynamic());
+
+            assertCounterAbsent(gate.reason(), "prod", "rejected",
+                    SerializationTelemetry.SUB_REASON_MODE_GATE);
+            }
+        }
+
+    @Test
+    public void rejectsDynamicInstallWithExplicitDeny()
         {
         for (GateCase gate : GATES)
             {
             Object oDynamic = gate.dynamic();
             assertTrue(oDynamic.getClass().isSynthetic());
-            setMode("prod", null);
+            setMode("prod", "deny");
 
             SecurityException e = assertThrows(SecurityException.class, () -> gate.enforce(oDynamic));
 

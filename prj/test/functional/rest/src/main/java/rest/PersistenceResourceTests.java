@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package rest;
+
+import com.oracle.coherence.testing.util.HttpTestAuth;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -96,6 +98,7 @@ public class PersistenceResourceTests
             System.setProperty("coherence.management.http.port", "0");
 
             Properties propsServer1 = new Properties();
+            propsServer1.setProperty("java.security.auth.login.config", HttpTestAuth.loginConfig());
             propsServer1.setProperty("coherence.cluster", CLUSTER_NAME);
             propsServer1.setProperty("coherence.management.extendedmbeanname", "true");
             propsServer1.setProperty("coherence.member", SERVER_PREFIX + "-1");
@@ -119,6 +122,7 @@ public class PersistenceResourceTests
             cache.put(1, binValue);
 
             m_client = ClientBuilder.newBuilder()
+                .register(HttpTestAuth.RequestFilter.class)
                 .register(JacksonMapperProvider.class)
                 .register(JacksonFeature.class)
                 .register(new LoggingFeature(LOGGER, LoggingFeature.Verbosity.PAYLOAD_TEXT)).build();
@@ -388,7 +392,7 @@ public class PersistenceResourceTests
     /**
      * Name of the Coherence cluster.
      */
-    public static final String CLUSTER_NAME = "mgmtRestCluster";
+    public static final String CLUSTER_NAME = "mgmtRestCluster" + "-" + System.nanoTime();
 
     /**
      * The tmp directory used by this test.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,7 @@ import com.oracle.bedrock.runtime.options.Ports;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
+import com.oracle.coherence.io.json.JsonSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
@@ -382,7 +383,7 @@ public class DeferKeyAssociationCheckGrpcIT
         Object[]               expectedValues = new ArrayList<>(cache.values()).stream().map(v -> v + '1').toArray();
 
 
-        grpcClient.replaceAll(keys, (k, v) ->
+        grpcClient.replaceAll(keys, serializer instanceof JsonSerializer ? TestFunctions.AppendSuffix.INSTANCE : (k, v) ->
            {
            v = v + "1";
            return v;
@@ -413,10 +414,12 @@ public class DeferKeyAssociationCheckGrpcIT
 
 
         //noinspection ConstantConditions
-        int newValue = grpcClient.compute(key1, (k, v) -> v + v);
+        int newValue = grpcClient.compute(key1,
+                serializer instanceof JsonSerializer ? TestFunctions.DoubleValue.INSTANCE : (k, v) -> v + v);
         assertThat(newValue, is(2));
 
-        grpcClient.compute(key2, (k, v) -> null);
+        grpcClient.compute(key2,
+                serializer instanceof JsonSerializer ? TestFunctions.RemoveValue.INSTANCE : (k, v) -> null);
 
         assertThat(cache.get(key2), is(nullValue()));
         }
@@ -543,7 +546,7 @@ public class DeferKeyAssociationCheckGrpcIT
 
     static final Map<String, Session> SESSIONS = new HashMap<>();
 
-    static final String CLUSTER_NAME = "DefaultCacheConfigGrpcIT";
+    static final String CLUSTER_NAME = "DeferKeyAssociationCheckGrpcIT-" + System.nanoTime();
 
     static final LocalPlatform PLATFORM = LocalPlatform.get();
 
@@ -560,6 +563,7 @@ public class DeferKeyAssociationCheckGrpcIT
                   OperationalOverride.of("test-coherence-override.xml"),
                   Pof.config("test-pof-config.xml"),
                   SystemProperty.of("coherence.serializer", "pof"),
+                  SystemProperty.of("coherence.grpc.serializer.allowlist", "java"),
                   SystemProperty.of("coherence.extend.port", PORTS, Ports.capture()),
                   WellKnownAddress.loopback(),
                   ClusterName.of(CLUSTER_NAME),

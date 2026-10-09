@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -39,6 +39,7 @@ import java.io.IOException;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -73,8 +74,11 @@ public class InvocationExtendTests
     @BeforeClass
     public static void startup()
         {
+        Properties propsServer = new Properties();
+        propsServer.setProperty("coherence.invocation.enabled", "true");
+
         CoherenceClusterMember memberProxy = startCacheServer("InvocationExtendTests", "extend",
-                                                "server-cache-config-invocation.xml");
+                                                "server-cache-config-invocation.xml", propsServer);
         Eventually.assertThat(invoking(memberProxy).isServiceRunning("ExtendTcpProxyService"), is(true));
         }
 

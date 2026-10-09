@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="data.Person" source="manual"/>
+    <class name="data.Person$Key" source="manual"/>
+    <class name="data.Trade" source="manual"/>
+    <class name="data.persistence.CompoundPerson1" source="manual"/>
+    <class name="data.persistence.CompoundPerson2" source="manual"/>
+    <class name="data.persistence.Person" source="manual"/>
+    <class name="data.persistence.PersonId" source="manual"/>
+    <class name="data.pof.Address" source="manual"/>
+    <class name="data.pof.ExternalizablePerson" source="manual"/>
+    <class name="data.pof.Person" source="manual"/>
+    <class name="data.pof.PortablePerson" source="manual"/>
+    <class name="data.pof.SerializablePerson" source="manual"/>
+    <class name="data.repository.Gender" source="manual"/>
+  </allowed-classes>
+</security-config>

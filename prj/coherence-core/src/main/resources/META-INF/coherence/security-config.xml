@@ -17,6 +17,7 @@
     <class name="com.oracle.coherence.ai.distance.InnerProductDistance" source="manual"/>
     <class name="com.oracle.coherence.ai.distance.L2SquaredDistance" source="manual"/>
     <class name="com.oracle.coherence.ai.index.BinaryQuantIndex" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.ai.search.BaseQueryResult" source="manual"/>
     <class name="com.oracle.coherence.ai.search.BinaryQueryResult" source="manual"/>
     <class name="com.oracle.coherence.ai.search.ConverterResult" source="manual"/>
     <class name="com.oracle.coherence.ai.search.SimilaritySearch" source="manual" executable="true"/>
@@ -479,10 +480,12 @@
     <class name="com.tangosol.io.pof.EvolvableHolder" source="manual"/>
     <class name="com.tangosol.io.pof.PortableException" source="manual"/>
     <class name="com.tangosol.io.pof.RawQuad" source="manual"/>
+    <class name="com.tangosol.io.pof.reflect.AbstractPofPath" source="manual"/>
     <class name="com.tangosol.io.pof.reflect.PofNavigationException" source="manual"/>
     <class name="com.tangosol.io.pof.reflect.SimplePofPath" source="manual"/>
     <class name="com.tangosol.license.LicenseException" source="manual"/>
     <class name="com.tangosol.license.LicensedObject$LicenseData" source="manual"/>
+    <class name="com.tangosol.net.AbstractInvocable" source="manual"/>
     <class name="com.tangosol.net.ClusterException" source="manual"/>
     <class name="com.tangosol.net.ClusterPermission" source="manual"/>
     <class name="com.tangosol.net.Coherence$Mode" source="manual"/>
@@ -635,7 +638,10 @@
     <class name="com.tangosol.run.xml.XmlElementAdapter" source="manual"/>
     <class name="com.tangosol.run.xml.XmlSerializableAdapter" source="manual"/>
     <class name="com.tangosol.util.AbstractKeyBasedMap$EntrySet$Entry" source="manual"/>
+    <class name="com.tangosol.util.AbstractLongArray" source="manual"/>
     <class name="com.tangosol.util.AbstractScript" source="manual"/>
+    <class name="com.tangosol.util.AbstractSparseArray" source="manual"/>
+    <class name="com.tangosol.util.AbstractSparseArray$Node" source="manual"/>
     <class name="com.tangosol.util.Aggregators" source="manual"/>
     <class name="com.tangosol.util.AnyEvent" source="manual"/>
     <class name="com.tangosol.util.AssertionException" source="manual"/>
@@ -674,8 +680,8 @@
     <class name="com.tangosol.util.DeltaSet" source="manual"/>
     <class name="com.tangosol.util.Dequeue" source="manual"/>
     <class name="com.tangosol.util.ErrorList$OverflowException" source="manual"/>
-    <class name="com.tangosol.util.Extractors" source="manual"/>
     <class name="com.tangosol.util.ExternalizableHelper$IntDecoratedObject" source="manual"/>
+    <class name="com.tangosol.util.Extractors" source="manual"/>
     <class name="com.tangosol.util.Filter" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.FilterBuildingException" source="manual"/>
     <class name="com.tangosol.util.Filters" source="manual"/>
@@ -768,6 +774,8 @@
     <class name="com.tangosol.util.WrapperCollections$AbstractWrapperSortedMap" source="manual"/>
     <class name="com.tangosol.util.WrapperCollections$AbstractWrapperSortedSet" source="manual"/>
     <class name="com.tangosol.util.WrapperException" source="manual"/>
+    <class name="com.tangosol.util.aggregator.AbstractAggregator" source="manual"/>
+    <class name="com.tangosol.util.aggregator.AbstractLongAggregator" source="manual"/>
     <class name="com.tangosol.util.aggregator.AsynchronousAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.util.aggregator.BigDecimalAverage" source="manual" executable="true"/>
     <class name="com.tangosol.util.aggregator.BigDecimalMax" source="manual" executable="true"/>
@@ -800,6 +808,7 @@
     <class name="com.tangosol.util.comparator.ExtractorComparator" source="manual" executable="true"/>
     <class name="com.tangosol.util.comparator.InverseComparator" source="manual" executable="true"/>
     <class name="com.tangosol.util.comparator.SafeComparator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.AbstractExtractor" source="manual"/>
     <class name="com.tangosol.util.extractor.ChainedExtractor" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.ChainedFragmentExtractor" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.CollectionExtractor" source="manual" executable="true"/>
@@ -818,16 +827,19 @@
     <class name="com.tangosol.util.extractor.ScriptValueExtractor" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.UniversalExtractor" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.UniversalUpdater" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.AbstractQueryRecorderFilter" source="manual"/>
     <class name="com.tangosol.util.filter.AllFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.AlwaysFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.AndFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.AnyFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.BetweenFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.CacheEventFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.ComparisonFilter" source="manual"/>
     <class name="com.tangosol.util.filter.ContainsAllFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.ContainsAnyFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.ContainsFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.EqualsFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.ExtractorFilter" source="manual"/>
     <class name="com.tangosol.util.filter.FilterTrigger" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.GreaterEqualsFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.GreaterFilter" source="manual" executable="true"/>
@@ -906,8 +918,6 @@
     <class name="com.tangosol.util.function.Remote$ToLongBiFunction" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.function.Remote$ToLongFunction" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.function.Remote$UnaryOperator" source="manual" lambda-target="true"/>
-    <class name="com.tangosol.util.fsm.NonBlockingFiniteStateMachine$CoalescedEvent$Process" source="manual"/>
-    <class name="com.tangosol.util.fsm.RollbackTransitionException" source="manual"/>
     <class name="com.tangosol.util.processor.AbstractProcessor" source="manual"/>
     <class name="com.tangosol.util.processor.AsynchronousProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.CompositeProcessor" source="manual" executable="true"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,6 +32,7 @@ import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
+import org.junit.ClassRule;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -52,6 +53,9 @@ import static org.junit.Assert.fail;
 public class NameServiceSecurityTests
         extends AbstractFunctionalTest
     {
+    @ClassRule
+    public static final LegacySecurityRule s_legacySecurity = new LegacySecurityRule();
+
     // ----- constructors ---------------------------------------------------
 
     /**

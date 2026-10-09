@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,9 +11,13 @@ import static com.tangosol.util.Base.read;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.oracle.coherence.common.base.Resources;
+import com.oracle.coherence.testing.SystemPropertyResource;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.tangosol.net.CacheFactory;
 
@@ -24,8 +28,11 @@ import com.tangosol.run.xml.XmlHelper;
 
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
+import org.junit.runners.model.Statement;
 import org.junit.runners.Parameterized;
 
 import javax.xml.XMLConstants;
@@ -33,6 +40,7 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.validation.SchemaFactory;
 
 import java.io.File;
+import java.io.IOException;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -53,39 +61,54 @@ public class XsdValidationTests
      *
      * @param sSaxParserFactoryImplName  canonical classname for SAX Parser Factory impl to test
      * @param sSchemaFactoryImplName     canonical classname for SAX Schema Factory impl to test
+     * @param sSecurityMode              explicit security mode, or null for the default
      */
-    public XsdValidationTests(String sSaxParserFactoryImplName, String sSchemaFactoryImplName)
+    public XsdValidationTests(String sSaxParserFactoryImplName, String sSchemaFactoryImplName, String sSecurityMode)
         {
-        System.setProperty("javax.xml.parsers.SAXParserFactory", sSaxParserFactoryImplName);
-        System.setProperty("javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema", sSchemaFactoryImplName);
-
-        // enables verifying which xml parser implementation is being loaded and from what jar.
-        System.setProperty("jaxp.debug", "true");
-
-        SAXParserFactory spf = SAXParserFactory.newInstance();
-        assertEquals(sSaxParserFactoryImplName, spf.getClass().getCanonicalName());
-
-        SchemaFactory sf = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
-        assertEquals(sSchemaFactoryImplName, sf.getClass().getCanonicalName());
+        m_xmlParserRule = xmlParserRule(sSaxParserFactoryImplName, sSchemaFactoryImplName, sSecurityMode);
+        m_fLegacyParser = sSchemaFactoryImplName.equals("org.apache.xerces.jaxp.validation.XMLSchemaFactory");
         }
 
     // ----- test lifecycle methods -----------------------------------------
 
-    @Parameterized.Parameters(name = "SaxParserFactoryImpl={0} SchemaFactoryImpl={1}")
+    @Parameterized.Parameters(name = "SaxParserFactoryImpl={0} SchemaFactoryImpl={1} SecurityMode={2}")
     public static Collection<Object[]> parameters()
         {
         return Arrays.asList(new Object[][]
             {
-                // default JDK 8 parser, need to explicitly specify to override the service provider-configuration file in test scoped xercesImpl.jar
-                {"com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl", "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory"},
+                // select the JDK provider explicitly despite xercesImpl.jar's service registration
+                {"com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl", "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory", null},
+                {"com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl", "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory", "compatibility"},
 
-                // a xerces implementation to verify that all tests run and tolerate of unrecognized/unsuppported features/properties.
-                // Depending on Xerces implementation, it only implements JAXP 1.4 or less
-                {"org.apache.xerces.jaxp.SAXParserFactoryImpl", "org.apache.xerces.jaxp.validation.XMLSchemaFactory"}
+                // tolerating unsupported XML protections requires explicit compatibility mode
+                {"org.apache.xerces.jaxp.SAXParserFactoryImpl", "org.apache.xerces.jaxp.validation.XMLSchemaFactory", "compatibility"}
             });
         }
 
     // ----- test methods ---------------------------------------------------
+
+    @Test
+    public void testHardenedModeRequiresXmlProtections()
+            throws Exception
+        {
+        for (String sSecurityMode : new String[] {null, "hardened"})
+            {
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityMode(sSecurityMode))
+                {
+                if (m_fLegacyParser)
+                    {
+                    IOException error = assertThrows(IOException.class,
+                            () -> XmlValidator.validate("cache-config-coh-5916-1.xml"));
+                    assertTrue(error.getMessage(), error.getMessage().contains("XML protection"));
+                    assertTrue(error.getMessage(), error.getMessage().contains(XMLConstants.ACCESS_EXTERNAL_DTD));
+                    }
+                else
+                    {
+                    XmlValidator.validate("cache-config-coh-5916-1.xml");
+                    }
+                }
+            }
+        }
 
    /**
     * Test the system-property attribute for each element with the following files
@@ -334,6 +357,29 @@ public class XsdValidationTests
 
     // ----- helpers --------------------------------------------------------
 
+    static TestRule xmlParserRule(String sSaxParser, String sSchemaFactory, String sSecurityMode)
+        {
+        return (base, description) -> new Statement()
+            {
+            @Override
+            public void evaluate()
+                    throws Throwable
+                {
+                try (SystemPropertyResource sax = new SystemPropertyResource(
+                             "javax.xml.parsers.SAXParserFactory", sSaxParser);
+                     SystemPropertyResource schema = new SystemPropertyResource(
+                             "javax.xml.validation.SchemaFactory:" + XMLConstants.W3C_XML_SCHEMA_NS_URI, sSchemaFactory);
+                     CoherenceModeHelper.ModeScope mode = CoherenceModeHelper.securityMode(sSecurityMode))
+                    {
+                    assertEquals(sSaxParser, SAXParserFactory.newInstance().getClass().getCanonicalName());
+                    assertEquals(sSchemaFactory, SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+                            .getClass().getCanonicalName());
+                    base.evaluate();
+                    }
+                }
+            };
+        }
+
     private static boolean supportJAXP15Property(String property)
         {
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
@@ -348,4 +394,9 @@ public class XsdValidationTests
             }
         return true;
         }
+
+    @Rule
+    public final TestRule m_xmlParserRule;
+
+    private final boolean m_fLegacyParser;
     }

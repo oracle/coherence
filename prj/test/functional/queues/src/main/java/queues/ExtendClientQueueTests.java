@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogsExtension;
@@ -79,7 +80,7 @@ public class ExtendClientQueueTests<QueueType extends NamedQueue>
 
     // ----- data members ---------------------------------------------------
 
-    public static final String CLUSTER_NAME = "ExtendClientQueueTests";
+    public static final String CLUSTER_NAME = "ExtendClientQueueTests-" + System.nanoTime();
 
     protected static Coherence m_coherence;
 
@@ -91,6 +92,7 @@ public class ExtendClientQueueTests<QueueType extends NamedQueue>
             .with(WellKnownAddress.loopback(),
                   CacheConfig.of("queue-cache-config.xml"),
                   LocalHost.only(),
+                  SystemProperty.of("coherence.concurrent.extend.enabled", true),
                   ClusterName.of(CLUSTER_NAME))
             .include(3, CoherenceClusterMember.class,
                     LocalStorage.enabled(),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -82,7 +82,10 @@ class ComparableConverterTest
     @Test
     void testDeserializationOfCustomComparable()
         {
-        Genson         genson = new GensonBuilder().useClassMetadata(true).withBundle(new JsonbBundle()).create();
+        Genson         genson = new GensonBuilder().useClassMetadata(true)
+                .addAlias(ComparableBean.class.getName(), ComparableBean.class)
+                .addAlias(CustomComparable.class.getName(), CustomComparable.class)
+                .withBundle(new JsonbBundle()).create();
         ComparableBean result = genson.deserialize(
                 "{\"@class\":\"com.oracle.coherence.io.json.internal.ComparableConverterTest$ComparableBean\","
                 + "\"value\":{\"@class\":\"com.oracle.coherence.io.json.internal"

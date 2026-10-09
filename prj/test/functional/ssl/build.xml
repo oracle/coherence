@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -36,6 +36,9 @@
 
     <mkdir dir="target/ca"/>
     <mkdir dir="target/classes/"/>
+    <!-- valid test peers connect over loopback -->
+    <echo file="target/loopback.ext">subjectAltName=DNS:localhost,IP:127.0.0.1,IP:::1</echo>
+    <echo file="target/hostname-mismatch.ext">subjectAltName=DNS:hostname-mismatch.invalid</echo>
     <delete>
       <fileset dir="target/classes" includes="*.jks"/>
     </delete>
@@ -80,17 +83,22 @@
 
     <!-- Create Self-signed client certificate -->
     <exec executable="openssl" failonerror="true">
-      <arg line="x509 -req -passin pass:1111 -days 3650 -in target/classes/client.csr -CA target/ca/cacert.pem -CAkey target/ca/cakey.pem -set_serial 01 -out target/classes/client.chain"/>
+      <arg line="x509 -req -passin pass:1111 -days 3650 -in target/classes/client.csr -CA target/ca/cacert.pem -CAkey target/ca/cakey.pem -set_serial 01 -extfile target/loopback.ext -out target/classes/client.chain"/>
     </exec>
 
     <!-- Create Self-signed server certificate -->
     <exec executable="openssl" failonerror="true">
-      <arg line="x509 -req -passin pass:1111 -days 3650 -in target/classes/server.csr -CA target/ca/cacert.pem -CAkey target/ca/cakey.pem -set_serial 01 -out target/classes/server.chain"/>
+      <arg line="x509 -req -passin pass:1111 -days 3650 -in target/classes/server.csr -CA target/ca/cacert.pem -CAkey target/ca/cakey.pem -set_serial 01 -extfile target/loopback.ext -out target/classes/server.chain"/>
     </exec>
 
     <!-- Create Self-signed guest certificate -->
     <exec executable="openssl" failonerror="true">
-      <arg line="x509 -req -passin pass:1111 -days 3650 -in target/classes/guest.csr -CA target/ca/cacert.pem -CAkey target/ca/cakey.pem -set_serial 01 -out target/classes/guest.chain"/>
+      <arg line="x509 -req -passin pass:1111 -days 3650 -in target/classes/guest.csr -CA target/ca/cacert.pem -CAkey target/ca/cakey.pem -set_serial 01 -extfile target/loopback.ext -out target/classes/guest.chain"/>
+    </exec>
+
+    <!-- keep a CA-trusted certificate with the wrong hostname for rejection tests -->
+    <exec executable="openssl" failonerror="true">
+      <arg line="x509 -req -passin pass:1111 -days 3650 -in target/classes/guest.csr -CA target/ca/cacert.pem -CAkey target/ca/cakey.pem -set_serial 02 -extfile target/hostname-mismatch.ext -out target/classes/hostname-mismatch.chain"/>
     </exec>
 
     <!-- Remove passphrase from client key -->
@@ -138,6 +146,11 @@
       <arg line="pkcs12 -export -passout pass:password -inkey target/classes/guest.pem -name guest -in target/classes/guest.chain -out target/classes/guest.p12"/>
     </exec>
 
+    <!-- create the hostname-mismatch keystore -->
+    <exec executable="openssl" failonerror="true">
+      <arg line="pkcs12 -export -passout pass:password -inkey target/classes/guest.pem -name hostname-mismatch -in target/classes/hostname-mismatch.chain -out target/classes/hostname-mismatch.jks"/>
+    </exec>
+
     <!-- Create the client keystore -->
     <exec executable="${keytool}" failonerror="true">
       <arg line="-importkeystore -storepass password -noprompt -srcstorepass password -srckeystore target/classes/client.p12 -srcstoretype pkcs12 -deststoretype pkcs12 -destkeystore target/classes/client.jks"/>
@@ -155,12 +168,12 @@
 
     <!-- Create the rogue keystore -->
     <exec executable="${keytool}" failonerror="true">
-      <arg line="-genkey -keyalg RSA -keysize 4096 -validity 3650 -dname 'CN=rogue, O=Evil, L=Eviland, ST=EV, C=US' -alias rogue -keystore target/classes/rogue.jks -storepass password -storetype pkcs12"/>
+      <arg line="-genkey -keyalg RSA -keysize 4096 -validity 3650 -dname 'CN=rogue, O=Evil, L=Eviland, ST=EV, C=US' -ext SAN=DNS:localhost,IP:127.0.0.1,IP:::1 -alias rogue -keystore target/classes/rogue.jks -storepass password -storetype pkcs12"/>
     </exec>
 
     <!-- Create the process keystore and certificate -->
     <exec executable="${keytool}" failonerror="true">
-      <arg line="-genkey -keyalg RSA -keysize 4096 -validity 3650 -dname 'CN=process, O=Oracle, L=Burlington, ST=MA, C=US' -alias process -storetype pkcs12 -keystore target/classes/process.jks -storepass password"/>
+      <arg line="-genkey -keyalg RSA -keysize 4096 -validity 3650 -dname 'CN=process, O=Oracle, L=Burlington, ST=MA, C=US' -ext SAN=DNS:localhost,IP:127.0.0.1,IP:::1 -alias process -storetype pkcs12 -keystore target/classes/process.jks -storepass password"/>
     </exec>
     <exec executable="${keytool}" failonerror="true">
       <arg line="-exportcert -alias process -file target/classes/process.pem -keystore target/classes/process.jks -storepass password -storetype pkcs12"/>

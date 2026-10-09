@@ -14,8 +14,10 @@ import com.oracle.coherence.concurrent.locks.Locks;
 import com.oracle.coherence.concurrent.locks.RemoteLock;
 import com.tangosol.net.Coherence;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -253,30 +255,48 @@ public class RemoteLockTest
 
     @Test
     void shouldTimeOutIfTheLockIsHeldByAnotherThread()
-            throws InterruptedException
+            throws Exception
         {
         RemoteLock lock = Locks.remoteLock(lockName("foo"));
-        Semaphore s1 = new Semaphore(0);
-        Semaphore s2 = new Semaphore(0);
-
-        final Thread thread = new Thread(() ->
-               {
-               lock.lock();
-               System.out.println("Lock acquired by " + Thread.currentThread());
-
-               s1.release();
-               s2.acquireUninterruptibly();
-
-               System.out.println("Lock released by " + Thread.currentThread());
-               lock.unlock();
-               });
-
-        thread.start();
-        s1.acquire();
-        assertThat(lock.tryLock(500, TimeUnit.MILLISECONDS), is(false));
-
-        s2.release();
-        thread.join();
+        CompletableFuture<Void> acquired = new CompletableFuture<>();
+        Semaphore release = new Semaphore(0);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<?> worker = executor.submit(() ->
+            {
+            try
+                {
+                lock.lockInterruptibly();
+                try
+                    {
+                    acquired.complete(null);
+                    assertThat(release.tryAcquire(10, TimeUnit.SECONDS), is(true));
+                    }
+                finally
+                    {
+                    lock.unlock();
+                    }
+                }
+            catch (Exception | Error e)
+                {
+                acquired.completeExceptionally(e);
+                throw e;
+                }
+            return null;
+            });
+        try
+            {
+            acquired.get(10, TimeUnit.SECONDS);
+            assertThat(lock.tryLock(500, TimeUnit.MILLISECONDS), is(false));
+            release.release();
+            worker.get(10, TimeUnit.SECONDS);
+            }
+        finally
+            {
+            release.release();
+            worker.cancel(true);
+            executor.shutdownNow();
+            assertThat(executor.awaitTermination(10, TimeUnit.SECONDS), is(true));
+            }
         }
 
     @Test

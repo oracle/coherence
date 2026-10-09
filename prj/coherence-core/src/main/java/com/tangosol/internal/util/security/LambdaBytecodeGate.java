@@ -300,7 +300,7 @@ public final class LambdaBytecodeGate
                 }
             else if (REASON_DYNAMIC_REMOTE_DENIED_BY_MODE.equals(rejected.reason()))
                 {
-                sRemediation = "; DYNAMIC lambdas from unauthenticated callers are refused when security hardening is enabled "
+                sRemediation = "; DYNAMIC lambdas from unauthenticated callers are refused when coherence.remote.dynamic.unauthenticated=deny "
                         + "(set coherence.remote.dynamic.unauthenticated=allow to opt in, or switch to STATIC "
                         + "lambda serialisation)";
                 }

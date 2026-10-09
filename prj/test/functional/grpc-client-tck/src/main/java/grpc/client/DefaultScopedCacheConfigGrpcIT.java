@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -206,7 +206,7 @@ public class DefaultScopedCacheConfigGrpcIT
 
     static final Map<String, Session> EXTEND_SESSIONS = new HashMap<>();
 
-    static final String CLUSTER_NAME = "DefaultScopedCacheConfigGrpcIT";
+    static final String CLUSTER_NAME = "DefaultScopedCacheConfigGrpcIT-" + System.nanoTime();
 
     static final int CLUSTER_SIZE = 3;
 
@@ -220,6 +220,7 @@ public class DefaultScopedCacheConfigGrpcIT
                   OperationalOverride.of("test-coherence-override.xml"),
                   Pof.config("test-pof-config.xml"),
                   SystemProperty.of("coherence.serializer", "pof"),
+                  SystemProperty.of("coherence.grpc.serializer.allowlist", "java"),
                   WellKnownAddress.loopback(),
                   ClusterName.of(CLUSTER_NAME),
                   DisplayName.of("storage"),

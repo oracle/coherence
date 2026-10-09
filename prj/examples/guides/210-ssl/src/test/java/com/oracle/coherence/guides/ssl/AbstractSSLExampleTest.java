@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -47,6 +47,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author Tim Middleton 2022.06.15
  */
 public abstract class AbstractSSLExampleTest {
+    private static final String CLUSTER_NAME = System.getProperty("coherence.cluster", "AbstractSSLExampleTest-" + java.util.UUID.randomUUID());
+
     protected static AvailablePortIterator availablePortIterator;
     protected static CoherenceCacheServer  member1 = null;
     protected static CoherenceCacheServer  member2 = null;
@@ -163,7 +165,7 @@ public abstract class AbstractSSLExampleTest {
                 CacheConfig.of(SERVER_CACHE_CONFIG),
                 OperationalOverride.of(OVERRIDE),
                 Logging.at(6),
-                ClusterName.of("ssl-cluster"),
+                ClusterName.of(CLUSTER_NAME),
                 MemberName.of(memberName),
                 SystemProperty.of("test.socket.provider", socketProvider),
                 SystemProperty.of("test.server.keystore", serverKeyAndCert.getKeystoreURI()),

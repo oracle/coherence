@@ -128,6 +128,7 @@ class GrpcV1EnforcementIntegrationTest
             .setProperty("coherence.override", "coherence-json-override.xml")
             .setProperty("coherence.mode", "prod")
             .setProperty(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED)
+            .setProperty("coherence.remote.dynamic.unauthenticated", "deny")
             .setProperty("coherence.grpc.error-disclosure", "diagnostic")
             .setProperty("coherence.grpc.serializer.allowlist", "java")
             .setProperty("coherence.cacheconfig", "coherence-config.xml");

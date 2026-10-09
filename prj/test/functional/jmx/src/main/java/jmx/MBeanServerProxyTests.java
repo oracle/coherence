@@ -6,6 +6,8 @@
  */
 package jmx;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
@@ -48,6 +50,7 @@ import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.bedrock.testsupport.deferred.Eventually.within;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -72,6 +75,7 @@ public class MBeanServerProxyTests
     @BeforeClass
     public static void _startup()
         {
+        System.setProperty("coherence.cluster", "MBeanServerProxyTests-" + System.nanoTime());
         System.setProperty("coherence.role", "main");
         System.setProperty("coherence.log.level", "3");
 
@@ -91,55 +95,60 @@ public class MBeanServerProxyTests
         }
 
     @Test
-    public void testExecute()
+    public void testExecuteInCompatibility()
         {
-        Properties props = new Properties();
-        props.put("coherence.management", "none");
-        props.put("coherence.distributed.localstorage", "false");
-        props.put("coherence.management.remote", "true");
-
-        MBeanServerProxy mBeanProxy = CacheFactory.ensureCluster().getManagement().getMBeanServerProxy();
-
-        try (CoherenceClusterMember server1 = startCacheServer("CacheServer-1", PROJECT, null, props);
-             CoherenceClusterMember server2 = startCacheServer("CacheServer-2", PROJECT, null, props))
+        // arbitrary MBeanServer callbacks are a legacy compatibility contract
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            CacheFactory.getCache("foo");
+            Properties props = new Properties();
+            props.put("coherence.management", "none");
+            props.put("coherence.distributed.localstorage", "false");
+            props.put("coherence.management.remote", "true");
 
-            final String MBEAN_NAME_PREFIX = "Coherence:type=Service,name=DistributedCache,nodeId=";
-            Eventually.assertThat(invoking(this).isMBeanReady(mBeanProxy,
-                    MBEAN_NAME_PREFIX + "1", MBEAN_NAME_PREFIX + "2"), is(true));
+            MBeanServerProxy mBeanProxy = CacheFactory.ensureCluster().getManagement().getMBeanServerProxy();
 
-            String[] asOwnership = mBeanProxy.execute(mbs ->
+            try (CoherenceClusterMember server1 = startCacheServer("CacheServer-1", PROJECT, null, props);
+                 CoherenceClusterMember server2 = startCacheServer("CacheServer-2", PROJECT, null, props))
                 {
-                try
+                CacheFactory.getCache("foo");
+
+                final String MBEAN_NAME_PREFIX = "Coherence:type=Service,name=DistributedCache,nodeId=";
+                Eventually.assertThat(invoking(this).isMBeanReady(mBeanProxy,
+                        MBEAN_NAME_PREFIX + "1", MBEAN_NAME_PREFIX + "2"), is(true));
+
+                String[] asOwnership = mBeanProxy.execute(mbs ->
                     {
-                    final String MBEAN_PREFIX   = "Coherence:type=Service,name=DistributedCache,nodeId=";
-                    final String OPERATION_NAME = "reportOwnership";
+                    try
+                        {
+                        final String MBEAN_PREFIX   = "Coherence:type=Service,name=DistributedCache,nodeId=";
+                        final String OPERATION_NAME = "reportOwnership";
 
-                    Object[] aoParams     = new Object[] {true};
-                    String[] asParamTypes = new String[] {"boolean"};
-                    String[] asReturn     = new String[2];
+                        Object[] aoParams     = new Object[] {true};
+                        String[] asParamTypes = new String[] {"boolean"};
+                        String[] asReturn     = new String[2];
 
-                    asReturn[0] = (String) mbs.invoke(new ObjectName(MBEAN_PREFIX + "1"),
-                            OPERATION_NAME, aoParams, asParamTypes);
+                        asReturn[0] = (String) mbs.invoke(new ObjectName(MBEAN_PREFIX + "1"),
+                                OPERATION_NAME, aoParams, asParamTypes);
 
-                    asReturn[1] = (String) mbs.invoke(new ObjectName(MBEAN_PREFIX + "2"),
-                            OPERATION_NAME, aoParams, asParamTypes);
+                        asReturn[1] = (String) mbs.invoke(new ObjectName(MBEAN_PREFIX + "2"),
+                                OPERATION_NAME, aoParams, asParamTypes);
 
-                    return asReturn;
-                    }
-                catch (Throwable e)
-                    {
-                    CacheFactory.log("Error thrown: " + Base.getStackTrace(e), CacheFactory.LOG_INFO);
+                        return asReturn;
+                        }
+                    catch (Throwable e)
+                        {
+                        CacheFactory.log("Error thrown: " + Base.getStackTrace(e), CacheFactory.LOG_INFO);
 
-                    throw Base.ensureRuntimeException(e);
-                    }
-                });
+                        throw Base.ensureRuntimeException(e);
+                        }
+                    });
 
-            assertEquals(2, asOwnership.length);
+                assertEquals(2, asOwnership.length);
 
-            Arrays.stream(asOwnership).forEach(sOwnership ->
-                    assertNotEquals("n/a", sOwnership));
+                Arrays.stream(asOwnership).forEach(sOwnership ->
+                        assertNotEquals("n/a", sOwnership));
+                }
+
             }
         }
 
@@ -189,7 +198,7 @@ public class MBeanServerProxyTests
             }
         finally
             {
-            stopCacheServer("ManagedNode");
+            stopCacheServer("ManagedNodeLocal");
             AbstractFunctionalTest._shutdown();
 
             if (fileBase != null)
@@ -245,7 +254,7 @@ public class MBeanServerProxyTests
             }
         finally
             {
-            stopCacheServer("ManagedNode");
+            stopCacheServer("ManagedNodeRemote");
             AbstractFunctionalTest._shutdown();
 
             if (fileBase != null)
@@ -399,6 +408,40 @@ public class MBeanServerProxyTests
         }
     }
 
+    @Test
+    public void testLegacyQueryFiltersInCompatibility()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            MBeanServerProxy proxy = CacheFactory.ensureCluster().getManagement().getMBeanServerProxy();
+            CacheFactory.getCache("dist").size();
+
+            Set<String> names = proxy.queryNames((String) null, null);
+            assertTrue(validateResult(names, "java.lang:type="));
+
+            names = proxy.queryNames((String) null, new EqualsFilter<>("getDomain", "Coherence"));
+            assertFalse(names.isEmpty());
+            assertFalse(validateResult(names, "java.lang:type="));
+
+            names = proxy.queryNames((String) null, new EqualsFilter<>(
+                    new ReflectionExtractor("getKeyProperty", new Object[]{"service"}), "DistributedCache"));
+            assertTrue(validateResult(names, "service=DistributedCache"));
+            }
+        }
+
+    @Test
+    public void testHardenedRejectsArbitraryManagementCallback()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            MBeanServerProxy proxy = CacheFactory.ensureCluster().getManagement().getMBeanServerProxy();
+            org.junit.Assert.assertThrows(SecurityException.class, () -> proxy.execute(server -> null));
+            org.junit.Assert.assertThrows(SecurityException.class, () -> proxy.queryNames((String) null, null));
+            org.junit.Assert.assertThrows(SecurityException.class, () -> proxy.queryNames("Coherence:*",
+                    new EqualsFilter<>("getDomain", "Coherence")));
+            }
+        }
+
     // ---- helper methods --------------------------------------------------
 
     /**
@@ -460,17 +503,11 @@ public class MBeanServerProxyTests
             assertEquals(2, setResult.size());
             assertTrue(sMsg + sPattern, validateResult(setResult, "Coherence:type=Cache,"));
 
-            setResult = proxy.queryNames((String) null, null);
-            assertTrue(setResult.size() > 10);
+            setResult = proxy.queryNames("Coherence:*", null);
             assertTrue(sMsg + sMBeanName, validateResult(setResult, sMBeanName));
-            assertTrue(sMsg + "java.lang:type ", validateResult(setResult, "java.lang:type="));
-
-            EqualsFilter<ObjectName, String> filter = new EqualsFilter<>("getDomain", "Coherence");
-            setResult = proxy.queryNames((String) null, filter);
             assertTrue("The retrieved MBeans should not include JVM MBeans! ", !validateResult(setResult, "java.lang:type="));
 
-            filter    = new EqualsFilter<>(new ReflectionExtractor("getKeyProperty", new Object[]{"service"}), "DistributedCache");
-            setResult = proxy.queryNames((String) null, filter);
+            setResult = proxy.queryNames("Coherence:service=DistributedCache,*", null);
             assertTrue(sMsg + "service=DistributedCache", validateResult(setResult, "service=DistributedCache"));
             }
         catch (RuntimeException e)

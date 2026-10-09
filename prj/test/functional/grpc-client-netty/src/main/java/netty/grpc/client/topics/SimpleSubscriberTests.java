@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -89,7 +89,7 @@ public class SimpleSubscriberTests
 
     public static final int STORAGE_MEMBER_COUNT = 2;
 
-    public static final String CLUSTER_NAME = "RemoteTopicTests";
+    public static final String CLUSTER_NAME = "SimpleSubscriberTests-" + System.nanoTime();
 
     public static final String CACHE_CONFIG_FILE = "topic-cache-config.xml";
 
@@ -109,6 +109,8 @@ public class SimpleSubscriberTests
                             SystemProperty.of(GrpcService.PROP_LOG_MESSAGES, System.getProperty(GrpcService.PROP_LOG_MESSAGES)),
                             SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
                             SystemProperty.of("coherence.management.remote", "true"),
+                            SystemProperty.of("coherence.invocation.enabled", true),
+                            SystemProperty.of("coherence.grpc.serializer.allowlist", "java"),
                             SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                             SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
                                     Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)))

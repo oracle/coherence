@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.oracle.coherence.testing.AbstractFunctionalTest;
 import java.util.Properties;
 import java.util.concurrent.CompletionException;
 
+import org.junit.ClassRule;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,6 +38,9 @@ import static org.junit.Assert.*;
 public class SecurityFrameworkTests
         extends AbstractFunctionalTest
     {
+    @ClassRule
+    public static final LegacySecurityRule s_legacySecurity = new LegacySecurityRule();
+
     // ----- SecurityFrameworkTests methods ---------------------------------
 
     /**
@@ -47,8 +51,8 @@ public class SecurityFrameworkTests
         {
         System.setProperty("coherence.override", "security-coherence-override.xml");
         System.setProperty("java.security.auth.login.config", "login.config");
-        System.setProperty("coherence.cluster", "BOSTON");
-            System.setProperty("coherence.security.log", "true");
+        System.setProperty("coherence.cluster", "BOSTON-" + System.nanoTime());
+        System.setProperty("coherence.security.log", "true");
 
         AbstractFunctionalTest._startup();
         Properties props = new Properties();

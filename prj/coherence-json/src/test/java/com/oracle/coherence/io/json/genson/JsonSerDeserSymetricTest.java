@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -93,7 +93,7 @@ public class JsonSerDeserSymetricTest {
     B b = new B();
     b.a = "aa";
     b.b = "bb";
-    Genson genson = new GensonBuilder().useClassMetadata(true).create();
+    Genson genson = new GensonBuilder().addAlias(B.class.getName(), B.class).useClassMetadata(true).create();
     String json = genson.serialize(b);
     B b2 = (B) genson.deserialize(json, Object.class);
     assertEquals(b.a, b2.a);

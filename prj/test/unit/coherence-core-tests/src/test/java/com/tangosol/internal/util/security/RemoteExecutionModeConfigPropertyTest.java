@@ -14,7 +14,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -59,14 +58,18 @@ public class RemoteExecutionModeConfigPropertyTest
     @Test
     public void blankValueTreatedAsUnset()
         {
-        setMode("prod", " ");
-        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
-
-        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, " ");
-        assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
-
-        setMode("dev", " ");
-        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
+        for (String sValue : new String[] {"", " ", "\t"})
+            {
+            for (String sMode : new String[] {null, "eval", "dev", "prod"})
+                {
+                for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_COMPATIBILITY,
+                        CoherenceMode.SECURITY_MODE_HARDENED})
+                    {
+                    setMode(sMode, sSecurityMode, sValue);
+                    assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
+                    }
+                }
+            }
         }
 
     private static void setMode(String sMode, String sDynamicRemote)

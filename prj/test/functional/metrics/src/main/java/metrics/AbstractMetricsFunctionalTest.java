@@ -1,22 +1,27 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package metrics;
 
+import com.oracle.coherence.testing.util.HttpTestAuth;
+
 import com.oracle.coherence.io.json.JsonSerializer;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.Collections;
 import java.util.List;
@@ -134,19 +139,35 @@ public class AbstractMetricsFunctionalTest extends AbstractFunctionalTest
         con.setRequestProperty("Accept", "application/json");
         con.setRequestMethod("GET");
 
-        int responseCode = con.getResponseCode();
-
-        StringBuilder sbResponse = new StringBuilder();
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream())))
+        try
             {
-            String inputLine;
-
-            while ((inputLine = in.readLine()) != null)
+            int responseCode = con.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK)
                 {
-                sbResponse.append(inputLine);
+                try (InputStream in = con.getErrorStream())
+                    {
+                    String sError = in == null ? "" : new String(in.readAllBytes(), StandardCharsets.UTF_8);
+                    throw new IOException("Metrics request to " + sURL + " returned HTTP " + responseCode
+                            + ": " + sError);
+                    }
                 }
+
+            StringBuilder sbResponse = new StringBuilder();
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(),
+                    StandardCharsets.UTF_8)))
+                {
+                String inputLine;
+                while ((inputLine = in.readLine()) != null)
+                    {
+                    sbResponse.append(inputLine);
+                    }
+                }
+            return sbResponse.toString();
             }
-        return sbResponse.toString();
+        finally
+            {
+            con.disconnect();
+            }
         }
 
     protected String composeURL(int port)
@@ -156,6 +177,7 @@ public class AbstractMetricsFunctionalTest extends AbstractFunctionalTest
 
     protected void modifyConnection(HttpURLConnection con)
         {
+        HttpTestAuth.authenticate(con);
         }
 
     private String encode(String sValue)

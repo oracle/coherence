@@ -1,22 +1,15 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.config;
 
-import com.tangosol.io.WrapperBufferInput;
-import com.tangosol.io.WrapperBufferOutput;
 import com.tangosol.io.pof.ConfigurablePofContext;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 
 /**
  * Helper class for config serialization tests.
@@ -57,12 +50,9 @@ public class TestSerializableHelper
         try
             {
             ConfigurablePofContext serializer = new ConfigurablePofContext("coherence-pof-config.xml");
-            ByteArrayOutputStream outStream   = new ByteArrayOutputStream();
 
-            serializer.serialize(new WrapperBufferOutput(new DataOutputStream(outStream)), inVal);
-
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(outStream.toByteArray());
-            return (T) serializer.deserialize(new WrapperBufferInput(new DataInputStream(inputStream), serializer.getContextClassLoader()));
+            // use the standard buffer path so hardened deserialization can install its filter
+            return (T) ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(inVal, serializer), serializer);
             }
         catch (Exception e)
             {

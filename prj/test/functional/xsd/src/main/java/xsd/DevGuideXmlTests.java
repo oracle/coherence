@@ -1,21 +1,18 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package xsd;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.validation.SchemaFactory;
-import java.util.Arrays;
 import java.util.Collection;
-
-import static org.junit.Assert.assertEquals;
 
 /**
 * A collection of funtional tests that validate the xml used in
@@ -33,33 +30,19 @@ public class DevGuideXmlTests
      *
      * @param sSaxParserFactoryImplName  canonical classname for SAX Parser Factory impl to test
      * @param sSchemaFactoryImplName     canonical classname for SAX Schema Factory impl to test
+     * @param sSecurityMode              explicit security mode, or null for the default
      */
-    public DevGuideXmlTests(String sSaxParserFactoryImplName, String sSchemaFactoryImplName)
+    public DevGuideXmlTests(String sSaxParserFactoryImplName, String sSchemaFactoryImplName, String sSecurityMode)
         {
-        System.setProperty("javax.xml.parsers.SAXParserFactory", sSaxParserFactoryImplName);
-        System.setProperty("javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema", sSchemaFactoryImplName);
-
-        SAXParserFactory spf = SAXParserFactory.newInstance();
-        assertEquals(sSaxParserFactoryImplName, spf.getClass().getCanonicalName());
-
-        SchemaFactory sf = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
-        assertEquals(sSchemaFactoryImplName, sf.getClass().getCanonicalName());
+        m_xmlParserRule = XsdValidationTests.xmlParserRule(sSaxParserFactoryImplName, sSchemaFactoryImplName, sSecurityMode);
         }
 
     // ----- test lifecycle methods -----------------------------------------
 
-    @Parameterized.Parameters(name = "SaxParserFactoryImpl={0} SchemaFactoryImpl={1}")
+    @Parameterized.Parameters(name = "SaxParserFactoryImpl={0} SchemaFactoryImpl={1} SecurityMode={2}")
     public static Collection<Object[]> parameters()
         {
-        return Arrays.asList(new Object[][]
-            {
-                // default JDK 8 parser, need to explicitly specify to override the service provider-configuration file in test scoped xercesImpl.jar
-                {"com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl", "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory"},
-
-                // a xerces implementation to verify that all tests run and tolerate of unrecognized/unsuppported features/properties.
-                // Depending on Xerces implementation, it only implements JAXP 1.4 or less
-                {"org.apache.xerces.jaxp.SAXParserFactoryImpl", "org.apache.xerces.jaxp.validation.XMLSchemaFactory"}
-            });
+        return XsdValidationTests.parameters();
         }
     
     // ----- test methods ---------------------------------------------------
@@ -173,4 +156,7 @@ public class DevGuideXmlTests
         XmlValidator.validate("dg-ch9-18-override.xml");
         XmlValidator.validate("dg-ch9-19-override.xml");
         }
+
+    @Rule
+    public final TestRule m_xmlParserRule;
     }

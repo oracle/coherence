@@ -11,7 +11,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Central resolver for the {@code coherence.mode} runtime mode and the
- * {@code coherence.security.mode} security hardening opt-in.
+ * {@code coherence.security.mode} security mode. Security hardening is enabled
+ * by default; compatibility mode must be selected explicitly.
  *
  * @author Aleks Seovic  2026.05.01
  * @since 26.07
@@ -95,13 +96,15 @@ public enum CoherenceMode
     /**
      * Return {@code true} if unauthenticated dynamic remote payloads default
      * to deny.
+     * The default is allow in both security modes; an explicit
+     * {@code coherence.remote.dynamic.unauthenticated=deny} overrides it.
      *
      * @return {@code true} if unauthenticated dynamic remote payloads default
      *         to deny
      */
     public static boolean isDynamicRemoteDefaultDeny()
         {
-        return isSecurityHardeningEnabled();
+        return false;
         }
 
     /**
@@ -188,7 +191,7 @@ public enum CoherenceMode
         String sSecurityMode = System.getProperty(PROP_SECURITY_MODE);
         if (sSecurityMode == null)
             {
-            return false;
+            return true;
             }
 
         String sTrimmed = sSecurityMode.trim();
@@ -216,7 +219,7 @@ public enum CoherenceMode
     public static final String PROP_COHERENCE_MODE = "coherence.mode";
 
     /**
-     * Security mode system property.
+     * Security mode system property, defaulting to {@code hardened} when absent.
      *
      * @since 15.1.2.0
      */
