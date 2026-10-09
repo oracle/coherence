@@ -50,6 +50,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.io.File;
 import java.net.URL;
 import java.time.Duration;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -96,22 +97,21 @@ public class GraalImageTests
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
+                .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage")))
                 .withFileSystemBind(dirScript.getAbsolutePath(), "/app/classes/scripts/js", BindMode.READ_ONLY)
-                .withExposedPorts(EXTEND_PORT, CONCURRENT_EXTEND_PORT)))
+                .withExposedPorts(EXTEND_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true), Timeout.after(5, TimeUnit.MINUTES));
 
             LocalPlatform platform       = LocalPlatform.get();
             int           extendPort     = container.getMappedPort(EXTEND_PORT);
-            int           concurrentPort = container.getMappedPort(CONCURRENT_EXTEND_PORT);
 
             try (CoherenceClusterMember client = platform.launch(CoherenceClusterMember.class,
                                                                  SystemProperty.of("coherence.client", "remote-fixed"),
+                                                                 SystemProperty.of("coherence.cluster", "docker-graal-client-" + UUID.randomUUID()),
                                                                  SystemProperty.of("coherence.extend.address", "127.0.0.1"),
                                                                  SystemProperty.of("coherence.extend.port", extendPort),
-                                                                 SystemProperty.of("coherence.concurrent.extend.address", "127.0.0.1"),
-                                                                 SystemProperty.of("coherence.concurrent.extend.port", concurrentPort),
                                                                  IPv4Preferred.yes(),
                                                                  LocalHost.only(),
                                                                  DisplayName.of("client"),

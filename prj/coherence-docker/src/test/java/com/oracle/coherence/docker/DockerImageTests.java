@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -59,9 +59,11 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
+import java.io.IOException;
 
 import java.net.URI;
 
@@ -69,9 +71,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import java.nio.file.Files;
+
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -127,35 +132,49 @@ public class DockerImageTests
 
     @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("getImageNames")
-    void shouldStartContainerWithExtend(String sImageName)
+    void shouldStartContainerWithExtend(String sImageName) throws IOException
         {
-        assertCoherenceClient(sImageName, "remote-fixed", new CheckExtendCacheAccess(), new CheckConcurrentAccess());
+        assertCoherenceClient(sImageName, "remote-fixed",
+                Map.of("COHERENCE_CONCURRENT_EXTEND_ENABLED", "true"),
+                new CheckExtendCacheAccess(), new CheckConcurrentAccess());
         }
 
     @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("getImageNames")
-    void shouldStartGrpcServerAndConnectWithGrpc(String sImageName)
+    void shouldStartGrpcServerAndConnectWithGrpc(String sImageName) throws IOException
         {
         assertCoherenceClient(sImageName, "grpc-fixed",
+                Map.of("COHERENCE_GRPC_SERIALIZER_ALLOWLIST", "java"),
                 new CheckGrpcCacheAccess(),
                 new CheckGrpcControllerType(NettyGrpcAcceptorController.class));
         }
 
     @SuppressWarnings("unchecked")
-    void assertCoherenceClient(String sImageName, String sClient, RemoteCallable<Void>... assertions)
+    void assertCoherenceClient(String sImageName, String sClient, Map<String, String> mapEnv, RemoteCallable<Void>... assertions)
+            throws IOException
         {
-        assertCoherenceClient(sImageName, sClient, null, assertions);
+        assertCoherenceClient(sImageName, sClient, mapEnv, null, assertions);
         }
 
     @SuppressWarnings("unchecked")
-    void assertCoherenceClient(String sImageName, String sClient, String[] asCmd, RemoteCallable<Void>... assertions)
+    void assertCoherenceClient(String sImageName, String sClient, Map<String, String> mapEnv, String[] asCmd,
+                              RemoteCallable<Void>... assertions)
+            throws IOException
         {
         ImageNames.verifyTestAssumptions();
+
+        File fileBuild = MavenProjectFileUtils.locateBuildFolder(getClass());
+        assertThat(fileBuild, is(notNullValue()));
+        File fileSecurity = new File(fileBuild, "test-classes/META-INF/coherence/security-config.xml");
+        assertThat(fileSecurity.isFile(), is(true));
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
+                .withEnv(mapEnv)
+                .withCopyToContainer(Transferable.of(Files.readAllBytes(fileSecurity.toPath())),
+                        COHERENCE_HOME + "/ext/conf/META-INF/coherence/security-config.xml")
                 .withExposedPorts(EXTEND_PORT, GRPC_PORT, CONCURRENT_EXTEND_PORT), asCmd))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -167,6 +186,7 @@ public class DockerImageTests
 
             try (CoherenceClusterMember client = platform.launch(CoherenceClusterMember.class,
                     SystemProperty.of("coherence.client", sClient),
+                    SystemProperty.of("coherence.cluster", "docker-client-" + UUID.randomUUID()),
                     SystemProperty.of("coherence.extend.address", "127.0.0.1"),
                     SystemProperty.of("coherence.extend.port", extendPort),
                     SystemProperty.of("coherence.grpc.address", "127.0.0.1"),
@@ -194,7 +214,8 @@ public class DockerImageTests
         {
         ImageNames.verifyTestAssumptions();
 
-        File fileArgsDir = createJvmArgsFile("-Dcoherence.role=storage", "-Dcoherence.cluster=datagrid");
+        String sCluster    = "datagrid-" + UUID.randomUUID();
+        File   fileArgsDir = createJvmArgsFile("-Dcoherence.role=storage", "-Dcoherence.cluster=" + sCluster);
 
         try (GenericContainer<?> container = start(new GenericContainer<>(DockerImageName.parse(sImageName))
                 .withImagePullPolicy(NeverPull.INSTANCE)
@@ -204,7 +225,7 @@ public class DockerImageTests
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
             String sLog = container.getLogs();
-            assertThat(sLog, containsString("Started cluster Name=datagrid"));
+            assertThat(sLog, containsString("Started cluster Name=" + sCluster));
             }
         }
 
@@ -252,6 +273,7 @@ public class DockerImageTests
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
+                .withEnv("COHERENCE_MANAGEMENT_HTTP_AUTH", "none")
                 .withExposedPorts(MANAGEMENT_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -277,6 +299,7 @@ public class DockerImageTests
                 .withImagePullPolicy(NeverPull.INSTANCE)
                 .waitingFor(Wait.forHealthcheck().withStartupTimeout(Duration.ofMinutes(5)))
                 .withLogConsumer(new ConsoleLogConsumer(m_testLogs.builder().build("Storage-" + ImageNames.getTag(sImageName))))
+                .withEnv("COHERENCE_METRICS_HTTP_AUTH", "none")
                 .withExposedPorts(METRICS_PORT)))
             {
             Eventually.assertDeferred(container::isHealthy, is(true));
@@ -299,8 +322,9 @@ public class DockerImageTests
         {
         ImageNames.verifyTestAssumptions();
 
-        String sName1  = "Storage-" + ImageNames.getTag(sImageName) + "-1";
-        String sName2  = "Storage-" + ImageNames.getTag(sImageName) + "-2";
+        String sName1   = "Storage-" + ImageNames.getTag(sImageName) + "-1";
+        String sName2   = "Storage-" + ImageNames.getTag(sImageName) + "-2";
+        String sCluster = "docker-wka-" + UUID.randomUUID();
 
         try (Network network = Network.newNetwork())
             {
@@ -313,8 +337,9 @@ public class DockerImageTests
                     .withEnv("COHERENCE_WKA", sName1 + "," + sName2)
                     .withEnv("COHERENCE_WKA_DNS_RESOLUTION_RETRY", "true")
                     .withEnv("COHERENCE_MEMBER", sName1)
-                    .withEnv("COHERENCE_CLUSTER", "test-cluster")
-                    .withEnv("COHERENCE_CLUSTER", "storage")
+                    .withEnv("COHERENCE_CLUSTER", sCluster)
+                    .withEnv("COHERENCE_MANAGEMENT_HTTP_AUTH", "none")
+                    .withEnv("COHERENCE_MANAGEMENT_REMOTE_REGISTRYPORT", "9000")
                     .withCreateContainerCmdModifier(cmd -> cmd.withHostName(sName1).withName(sName1))
                     .withNetworkAliases(sName1)))
                 {
@@ -341,8 +366,9 @@ public class DockerImageTests
                         .withEnv("COHERENCE_WKA", sbWka.toString())
                         .withEnv("COHERENCE_WKA_DNS_RESOLUTION_RETRY", "true")
                         .withEnv("COHERENCE_MEMBER", sName2)
-                        .withEnv("COHERENCE_CLUSTER", "test-cluster")
-                        .withEnv("COHERENCE_CLUSTER", "storage")
+                        .withEnv("COHERENCE_CLUSTER", sCluster)
+                        .withEnv("COHERENCE_MANAGEMENT_HTTP_AUTH", "none")
+                        .withEnv("COHERENCE_MANAGEMENT_REMOTE_REGISTRYPORT", "9000")
                         .withCreateContainerCmdModifier(cmd -> cmd.withHostName(sName2).withName(sName2))
                         .withNetworkAliases(sName2)))
                     {
@@ -353,6 +379,7 @@ public class DockerImageTests
                     HttpRequest          request  = HttpRequest.newBuilder(uri).GET().build();
                     HttpResponse<String> response = m_httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+                    assertThat(response.statusCode(), is(200));
                     Map<String, Object> map = new GensonBuilder().create().deserialize(response.body(), HashMap.class);
                     assertThat(map, is(notNullValue()));
                     Number nSize = (Number) map.get("clusterSize");
@@ -516,7 +543,7 @@ public class DockerImageTests
             catch (Exception e)
                 {
                 Logger.err(e);
-                fail("Assertion failed: " + e.getMessage());
+                fail("Could not verify the gRPC controller type", e);
                 }
             return null;
             }

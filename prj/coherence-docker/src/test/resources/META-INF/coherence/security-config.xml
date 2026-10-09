@@ -8,6 +8,7 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="com.oracle.coherence.docker.DockerImageTests$CheckGrpcControllerType" source="manual" executable="true"/>
     <class name="com.oracle.coherence.docker.TestProcessor" source="manual" executable="true"/>
   </allowed-classes>
 </security-config>
