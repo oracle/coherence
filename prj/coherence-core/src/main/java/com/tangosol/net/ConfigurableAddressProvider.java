@@ -86,7 +86,7 @@ public class ConfigurableAddressProvider
                 }
             else
                 {
-                // COH-33900 pending and reported state belong to this provider instance
+                // pending and reported state belong to this provider instance
                 listHolders.add(new AddressHolder(sHost, holder.getPort()));
                 }
             }
