@@ -28,6 +28,10 @@ import java.net.SocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketOptions;
 import java.net.SocketException;
+
+import java.util.Objects;
+import java.util.UUID;
+
 import java.util.logging.Logger;
 
 
@@ -43,12 +47,31 @@ public class SocketBusDriver
 
     /**
      * Construct a SocketDriver.
+     * <p>
+     * The default driver uses the legacy endpoint-only MessageBus protocol
+     * and has a maximum protocol version of 5. Federation enables peer
+     * identity through the two-argument constructor for its private drivers
+     * after disabling connection migration.
      *
      * @param deps  the driver's dependencies
      */
     public SocketBusDriver(Dependencies deps)
         {
+        this(deps, PeerIdentityMode.DISABLED);
+        }
+
+    /**
+     * Construct a SocketDriver.
+     *
+     * @param deps              the driver's dependencies
+     * @param peerIdentityMode  the peer identity mode
+     *
+     * @since 26.10
+     */
+    public SocketBusDriver(Dependencies deps, PeerIdentityMode peerIdentityMode)
+        {
         m_dependencies = copyDependencies(deps).validate();
+        f_peerIdentityMode = Objects.requireNonNull(peerIdentityMode);
         }
 
 
@@ -163,6 +186,13 @@ public class SocketBusDriver
 
     /**
      * Resolve the supplied canonical name into a SocketEndPoint.
+     * <p>
+     * When this driver uses {@link PeerIdentityMode#ENABLED}, {@code bus-id} is
+     * reserved as the logical peer identity parameter for the configured
+     * MessageBus protocol. The resolved endpoint retains it in its canonical
+     * name but excludes it from transport query data. Disabled drivers and
+     * endpoints for other protocols continue to treat all query parameters as
+     * opaque transport data.
      *
      * @param sName  the endpoint name
      *
@@ -173,8 +203,67 @@ public class SocketBusDriver
     public UrlEndPoint resolveSocketEndPoint(String sName)
         {
         Dependencies deps = getDependencies();
-        return new UrlEndPoint(sName, deps.getSocketProvider(),
-                deps.getSocketAddressHasher());
+        UUID         uuid = getPeerIdentityMode() == PeerIdentityMode.ENABLED
+                && sName.startsWith(deps.getMessageBusProtocol() + UrlEndPoint.PROTOCOL_DELIMITER)
+                ? parsePeerIdentity(sName)
+                : null;
+        return uuid == null
+                ? new UrlEndPoint(sName, deps.getSocketProvider(), deps.getSocketAddressHasher())
+                : new UrlEndPoint(sName, deps.getSocketProvider(), deps.getSocketAddressHasher(), uuid);
+        }
+
+    /**
+     * Return the peer identity mode.
+     *
+     * @return the peer identity mode
+     *
+     * @since 26.10
+     */
+    public PeerIdentityMode getPeerIdentityMode()
+        {
+        return f_peerIdentityMode;
+        }
+
+    /**
+     * Parse the MessageBus peer identity from an endpoint name.
+     *
+     * @param sName  the MessageBus endpoint name
+     *
+     * @return the peer identity, or {@code null}
+     *
+     * @since 26.10
+     */
+    private static UUID parsePeerIdentity(String sName)
+        {
+        int ofQuery = sName.indexOf('?');
+        if (ofQuery < 0)
+            {
+            return null;
+            }
+
+        UUID uuid = null;
+        for (String sParameter : sName.substring(ofQuery + 1).split("&", -1))
+            {
+            if (sParameter.startsWith(BUS_ID_QUERY_PREFIX))
+                {
+                UUID uuidParsed;
+                try
+                    {
+                    uuidParsed = UUID.fromString(sParameter.substring(BUS_ID_QUERY_PREFIX.length()));
+                    }
+                catch (IllegalArgumentException e)
+                    {
+                    throw new IllegalArgumentException("endpoint contains an invalid logical peer identity", e);
+                    }
+
+                if (uuid != null && !uuid.equals(uuidParsed))
+                    {
+                    throw new IllegalArgumentException("endpoint contains conflicting logical peer identities");
+                    }
+                uuid = uuidParsed;
+                }
+            }
+        return uuid;
         }
 
     /**
@@ -218,6 +307,31 @@ public class SocketBusDriver
         return new DefaultDependencies(deps);
         }
 
+
+    // ----- inner enum: PeerIdentityMode -----------------------------------
+
+    /**
+     * The peer identity modes supported by a SocketBusDriver.
+     *
+     * @since 26.10
+     */
+    public enum PeerIdentityMode
+        {
+        /**
+         * Use the legacy endpoint-only MessageBus protocol with a maximum
+         * protocol version of 5. This is the default for ordinary MessageBus
+         * consumers, including TransportService.
+         */
+        DISABLED,
+
+        /**
+         * Enable peer identity when the negotiated protocol supports it.
+         * Currently this selects protocol v6. Federation uses this mode for
+         * its private MessageBus after disabling connection migration.
+         * Peer-identity migration is not qualified for TransportService use.
+         */
+        ENABLED
+        }
 
     // ----- inner interface: Dependencies ----------------------------------
 
@@ -1287,6 +1401,12 @@ public class SocketBusDriver
     // ----- constants ------------------------------------------------------
 
     /**
+     * The peer identity query parameter prefix reserved when resolving
+     * endpoints for the configured MessageBus protocol.
+     */
+    private static final String BUS_ID_QUERY_PREFIX = "bus-id=";
+
+    /**
      * The default Logger for the driver.
      */
     private static Logger LOGGER = Logger.getLogger(SocketBusDriver.class.getName());
@@ -1303,4 +1423,9 @@ public class SocketBusDriver
      * The driver's dependencies.
      */
     protected Dependencies m_dependencies;
+
+    /**
+     * The immutable peer identity mode.
+     */
+    private final PeerIdentityMode f_peerIdentityMode;
     }

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.net.exabus.util;
 
@@ -12,6 +12,9 @@ import com.oracle.coherence.common.net.SocketProvider;
 import com.oracle.coherence.common.net.exabus.EndPoint;
 
 import java.net.SocketAddress;
+
+import java.util.Objects;
+import java.util.UUID;
 
 
 /**
@@ -37,9 +40,33 @@ public class UrlEndPoint
      * @param sName     the endpoint name
      * @param provider  the provider
      * @param hasher    the SocketAddress hasher
+     *
+     * Query parameters are treated as opaque transport data by this
+     * constructor.
      */
     public UrlEndPoint(String sName, SocketProvider provider,
             Hasher<? super SocketAddress> hasher)
+        {
+        this(sName, provider, hasher, null);
+        }
+
+    /**
+     * Construct a SocketEndPoint with an optional logical peer identity.
+     * <p>
+     * When {@code uuid} is non-null, a {@code bus-id} query parameter is
+     * reserved for that identity. The canonical name retains the parameter,
+     * while {@link #getQueryString()} and {@link #getTransportName()} exclude
+     * it and expose only transport data.
+     *
+     * @param sName     the endpoint name
+     * @param provider  the provider
+     * @param hasher    the SocketAddress hasher
+     * @param uuid      the logical peer identity, or {@code null}
+     *
+     * @since 26.10
+     */
+    public UrlEndPoint(String sName, SocketProvider provider,
+            Hasher<? super SocketAddress> hasher, UUID uuid)
         {
         if (sName == null)
             {
@@ -73,12 +100,29 @@ public class UrlEndPoint
             sQuery   = null;
             }
 
-        f_sName     = sName;
-        f_sProtocol = sProtocol;
-        f_hasher    = hasher;
-        f_address   = provider.resolveAddress(sAddress);
-        f_sQuery    = sQuery;
-        f_nHashCode = sProtocol.hashCode() + hasher.hashCode(f_address);
+        UUID uuidQuery = uuid == null ? null : parseIdentity(sQuery);
+        if (uuid != null && uuidQuery != null && !uuid.equals(uuidQuery))
+            {
+            throw new IllegalArgumentException("endpoint contains a different logical peer identity");
+            }
+
+        UUID   uuidIdentity = uuid;
+        String sQueryTransport = uuid == null ? sQuery : withoutIdentity(sQuery);
+        String sTransportName  = sProtocol + PROTOCOL_DELIMITER + sAddress
+                + (sQueryTransport == null ? "" : '?' + sQueryTransport);
+        String sCanonical   = uuidIdentity == null || uuidQuery != null
+                ? sName
+                : withIdentity(sName, uuidIdentity);
+
+        f_sName          = sCanonical;
+        f_sTransportName = sTransportName;
+        f_sProtocol      = sProtocol;
+        f_hasher         = hasher;
+        f_address        = provider.resolveAddress(sAddress);
+        f_sQuery         = sQueryTransport;
+        f_uuid           = uuidIdentity;
+        f_nHashCode = sProtocol.hashCode()
+                + (uuidIdentity == null ? hasher.hashCode(f_address) : uuidIdentity.hashCode());
         }
 
 
@@ -105,20 +149,55 @@ public class UrlEndPoint
         }
 
     /**
-     * Return the URL EndPoints query string if any.
+     * Return the transport query string, if any.
+     * <p>
+     * For an identified endpoint, this value excludes the reserved
+     * {@code bus-id} logical identity parameter. Use
+     * {@link #getCanonicalName()} for the complete resolvable endpoint name.
      *
-     * @return the query string or null
+     * @return the transport query string, or {@code null}
      */
     public String getQueryString()
         {
         return f_sQuery;
         }
 
+    /**
+     * Return the logical peer identity, if this endpoint represents an
+     * identified peer rather than only a transport address.
+     *
+     * @return the logical peer identity, or {@code null}
+     *
+     * @since 26.10
+     */
+    public UUID getPeerIdentity()
+        {
+        return f_uuid;
+        }
+
+    /**
+     * Return the transport-only endpoint name, excluding the reserved logical
+     * peer identity.
+     *
+     * @return the transport endpoint name
+     *
+     * @since 26.10
+     */
+    public String getTransportName()
+        {
+        return f_sTransportName;
+        }
+
 
     // ----- EndPoint interface ---------------------------------------------
 
     /**
-     * {@inheritDoc}
+     * Return the complete resolvable endpoint name.
+     * <p>
+     * For an identified endpoint, this name includes the reserved
+     * {@code bus-id} logical identity parameter.
+     *
+     * @return the complete resolvable endpoint name
      */
     public String getCanonicalName()
         {
@@ -139,8 +218,10 @@ public class UrlEndPoint
     /**
      * Compare two UrlEndPoints for equality.
      * <p>
-     * The equality is not String equality, but rather logical equality based upon the protocol and resolved address.
-     * The query string if any is not considered in the equality comparison.
+     * The equality is not String equality. Identified endpoints compare by
+     * protocol and logical peer identity, allowing the same peer to use
+     * different transport aliases. Unidentified endpoints compare by protocol
+     * and resolved address. The query string is not considered.
      * </p>
      *
      */
@@ -153,8 +234,13 @@ public class UrlEndPoint
         else if (o instanceof UrlEndPoint)
             {
             UrlEndPoint that = (UrlEndPoint) o;
+            UUID uuidThis = f_uuid;
+            UUID uuidThat = that.f_uuid;
+
             return getProtocol().equals(that.getProtocol()) &&
-                   f_hasher.equals(getAddress(), that.getAddress());
+                   (uuidThis == null && uuidThat == null
+                        ? f_hasher.equals(getAddress(), that.getAddress())
+                        : Objects.equals(uuidThis, uuidThat));
             }
         else
             {
@@ -170,8 +256,101 @@ public class UrlEndPoint
         return f_sName;
         }
 
+    /**
+     * Add the logical peer identity to the diagnostic form of an endpoint.
+     *
+     * @param sName  the transport endpoint name
+     * @param uuid   the logical peer identity
+     *
+     * @return the identified endpoint name
+     *
+     * @since 26.10
+     */
+    private static String withIdentity(String sName, UUID uuid)
+        {
+        return sName + (sName.indexOf('?') < 0 ? '?' : '&') + BUS_ID_QUERY_PREFIX + uuid;
+        }
+
+    /**
+     * Parse the reserved logical peer identity query parameter.
+     *
+     * @param sQuery  the endpoint query string
+     *
+     * @return the logical peer identity, or {@code null}
+     *
+     * @since 26.10
+     */
+    private static UUID parseIdentity(String sQuery)
+        {
+        UUID uuid = null;
+        if (sQuery != null)
+            {
+            for (String sParameter : sQuery.split("&", -1))
+                {
+                if (sParameter.startsWith(BUS_ID_QUERY_PREFIX))
+                    {
+                    UUID uuidParsed;
+                    try
+                        {
+                        uuidParsed = UUID.fromString(sParameter.substring(BUS_ID_QUERY_PREFIX.length()));
+                        }
+                    catch (IllegalArgumentException e)
+                        {
+                        throw new IllegalArgumentException("endpoint contains an invalid logical peer identity", e);
+                        }
+
+                    if (uuid != null && !uuid.equals(uuidParsed))
+                        {
+                        throw new IllegalArgumentException("endpoint contains conflicting logical peer identities");
+                        }
+                    uuid = uuidParsed;
+                    }
+                }
+            }
+        return uuid;
+        }
+
+    /**
+     * Remove the reserved logical peer identity from a transport query.
+     *
+     * @param sQuery  the endpoint query string
+     *
+     * @return the transport-only query string, or {@code null}
+     *
+     * @since 26.10
+     */
+    private static String withoutIdentity(String sQuery)
+        {
+        if (sQuery == null)
+            {
+            return null;
+            }
+
+        StringBuilder builder = null;
+        for (String sParameter : sQuery.split("&", -1))
+            {
+            if (!sParameter.startsWith(BUS_ID_QUERY_PREFIX))
+                {
+                if (builder == null)
+                    {
+                    builder = new StringBuilder(sParameter);
+                    }
+                else
+                    {
+                    builder.append('&').append(sParameter);
+                    }
+                }
+            }
+        return builder == null ? null : builder.toString();
+        }
+
 
     // ----- constants -----------------------------------------------------
+
+    /**
+     * The reserved query parameter prefix for a logical peer identity.
+     */
+    private static final String BUS_ID_QUERY_PREFIX = "bus-id=";
 
     /**
      * The protocol delimiter
@@ -184,6 +363,11 @@ public class UrlEndPoint
      * The canonical name.
      */
     private final String f_sName;
+
+    /**
+     * The transport-only endpoint name.
+     */
+    private final String f_sTransportName;
 
     /**
      * The protocol name.
@@ -199,6 +383,11 @@ public class UrlEndPoint
      * The query string if any.
      */
     private final String f_sQuery;
+
+    /**
+     * The optional logical peer identity.
+     */
+    private final UUID f_uuid;
 
     /**
      * The endpoint's hashcode

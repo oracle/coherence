@@ -91,7 +91,10 @@ public abstract class AbstractSocketBus
     public AbstractSocketBus(SocketBusDriver driver, UrlEndPoint pointLocal)
             throws IOException
         {
-        f_driver = driver;
+        f_driver  = driver;
+        f_uuidBus = driver.getPeerIdentityMode() == SocketBusDriver.PeerIdentityMode.ENABLED
+                ? UUID.randomUUID()
+                : null;
 
         String sProtocol = getProtocolName();
         if (!sProtocol.equals(pointLocal.getProtocol()))
@@ -114,7 +117,10 @@ public abstract class AbstractSocketBus
 
         // as the supplied endpoint may have been wildcard and/or ephemeral,
         // re-resolve based on what we actually bound to
-        m_pointLocal = driver.resolveBindPoint(pointLocal, chan.socket());
+        UrlEndPoint pointBound = driver.resolveBindPoint(pointLocal, chan.socket());
+        m_pointLocal = f_uuidBus == null
+                ? pointBound
+                : makePeerEndPoint(pointBound, f_uuidBus);
         }
 
     /**
@@ -1886,6 +1892,41 @@ public abstract class AbstractSocketBus
         }
 
     /**
+     * Return an endpoint combining a transport address with a logical peer
+     * identity.
+     *
+     * @param pointContact  the transport endpoint
+     * @param uuid          the logical peer identity
+     *
+     * @return the identified endpoint
+     *
+     * @since 26.10
+     */
+    protected UrlEndPoint makePeerEndPoint(UrlEndPoint pointContact, UUID uuid)
+        {
+        SocketBusDriver.Dependencies deps = f_driver.getDependencies();
+        return new UrlEndPoint(pointContact.getTransportName(), deps.getSocketProvider(),
+                deps.getSocketAddressHasher(), uuid);
+        }
+
+    /**
+     * Compare this bus with a peer for simultaneous-connect arbitration.
+     *
+     * @param peer      the peer endpoint
+     * @param uuidPeer  the peer bus identity, or {@code null} for v0-v5
+     *
+     * @return a negative value if this bus is senior
+     *
+     * @since 26.10
+     */
+    protected int comparePeerSeniority(EndPoint peer, UUID uuidPeer)
+        {
+        return uuidPeer == null
+                ? getLocalEndPoint().getCanonicalName().compareTo(peer.getCanonicalName())
+                : f_uuidBus.compareTo(uuidPeer);
+        }
+
+    /**
      * Return the SelectionService for this Bus.
      *
      * @return the SelectionService for this Bus.
@@ -1969,7 +2010,33 @@ public abstract class AbstractSocketBus
         // version 3 adds ability to request a remote heap dump on sync
         // version 4 sends local and remote ID for CONNECT_MIGRATE, and pads an ID spot for CONNECT_NEW but always sends 0
         // version 5 change the message size to long, add checksum for message body and message header
-        return 5;
+        // version 6 adds stable MessageBus peer identity for opted-in drivers
+        // default drivers, including those used by TransportService, remain on version 5
+        // Federation opts its private drivers into version 6 after disabling connection migration
+        // before adding version 7, decide whether peer identity should become an optional capability
+        // most MessageBus use cases do not benefit from peer identity
+        return (short) (f_uuidBus == null ? 5 : 6);
+        }
+
+    /**
+     * Return {@code true} if the negotiated protocol includes MessageBus peer
+     * identity.
+     * <p>
+     * Protocol v6 currently implies peer identity and therefore includes a
+     * bus UUID in the handshake. A future protocol version must explicitly
+     * decide whether UUID identity remains mandatory or is negotiated as an
+     * optional capability; it must not assume that every version after v6
+     * implicitly includes peer identity.
+     *
+     * @param nProtocol  the negotiated protocol version
+     *
+     * @return {@code true} if the protocol includes peer identity
+     *
+     * @since 26.10
+     */
+    protected boolean usesPeerIdentity(int nProtocol)
+        {
+        return f_uuidBus != null && nProtocol == 6;
         }
 
     // ----- ConnectionState ------------------------------------------------
@@ -2104,7 +2171,8 @@ public abstract class AbstractSocketBus
          */
         public Connection(UrlEndPoint peer)
             {
-            this.f_peer = peer;
+            this.f_peer     = peer;
+            this.m_uuidPeer = f_uuidBus == null ? null : peer.getPeerIdentity();
             if (f_fCrc)
                 {
                 f_crcRx = new CRC32();
@@ -3880,7 +3948,8 @@ public abstract class AbstractSocketBus
                     // if both sides were to keep trying to simultaneously reconnect and in doing so invalidate the other
                     // side's reconnect attempt
                     long cMillisDelay = cReconnectAttempts > 1 || eReason instanceof ConnectException ||
-                                        getLocalEndPoint().getCanonicalName().compareTo(getPeer().getCanonicalName()) > 0
+                                        comparePeerSeniority(getPeer(),
+                                                usesPeerIdentity(getProtocolVersion()) ? m_uuidPeer : null) > 0
                                         ? depsDriver.getSocketReconnectDelayMillis()
                                         : 0;
 
@@ -4088,6 +4157,29 @@ public abstract class AbstractSocketBus
             }
 
         /**
+         * Record and validate the peer MessageBus identity.
+         *
+         * @param uuid  the peer MessageBus identity
+         *
+         * @throws IOException if a physical replacement reaches another bus
+         *
+         * @since 26.10
+         */
+        protected void setPeerIdentity(UUID uuid)
+                throws IOException
+            {
+            UUID uuidPeer = m_uuidPeer;
+            if (uuidPeer == null)
+                {
+                m_uuidPeer = uuid;
+                }
+            else if (!uuidPeer.equals(uuid))
+                {
+                throw new IOException("connection peer identity mismatch " + uuidPeer + '/' + uuid);
+                }
+            }
+
+        /**
          * Set the protocol version.
          *
          * @param nProt  the version to set
@@ -4187,6 +4279,13 @@ public abstract class AbstractSocketBus
          * Atomically published current physical transport.
          */
         protected volatile TransportEpoch m_transportEpoch;
+
+        /**
+         * The stable identity of the peer MessageBus instance.
+         *
+         * @since 26.10
+         */
+        protected UUID m_uuidPeer;
 
         /**
          * The channel connecting this bus to the peer.
@@ -4586,14 +4685,21 @@ public abstract class AbstractSocketBus
             String     sName         = getLocalEndPoint().getCanonicalName();
             boolean    fSendConnect  = nProt > 0 && connection != null; // connect type only sent starting with v1
             boolean    fSendIdentity = nProt > 1 && fSendConnect;       // id only sent starting with v2
+            boolean    fSendBusId    = usesPeerIdentity(nProt);
             ByteBuffer bufOut        = m_headerOut = ByteBuffer.allocate(sName.length() * 2 +
                     (fSendConnect  ? 1 : 0) +
-                    (fSendIdentity ? nProt > 3 ? 16 : 8 : 0));
+                    (fSendIdentity ? nProt > 3 ? 16 : 8 : 0) +
+                    (fSendBusId    ? 16 : 0));
             for (int i = 0, c = sName.length(); i < c; ++i)
                 {
                 bufOut.putChar(sName.charAt(i));
                 }
 
+            if (fSendBusId)
+                {
+                bufOut.putLong(f_uuidBus.getMostSignificantBits())
+                      .putLong(f_uuidBus.getLeastSignificantBits());
+                }
             if (fSendConnect)
                 {
                 // note: accepting side doesn't have sufficient information to send the connect type until
@@ -4620,7 +4726,8 @@ public abstract class AbstractSocketBus
             m_headerIn = ByteBuffer.allocate(headerIn.getShort() * 2 +
                     (nProt > 0 ? 1  : 0) + // see connect type note above
                     (nProt > 3 ? 16 :
-                     nProt > 1 ? 8  : 0));
+                     nProt > 1 ? 8  : 0) +
+                    (usesPeerIdentity(nProt) ? 16 : 0));
 
             return OP_READ | OP_WRITE;
             }
@@ -4681,7 +4788,8 @@ public abstract class AbstractSocketBus
             int cbName = headerIn.limit() -
                     ((nProt > 0 ? 1  : 0) +  // connect type
                      (nProt > 3 ? 16 :
-                      nProt > 1 ? 8  : 0)); // ID
+                      nProt > 1 ? 8  : 0) +  // connection ID
+                     (usesPeerIdentity(nProt) ? 16 : 0)); // bus instance ID
 
             char[] achName  = new char[cbName / 2];
             for (int i = 0, c = achName.length; i < c; ++i)
@@ -4689,7 +4797,33 @@ public abstract class AbstractSocketBus
                 achName[i] = headerIn.getChar();
                 }
 
-            final UrlEndPoint peer = f_driver.resolveSocketEndPoint(new String(achName));
+            UrlEndPoint pointAdvertised = f_driver.resolveSocketEndPoint(new String(achName));
+            UUID        uuidPeer        = usesPeerIdentity(nProt)
+                    ? new UUID(headerIn.getLong(), headerIn.getLong())
+                    : null;
+
+            if (uuidPeer != null)
+                {
+                UUID uuidAdvertised = pointAdvertised.getPeerIdentity();
+                if (uuidPeer.equals(f_uuidBus))
+                    {
+                    throw new IOException("connection to the same MessageBus identity");
+                    }
+                if (uuidAdvertised != null && !uuidAdvertised.equals(uuidPeer))
+                    {
+                    throw new IOException("advertised peer identity mismatch "
+                            + uuidAdvertised + '/' + uuidPeer);
+                    }
+                }
+
+            // an enabled receiver strips recognized identity when negotiating v0-v5;
+            // a disabled or old receiver retains bus-id as opaque query metadata
+            final UrlEndPoint pointContact = pointAdvertised.getPeerIdentity() == null
+                    ? pointAdvertised
+                    : f_driver.resolveSocketEndPoint(pointAdvertised.getTransportName());
+            final UrlEndPoint peer = uuidPeer == null
+                    ? pointContact
+                    : makePeerEndPoint(pointContact, uuidPeer);
 
             int        nInterest  = OP_READ | OP_WRITE;
             Connection connection = m_connection;
@@ -5020,8 +5154,7 @@ public abstract class AbstractSocketBus
 
                                     // lesser of the two acceptor endpoints wins
                                     final EndPoint self = getLocalEndPoint();
-                                    if (self.getCanonicalName()
-                                            .compareTo(peer.getCanonicalName()) < 0)
+                                    if (comparePeerSeniority(peer, uuidPeer) < 0)
                                         {
                                         // this bus wins; don't accept the
                                         // peer's connection, our initiated
@@ -5256,6 +5389,11 @@ public abstract class AbstractSocketBus
                         {
                         closeChannel(getChannel());
                         return 0;
+                        }
+
+                    if (uuidPeer != null)
+                        {
+                        connection.setPeerIdentity(uuidPeer);
                         }
 
                     if (!connection.getPeer().equals(peer))
@@ -5843,6 +5981,11 @@ public abstract class AbstractSocketBus
      * The SocketDriver which produced this bus.
      */
     protected final SocketBusDriver f_driver;
+
+    /**
+     * The stable identity of this MessageBus instance.
+     */
+    private final UUID f_uuidBus;
 
     /**
      * For the purpose of testing failed connections.
