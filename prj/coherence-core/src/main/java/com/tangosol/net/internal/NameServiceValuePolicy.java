@@ -9,6 +9,7 @@ package com.tangosol.net.internal;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.CompatibilityWarnings;
 
 import com.tangosol.net.NameService;
 
@@ -165,7 +166,10 @@ public final class NameServiceValuePolicy
                     {
                     throw new IllegalArgumentException(sLog, e);
                     }
-                Logger.warn(sLog);
+                if (CompatibilityWarnings.shouldLog(WARN_RMI_STUB_URL))
+                    {
+                    Logger.warn(sLog);
+                    }
                 return url;
                 }
             throw e;
@@ -381,6 +385,13 @@ public final class NameServiceValuePolicy
         }
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Compatibility warning for publishing an RMI stub URL.
+     *
+     * @since 26.10
+     */
+    private static final CompatibilityWarnings.Category WARN_RMI_STUB_URL = new CompatibilityWarnings.Category();
 
     /**
      * Maximum nested value depth.

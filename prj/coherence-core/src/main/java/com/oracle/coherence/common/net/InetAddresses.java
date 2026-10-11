@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -914,10 +914,10 @@ public abstract class InetAddresses
             }
         if (sHost.equals("localhost") || sAddr.length() == 0)
             {
-            return new InetSocketAddress(InetAddresses.getLocalHost(), nPort);
+            return new InetSocketAddressWithHostname("localhost", InetAddresses.getLocalHost(), nPort);
             }
 
-        InetSocketAddress addr = new InetSocketAddress(sHost, nPort);
+        InetSocketAddress addr = new InetSocketAddressWithHostname(sHost, nPort);
         if (addr.getAddress() == null)
             {
             throw new UnknownHostException("could not resolve address \"" + sAddr + "\"");
@@ -1017,15 +1017,83 @@ public abstract class InetAddresses
      */
     public static SocketAddress setPort(SocketAddress sockAddr, int nPort)
         {
+        if (sockAddr instanceof InetSocketAddressWithHostname)
+            {
+            InetSocketAddressWithHostname address = (InetSocketAddressWithHostname) sockAddr;
+            return address.isUnresolved()
+                    ? InetSocketAddress.createUnresolved(address.getOriginalHostName(), nPort)
+                    : new InetSocketAddressWithHostname(address.getOriginalHostName(), address.getAddress(), nPort);
+            }
         if (sockAddr instanceof InetSocketAddress)
             {
-            return new InetSocketAddress(((InetSocketAddress) sockAddr).getAddress(), nPort);
+            InetSocketAddress address = (InetSocketAddress) sockAddr;
+            return address.isUnresolved() ? InetSocketAddress.createUnresolved(address.getHostString(), nPort)
+                    : new InetSocketAddress(address.getAddress(), nPort);
             }
         if (sockAddr instanceof InetSocketAddress32)
             {
-            return new InetSocketAddress32(((InetSocketAddress32) sockAddr).getAddress(), nPort);
+            return new InetSocketAddress32((InetSocketAddress32) sockAddr, nPort);
             }
         throw new IllegalArgumentException("Cannot set port for class " + sockAddr.getClass());
+        }
+
+    /**
+     * Return an explicitly retained name, or a numeric address representation.
+     * This representation does not establish identity provenance. Authentication
+     * callers must also check {@link #hasKnownReferenceIdentity(SocketAddress)}.
+     * Callers that require DNS identity should use InetSocketAddressWithHostname.
+     *
+     * @param address  the socket address
+     *
+     * @return the reference name or numeric address
+     *
+     * @since 26.10
+     */
+    public static String getHostString(SocketAddress address)
+        {
+        if (address instanceof InetSocketAddressWithHostname)
+            {
+            return ((InetSocketAddressWithHostname) address).getOriginalHostName();
+            }
+        if (address instanceof InetSocketAddress32)
+            {
+            return ((InetSocketAddress32) address).getHostString();
+            }
+        if (address instanceof InetSocketAddress)
+            {
+            InetSocketAddress addr = (InetSocketAddress) address;
+            return addr.isUnresolved() ? addr.getHostString() : addr.getAddress().getHostAddress();
+            }
+        throw new IllegalArgumentException("Unsupported socket address: " + address);
+        }
+
+    /**
+     * Return whether the address has a known reference identity. A resolved
+     * ordinary Java address with a cached hostname cannot distinguish explicit
+     * DNS input from reverse DNS. Such an address must not establish TLS identity.
+     *
+     * @param address  the socket address
+     *
+     * @return whether its reference identity has known provenance
+     *
+     * @since 26.10
+     */
+    public static boolean hasKnownReferenceIdentity(SocketAddress address)
+        {
+        if (address instanceof InetSocketAddressWithHostname)
+            {
+            return true;
+            }
+        if (address instanceof InetSocketAddress32)
+            {
+            return ((InetSocketAddress32) address).hasKnownReferenceIdentity();
+            }
+        if (address instanceof InetSocketAddress)
+            {
+            InetSocketAddress addr = (InetSocketAddress) address;
+            return addr.isUnresolved() || addr.getHostString().equals(addr.getAddress().getHostAddress());
+            }
+        throw new IllegalArgumentException("Unsupported socket address: " + address);
         }
 
     /**

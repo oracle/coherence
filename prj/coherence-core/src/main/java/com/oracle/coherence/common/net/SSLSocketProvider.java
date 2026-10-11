@@ -10,6 +10,8 @@ package com.oracle.coherence.common.net;
 import java.io.IOException;
 
 import java.net.ServerSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
@@ -45,6 +47,7 @@ import com.tangosol.coherence.config.unit.Seconds;
 
 import com.tangosol.internal.net.ssl.SSLContextDependencies;
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.CompatibilityWarnings;
 
 import com.tangosol.net.ssl.RefreshPolicy;
 
@@ -187,12 +190,33 @@ public class SSLSocketProvider
     public void ensureSessionValidity(SSLSession session, Socket socket)
             throws SSLException
         {
+        PeerIdentity identity = m_tlPeerIdentity.get();
+        String sPeer = identity != null && identity.session == session && identity.socket == socket
+                ? identity.name : getPeerName(socket == null ? null : socket.getRemoteSocketAddress());
+        if (sPeer == null && socket != null && socket.getInetAddress() != null)
+            {
+            sPeer = socket.getInetAddress().getHostAddress();
+            }
+        validateSessionIdentity(session, socket, sPeer);
+        }
+
+    /**
+     * Validate the certificate against the expected peer identity.
+     *
+     * @param session  the established SSL session
+     * @param socket   the connected socket
+     * @param sPeer    the expected DNS name or IP literal
+     *
+     * @throws SSLException if the session is unacceptable
+     */
+    private void validateSessionIdentity(SSLSession session, Socket socket, String sPeer)
+            throws SSLException
+        {
         if (session == null || socket == null)
             {
             throw new IllegalArgumentException();
             }
 
-        String           sPeer    = socket.getInetAddress().getHostName();
         HostnameVerifier verifier = getDependencies().getHostnameVerifier();
         boolean          fValid;
 
@@ -248,7 +272,6 @@ public class SSLSocketProvider
             {
             throw new IllegalArgumentException();
             }
-
         Dependencies deps = getDependencies();
         if (!fClientMode && deps.getClientAuth() != ClientAuthMode.required
                 && deps.getHostnameVerifier() == null && session.isValid())
@@ -263,8 +286,122 @@ public class SSLSocketProvider
                 return;
                 }
             }
+        PeerIdentity previous = m_tlPeerIdentity.get();
+        boolean fNumericPeer = !fClientMode && (previous == null
+                || previous.session != session || previous.socket != socket);
+        if (fNumericPeer)
+            {
+            // accepted peer identity is numeric, independent of reverse-name caches
+            m_tlPeerIdentity.set(new PeerIdentity(session, socket, socket.getInetAddress().getHostAddress()));
+            }
+        try
+            {
+            ensureSessionValidity(session, socket);
+            }
+        finally
+            {
+            if (fNumericPeer)
+                {
+                if (previous == null)
+                    {
+                    m_tlPeerIdentity.remove();
+                    }
+                else
+                    {
+                    m_tlPeerIdentity.set(previous);
+                    }
+                }
+            }
+        }
 
-        ensureSessionValidity(session, socket);
+    /**
+     * Validate a session against the destination retained before connecting.
+     * Accepted connections use the peer's numeric address when no expected
+     * identity is supplied. Reverse DNS does not establish a peer identity.
+     *
+     * @param session      the established SSL session
+     * @param socket       the connected socket
+     * @param fClientMode  {@code true} if this endpoint is the TLS client
+     * @param sPeer        the expected DNS name or IP literal, or {@code null}
+     *
+     * @throws SSLException if the session is unacceptable
+     *
+     * @since 26.10
+     */
+    public void ensureSessionValidity(SSLSession session, Socket socket, boolean fClientMode, String sPeer)
+            throws SSLException
+        {
+        if (session == null || socket == null)
+            {
+            throw new IllegalArgumentException();
+            }
+
+        if (sPeer == null)
+            {
+            sPeer = fClientMode ? getPeerName(socket.getRemoteSocketAddress()) : null;
+            if (sPeer == null)
+                {
+                sPeer = socket.getInetAddress().getHostAddress();
+                }
+            }
+
+        // retain the original virtual dispatch and arguments for policy overrides
+        PeerIdentity previous = m_tlPeerIdentity.get();
+        m_tlPeerIdentity.set(new PeerIdentity(session, socket, sPeer));
+        try
+            {
+            ensureSessionValidity(session, socket, fClientMode);
+            }
+        finally
+            {
+            if (previous == null)
+                {
+                m_tlPeerIdentity.remove();
+                }
+            else
+                {
+                m_tlPeerIdentity.set(previous);
+                }
+            }
+        }
+
+    /**
+     * Return the configured name or numeric address without a reverse lookup.
+     *
+     * @param address  the peer socket address
+     *
+     * @return the peer identity, or {@code null} if no address is supplied
+     *
+     * @throws SSLException if the reference identity's provenance is ambiguous
+     *
+     * @since 26.10
+     */
+    public static String getPeerName(SocketAddress address)
+            throws SSLException
+        {
+        if (address == null)
+            {
+            return null;
+            }
+        if (!InetAddresses.hasKnownReferenceIdentity(address))
+            {
+            throw new SSLException("Ambiguous peer identity: use InetSocketAddressWithHostname "
+                    + "or InetSocketAddress32(String, int) to supply the reference identity");
+            }
+        String sPeer = InetAddresses.getHostString(address);
+        byte[] abAddress = SSLCertUtility.getIPAddress(sPeer);
+        if (abAddress != null)
+            {
+            try
+                {
+                return InetAddress.getByAddress(abAddress).getHostAddress();
+                }
+            catch (java.net.UnknownHostException e)
+                {
+                throw new IllegalArgumentException(e);
+                }
+            }
+        return sPeer;
         }
 
     /**
@@ -302,9 +439,12 @@ public class SSLSocketProvider
      */
     protected void logHostnameVerificationWouldReject(String sSource, String sPeer)
         {
-        getDependencies().getLogger().log(Level.WARNING, String.format(Locale.ROOT,
-                "TLS hostname verification would_reject; security-mode=compatibility; source=%s; peer=%s",
-                sSource, sPeer));
+        if (CompatibilityWarnings.shouldLog("null".equals(sSource) ? WARN_HOSTNAME_NO_VERIFIER : null))
+            {
+            getDependencies().getLogger().log(Level.WARNING, String.format(Locale.ROOT,
+                    "TLS hostname verification would_reject; security-mode=compatibility; source=%s; peer=%s",
+                    sSource, sPeer));
+            }
         }
 
 
@@ -985,12 +1125,28 @@ public class SSLSocketProvider
     // ----- data members ---------------------------------------------------
 
     /**
+     * Identity scoped to one synchronous validation call. Nested validation
+     * restores its caller's context, and concurrent connections never share it.
+     */
+    private record PeerIdentity(SSLSession session, Socket socket, String name) {}
+
+    private final ThreadLocal<PeerIdentity> m_tlPeerIdentity = new ThreadLocal<>();
+
+    /**
      * The SSLSocketProvider's dependencies.
      */
     protected Dependencies m_dependencies;
 
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Compatibility warning for a mismatch with no configured hostname verifier.
+     *
+     * @since 26.10
+     */
+    private static final CompatibilityWarnings.Category WARN_HOSTNAME_NO_VERIFIER =
+            new CompatibilityWarnings.Category();
 
     /**
      * The default Logger for all derivations of this class.
