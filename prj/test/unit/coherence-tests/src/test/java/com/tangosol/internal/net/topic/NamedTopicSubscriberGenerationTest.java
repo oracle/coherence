@@ -352,15 +352,64 @@ public class NamedTopicSubscriberGenerationTest
         context.f_fBlockInitialInitialize = true;
         context.f_nFailInitializeCall = 1;
 
+        CountDownLatch latchCleanupEntered = new CountDownLatch(1);
+        CountDownLatch latchAllowCleanup   = new CountDownLatch(1);
+        context.f_beforeFailedConstructionCleanup = () ->
+            {
+            latchCleanupEntered.countDown();
+            try
+                {
+                if (!latchAllowCleanup.await(1, TimeUnit.MINUTES))
+                    {
+                    throw new AssertionError("Timed out waiting to allow construction cleanup");
+                    }
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                throw new AssertionError(e);
+                }
+            };
+
         FutureTask<TestSubscriber> future = new FutureTask<>(context::createSubscriber);
         Thread thread = new Thread(future, "initial-subscriber-construction");
         thread.start();
-        assertThat(context.f_latchInitialInitializeEntered.await(1, TimeUnit.MINUTES), is(true));
 
-        TestSubscriber subscriber = context.f_subscriber.get();
-        context.emit(SubscriberEvent.Type.ChannelsLost, null);
-        context.emit(SubscriberEvent.Type.Unsubscribed, null);
-        context.f_latchAllowInitialInitialize.countDown();
+        try
+            {
+            assertThat(context.f_latchInitialInitializeEntered.await(1, TimeUnit.MINUTES), is(true));
+
+            TestSubscriber subscriber = context.f_subscriber.get();
+            context.emit(SubscriberEvent.Type.ChannelsLost, null);
+            context.emit(SubscriberEvent.Type.Unsubscribed, null);
+            context.emit(SubscriberEvent.Type.ChannelAllocation, channels(3, 4));
+            context.f_latchAllowInitialInitialize.countDown();
+
+            // Initialization has released the gate, but cleanup must not close the subscriber
+            // or stop its channel daemon before the queued events have been processed.
+            assertThat(latchCleanupEntered.await(1, TimeUnit.MINUTES), is(true));
+            assertThat(subscriber.isActive(), is(true));
+            assertThat(subscriber.getAllocationGeneration(), is(0L));
+            assertThat(subscriber.getAcceptedAllocationGeneration(), is(-1L));
+            assertThat(subscriber.hasOwnershipSnapshot(), is(false));
+            assertThat(subscriber.drainChannelDaemon(), is(true));
+
+            assertThat(subscriber.isActive(), is(true));
+            assertThat(subscriber.getAcceptedAllocationGeneration(), is(-1L));
+            // Applying even an empty ownership event would change the snapshot from null to an array.
+            assertThat(subscriber.hasOwnershipSnapshot(), is(false));
+            assertThat(subscriber.getOwnedChannelSet(), is(Collections.emptySet()));
+            assertThat(subscriber.getDisconnectCount(), is(0L));
+            verify(context.f_ownershipListener, never()).onChannelsAssigned(any());
+            verify(context.f_ownershipListener, never()).onChannelsLost(any());
+            }
+        finally
+            {
+            context.f_latchAllowInitialInitialize.countDown();
+            latchAllowCleanup.countDown();
+            thread.join(TimeUnit.MINUTES.toMillis(1));
+            assertThat(thread.isAlive(), is(false));
+            }
 
         try
             {
@@ -372,10 +421,7 @@ public class NamedTopicSubscriberGenerationTest
             assertThat(expected.getCause() instanceof TopicException, is(true));
             }
 
-        assertThat(subscriber.drainChannelDaemon(), is(true));
-        assertThat(subscriber.getDisconnectCount(), is(0L));
-        verify(context.f_ownershipListener, never()).onChannelsLost(any());
-        subscriber.close();
+        assertThat(context.f_subscriber.get().isActive(), is(false));
         }
 
     private static SortedSet<Integer> channels(Integer... anChannel)
@@ -391,6 +437,27 @@ public class NamedTopicSubscriberGenerationTest
         TestSubscriber(NamedTopic<?> topic, SubscriberConnector<String> connector, Subscriber.Option[] options)
             {
             super(topic, connector, options);
+            }
+
+        @Override
+        protected void cleanupAfterFailedConstruction(Throwable t)
+            {
+            try
+                {
+                if (m_beforeFailedConstructionCleanup != null)
+                    {
+                    m_beforeFailedConstructionCleanup.run();
+                    }
+                }
+            finally
+                {
+                super.cleanupAfterFailedConstruction(t);
+                }
+            }
+
+        boolean hasOwnershipSnapshot()
+            {
+            return m_aChannelOwned != null;
             }
 
         long getAllocationGeneration() throws ReflectiveOperationException
@@ -460,6 +527,9 @@ public class NamedTopicSubscriberGenerationTest
                 }
             return setChannel;
             }
+
+        // Assigned by postConstruct during superclass construction, before initialization can fail.
+        private Runnable m_beforeFailedConstructionCleanup;
 
         @Override
         protected void registerMBean()
@@ -570,7 +640,9 @@ public class NamedTopicSubscriberGenerationTest
 
             doAnswer(invocation ->
                 {
-                f_subscriber.set((TestSubscriber) invocation.getArgument(0));
+                TestSubscriber subscriber = invocation.getArgument(0);
+                subscriber.m_beforeFailedConstructionCleanup = f_beforeFailedConstructionCleanup;
+                f_subscriber.set(subscriber);
                 return null;
                 }).when(f_connector).postConstruct(any());
             }
@@ -615,6 +687,7 @@ public class NamedTopicSubscriberGenerationTest
         volatile int                               f_nFailInitializeCall = -1;
         volatile int                               f_nFailOnInitializedCall = -1;
         volatile boolean                           f_fBlockInitialInitialize;
+        volatile Runnable                          f_beforeFailedConstructionCleanup;
         volatile long                              f_cReconnectWaitMillis = 1_000L;
         }
     }
