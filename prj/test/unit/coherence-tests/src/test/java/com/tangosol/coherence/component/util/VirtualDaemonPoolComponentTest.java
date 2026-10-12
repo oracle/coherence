@@ -204,13 +204,14 @@ public class VirtualDaemonPoolComponentTest
         assertTrue(taskAssociated.awaitDone());
         assertTrue(taskAll.awaitStarted());
 
+        taskUnassociated.release();
+        assertTrue(taskUnassociated.awaitDone());
+
         BlockingTask taskConcurrent = new BlockingTask(null, active, maxActive);
         m_pool.add(taskConcurrent);
         assertTrue(taskConcurrent.awaitStarted());
 
-        taskUnassociated.release();
         taskConcurrent.release();
-        assertTrue(taskUnassociated.awaitDone());
         assertTrue(taskConcurrent.awaitDone());
 
         taskAll.release();
@@ -271,10 +272,13 @@ public class VirtualDaemonPoolComponentTest
             throws Exception
         {
         m_pool.stop();
-        TestVirtualDaemonPool pool = createControlledPool(8);
+        int                   cTaskLimit = 8;
+        TestVirtualDaemonPool pool       = createControlledPool(cTaskLimit);
+        pool.freezeAdaptiveAdmissionForTest();
         m_pool = pool;
         m_pool.start();
 
+        int           cInitial  = pool.getDirectTaskLimit();
         AtomicInteger active    = new AtomicInteger();
         AtomicInteger maxActive = new AtomicInteger();
         BlockingTask[] tasks    = createBlockingTasks(64, null, active, maxActive);
@@ -282,15 +286,15 @@ public class VirtualDaemonPoolComponentTest
         try
             {
             addAll(tasks);
-            assertEventually(() -> m_pool.getActiveDaemonCount() == 8);
-            assertThat(pool.getAvailableTaskPermits(), is(0));
+            assertEventually(() -> m_pool.getActiveDaemonCount() == cInitial);
+            assertThat(pool.getAvailableTaskPermits(), is(cTaskLimit - cInitial));
 
             m_pool.setTaskLimit(64);
 
             assertThat(m_pool.getTaskLimit(), is(64));
-            assertThat(m_pool.getDirectTaskLimit(), is(8));
-            assertThat(pool.getAvailableTaskPermits(), is(56));
-            assertThat(maxActive.get(), is(8));
+            assertThat(m_pool.getDirectTaskLimit(), is(cInitial));
+            assertThat(pool.getAvailableTaskPermits(), is(64 - cInitial));
+            assertThat(maxActive.get(), is(cInitial));
             }
         finally
             {
@@ -304,25 +308,32 @@ public class VirtualDaemonPoolComponentTest
             throws Exception
         {
         m_pool.stop();
-        m_pool = createPool(64);
+        int                   cInitialTaskLimit = 64;
+        int                   cReducedTaskLimit = 8;
+        int                   cTaskCount        = 80;
+        TestVirtualDaemonPool pool              = createControlledPool(cInitialTaskLimit);
+        pool.freezeAdaptiveAdmissionForTest();
+        m_pool = pool;
         m_pool.start();
 
+        int           cInitial  = pool.getDirectTaskLimit();
+        int           cExpected = Math.min(cReducedTaskLimit, cInitial);
         AtomicInteger active    = new AtomicInteger();
         AtomicInteger maxActive = new AtomicInteger();
-        BlockingTask[] tasks    = createBlockingTasks(80, null, active, maxActive);
+        BlockingTask[] tasks    = createBlockingTasks(cTaskCount, null, active, maxActive);
 
         try
             {
             addAll(tasks);
-            int cInitial = Math.min(64,
-                    Math.max(1, Runtime.getRuntime().availableProcessors() * 2));
             assertEventually(() -> m_pool.getActiveDaemonCount() == cInitial);
 
-            m_pool.setTaskLimit(8);
+            m_pool.setTaskLimit(cReducedTaskLimit);
 
-            assertThat(m_pool.getDirectTaskLimit(), is(8));
-            assertTrue(releaseStartedExceptFirst(tasks, 8) >= cInitial - 8);
-            assertEventually(() -> m_pool.getActiveDaemonCount() <= 8);
+            assertThat(m_pool.getTaskLimit(), is(cReducedTaskLimit));
+            assertThat(m_pool.getDirectTaskLimit(), is(cExpected));
+            assertThat(pool.getAvailableTaskPermits(), is(cReducedTaskLimit - cInitial));
+            assertTrue(releaseStartedExceptFirst(tasks, cExpected) >= cInitial - cExpected);
+            assertEventually(() -> m_pool.getActiveDaemonCount() <= cExpected);
             assertThat(maxActive.get(), is(cInitial));
             assertNoInterrupted(tasks);
             }
@@ -339,9 +350,11 @@ public class VirtualDaemonPoolComponentTest
         {
         m_pool.stop();
         TestVirtualDaemonPool pool = createControlledPool(8);
+        pool.freezeAdaptiveAdmissionForTest();
         m_pool = pool;
         m_pool.start();
 
+        int           cInitial  = pool.getDirectTaskLimit();
         AtomicInteger active    = new AtomicInteger();
         AtomicInteger maxActive = new AtomicInteger();
         BlockingTask[] tasks    = createBlockingTasks(80, null, active, maxActive);
@@ -349,15 +362,15 @@ public class VirtualDaemonPoolComponentTest
         try
             {
             addAll(tasks);
-            assertEventually(() -> m_pool.getActiveDaemonCount() == 8);
-            assertEventually(() -> maxActive.get() == 8);
+            assertEventually(() -> m_pool.getActiveDaemonCount() == cInitial);
+            assertEventually(() -> maxActive.get() == cInitial);
 
             m_pool.setTaskLimit(0);
 
             assertThat(m_pool.getTaskLimit(), is(0));
             assertThat(pool.getAvailableTaskPermits(), is(Integer.MAX_VALUE));
-            assertThat(m_pool.getDirectTaskLimit(), is(8));
-            assertThat(maxActive.get(), is(8));
+            assertThat(m_pool.getDirectTaskLimit(), is(cInitial));
+            assertThat(maxActive.get(), is(cInitial));
             }
         finally
             {
@@ -371,8 +384,12 @@ public class VirtualDaemonPoolComponentTest
             throws Exception
         {
         m_pool.stop();
-        m_pool = createPool(0);
+        TestVirtualDaemonPool pool = createControlledPool(0);
+        pool.freezeAdaptiveAdmissionForTest();
+        m_pool = pool;
         m_pool.start();
+
+        int cExpected = Math.min(8, pool.getDirectTaskLimit());
         m_pool.setTaskLimit(8);
 
         AtomicInteger active    = new AtomicInteger();
@@ -383,8 +400,11 @@ public class VirtualDaemonPoolComponentTest
             {
             addAll(tasks);
 
-            assertEventually(() -> m_pool.getActiveDaemonCount() == 8);
-            assertThat(maxActive.get(), is(8));
+            assertEventually(() -> m_pool.getActiveDaemonCount() == cExpected);
+            assertThat(m_pool.getTaskLimit(), is(8));
+            assertThat(m_pool.getDirectTaskLimit(), is(cExpected));
+            assertThat(pool.getAvailableTaskPermits(), is(8 - cExpected));
+            assertThat(maxActive.get(), is(cExpected));
             }
         finally
             {
@@ -397,20 +417,25 @@ public class VirtualDaemonPoolComponentTest
     public void shouldReportVirtualMBeanAttributes()
         {
         m_pool.stop();
-        m_pool = createPool(10);
+        TestVirtualDaemonPool pool = createControlledPool(10);
+        pool.freezeAdaptiveAdmissionForTest();
+        m_pool = pool;
         m_pool.start();
 
         TestServiceModel model = new TestServiceModel("VirtualMBeanTest", m_pool);
 
+        // TaskLimit caps the aggregate; each adaptive domain starts at the
+        // role-weighted CPU target, capped by that aggregate limit.
+        int cExpected = Math.min(10, Runtime.getRuntime().availableProcessors()
+                * DaemonPoolSizing.Role.SERVICE.getWeightFactor());
+
         assertThat(model.getDaemonPoolType(), is("VIRTUAL"));
         assertThat(model.getTaskLimit(), is(10));
-        assertThat(model.getDirectTaskLimit(), is(10));
+        assertThat(model.getDirectTaskLimit(), is(cExpected));
         assertThat(model.getDirectTaskActiveCount(), is(0));
-        assertThat(model.getMailboxDrainerLimit(),
-                is(10));
+        assertThat(model.getMailboxDrainerLimit(), is(cExpected));
         assertThat(model.getMailboxDrainerActiveCount(), is(0));
-        assertThat(model.getReadOnlyTaskLimit(),
-                is(10));
+        assertThat(model.getReadOnlyTaskLimit(), is(cExpected));
         assertThat(model.getReadOnlyTaskActiveCount(), is(0));
         }
 
@@ -508,20 +533,32 @@ public class VirtualDaemonPoolComponentTest
             throws Exception
         {
         m_pool.stop();
-        m_pool = createPool(10);
+        TestVirtualDaemonPool pool = createControlledPool(10);
+        pool.freezeAdaptiveAdmissionForTest();
+        m_pool = pool;
         m_pool.start();
 
-        TestServiceModel model  = new TestServiceModel("VirtualSaturationTest", m_pool);
-        AtomicInteger    active = new AtomicInteger();
-        AtomicInteger    max    = new AtomicInteger();
-        BlockingTask[]   tasks  = createBlockingTasks(4, null, active, max);
+        TestServiceModel model        = new TestServiceModel("VirtualSaturationTest", m_pool);
+        AtomicInteger    active       = new AtomicInteger();
+        AtomicInteger    max          = new AtomicInteger();
+        int              cDirectLimit = pool.getDirectTaskLimit();
+
+        // Keep every submitted task runnable even on a single-CPU JVM.
+        int            cTasks = Math.min(4, cDirectLimit);
+        BlockingTask[] tasks  = createBlockingTasks(cTasks, null, active, max);
 
         try
             {
             addAll(tasks);
 
-            assertEventually(() -> m_pool.getActiveDaemonCount() == 4);
-            assertThat(model.getPoolSaturation(), is(0.4d));
+            assertEventually(() -> m_pool.getActiveDaemonCount() == cTasks);
+            assertThat(model.getTaskLimit(), is(10));
+            assertThat(model.getDirectTaskLimit(), is(cDirectLimit));
+            assertThat(model.getDirectTaskActiveCount(), is(cTasks));
+            assertThat(model.getReadOnlyTaskActiveCount(), is(0));
+            assertThat(model.getMailboxDrainerActiveCount(), is(0));
+            assertThat(model.getPoolSaturation(),
+                    is(Math.max((double) cTasks / 10, (double) cTasks / cDirectLimit)));
             }
         finally
             {
@@ -698,9 +735,12 @@ public class VirtualDaemonPoolComponentTest
             throws Exception
         {
         m_pool.stop();
-        m_pool = createPool(4);
+        TestVirtualDaemonPool pool = createControlledPool(4);
+        pool.freezeAdaptiveAdmissionForTest();
+        m_pool = pool;
         m_pool.start();
 
+        int           cLimit    = pool.getDirectTaskLimit();
         AtomicInteger active    = new AtomicInteger();
         AtomicInteger maxActive = new AtomicInteger();
         BlockingTask[] tasks    = createBlockingTasks(40, null, active, maxActive);
@@ -708,7 +748,7 @@ public class VirtualDaemonPoolComponentTest
         try
             {
             addAll(tasks);
-            assertEventually(() -> m_pool.getActiveDaemonCount() == 4);
+            assertEventually(() -> m_pool.getActiveDaemonCount() == cLimit);
 
             for (int i = 0; i < 1_000; i++)
                 {
@@ -2270,6 +2310,22 @@ public class VirtualDaemonPoolComponentTest
             super(sName, compParent, fInit);
             }
 
+        public void freezeAdaptiveAdmissionForTest()
+            {
+            m_fFreezeAdaptiveAdmission = true;
+            }
+
+        @Override
+        protected void evaluateAdaptiveAdmission(long ldtNow)
+            {
+            // Preserve real initial sizing without racing periodic controller
+            // changes while a test inspects admission limits and utilization.
+            if (!m_fFreezeAdaptiveAdmission)
+                {
+                super.evaluateAdaptiveAdmission(ldtNow);
+                }
+            }
+
         public void armDrainReconciliationBlock()
             {
             m_fBlockDrainReconciliation   = true;
@@ -2426,6 +2482,7 @@ public class VirtualDaemonPoolComponentTest
             super.reconcileMailboxAfterDrain(oAssoc, mailbox);
             }
 
+        private volatile boolean m_fFreezeAdaptiveAdmission;
         private volatile boolean m_fBlockDrainReconciliation;
         private CountDownLatch    m_latchDrainReconciliation   = new CountDownLatch(0);
         private CountDownLatch    m_latchReleaseReconciliation = new CountDownLatch(0);
