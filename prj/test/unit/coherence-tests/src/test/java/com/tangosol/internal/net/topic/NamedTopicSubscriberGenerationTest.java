@@ -355,27 +355,61 @@ public class NamedTopicSubscriberGenerationTest
         FutureTask<TestSubscriber> future = new FutureTask<>(context::createSubscriber);
         Thread thread = new Thread(future, "initial-subscriber-construction");
         thread.start();
-        assertThat(context.f_latchInitialInitializeEntered.await(1, TimeUnit.MINUTES), is(true));
-
-        TestSubscriber subscriber = context.f_subscriber.get();
-        context.emit(SubscriberEvent.Type.ChannelsLost, null);
-        context.emit(SubscriberEvent.Type.Unsubscribed, null);
-        context.f_latchAllowInitialInitialize.countDown();
 
         try
             {
-            future.get(1, TimeUnit.MINUTES);
-            throw new AssertionError("Expected initial connection to fail");
+            assertThat(context.f_latchInitialInitializeEntered.await(1, TimeUnit.MINUTES), is(true));
+
+            TestSubscriber subscriber = context.f_subscriber.get();
+            context.emit(SubscriberEvent.Type.ChannelsLost, null);
+            context.emit(SubscriberEvent.Type.Unsubscribed, null);
+            context.emit(SubscriberEvent.Type.ChannelAllocation, channels(3, 4));
+            context.f_latchAllowInitialInitialize.countDown();
+
+            try
+                {
+                future.get(1, TimeUnit.MINUTES);
+                throw new AssertionError("Expected initial connection to fail");
+                }
+            catch (ExecutionException expected)
+                {
+                assertThat(expected.getCause() instanceof TopicException, is(true));
+                }
+
+            // this branch leaves a failed subscriber active, so drain before closing it
+            assertThat(subscriber.isActive(), is(true));
+            assertThat(subscriber.getAllocationGeneration(), is(0L));
+            assertThat(subscriber.getAcceptedAllocationGeneration(), is(-1L));
+            assertThat(subscriber.drainChannelDaemon(), is(true));
+
+            assertThat(subscriber.isActive(), is(true));
+            assertThat(subscriber.getAcceptedAllocationGeneration(), is(-1L));
+            // even an empty ownership event would change the snapshot from null to an array
+            assertThat(subscriber.hasOwnershipSnapshot(), is(false));
+            assertThat(subscriber.getOwnedChannelSet(), is(Collections.emptySet()));
+            assertThat(subscriber.getDisconnectCount(), is(0L));
+            verify(context.f_ownershipListener, never()).onChannelsAssigned(any());
+            verify(context.f_ownershipListener, never()).onChannelsLost(any());
             }
-        catch (ExecutionException expected)
+        finally
             {
-            assertThat(expected.getCause() instanceof TopicException, is(true));
+            context.f_latchAllowInitialInitialize.countDown();
+            try
+                {
+                thread.join(TimeUnit.MINUTES.toMillis(1));
+                assertThat(thread.isAlive(), is(false));
+                }
+            finally
+                {
+                TestSubscriber subscriber = context.f_subscriber.get();
+                if (subscriber != null)
+                    {
+                    subscriber.close();
+                    }
+                }
             }
 
-        assertThat(subscriber.drainChannelDaemon(), is(true));
-        assertThat(subscriber.getDisconnectCount(), is(0L));
-        verify(context.f_ownershipListener, never()).onChannelsLost(any());
-        subscriber.close();
+        assertThat(context.f_subscriber.get().isActive(), is(false));
         }
 
     private static SortedSet<Integer> channels(Integer... anChannel)
@@ -391,6 +425,11 @@ public class NamedTopicSubscriberGenerationTest
         TestSubscriber(NamedTopic<?> topic, SubscriberConnector<String> connector, Subscriber.Option[] options)
             {
             super(topic, connector, options);
+            }
+
+        boolean hasOwnershipSnapshot()
+            {
+            return m_aChannelOwned != null;
             }
 
         long getAllocationGeneration() throws ReflectiveOperationException
