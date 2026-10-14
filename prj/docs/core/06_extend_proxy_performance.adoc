@@ -1,0 +1,150 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2026, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Coherence*Extend Proxy Performance
+:toc: left
+:toclevels: 3
+:sectnums:
+
+Coherence*Extend TCP proxies can process traffic from independent client
+connections through separate, connection-affine pipelines. This guide explains
+the default behavior, how to configure pipeline count, and what to monitor.
+
+The improvements are available in Coherence Community Edition 26.10 and
+commercial Coherence 26.1.0.0.0 or later. They require no client or wire
+protocol changes. Updated Java Extend clients also use 8 KiB input and output
+stream buffers, which reduce the framing overhead of small requests without
+changing the configured socket buffers or maximum message size.
+
+== How Proxy Pipelines Work
+
+Each accepted TCP connection is assigned to one selector and decode pipeline
+for its lifetime. Frames from that connection, including the initial
+handshake, retain their wire order. Different connections can be read and
+decoded concurrently. Ordinary decoded requests still run through the proxy
+service's shared worker pool; adding pipelines does not create a separate
+worker pool for each connection or pipeline.
+
+This helps when several client connections share a proxy and their decoding
+would otherwise compete on one acceptor path. One busy connection still has
+one pipeline. Coherence does not move an established connection to another
+pipeline, so a newly added pipeline receives only new or reconnecting
+connections. A workload limited by one connection may need additional client
+connections or proxy instances. A workload limited by storage or downstream
+execution may see no benefit from additional pipelines.
+
+The proxy worker pool adapts separately to the work it receives. See
+xref:02_daemon_pool_dynamic_resizing.adoc[] for platform-worker sizing and
+xref:03_virtual_daemon_pool.adoc[] for the virtual pool. Pipeline count does
+not set either pool's concurrency limit.
+
+== Configure Pipeline Count
+
+Set `<pipeline-count>` inside the proxy scheme's TCP acceptor configuration.
+The following is a `<proxy-scheme>` fragment to place under
+`<caching-schemes>` in a cache configuration:
+
+[source,xml]
+----
+<proxy-scheme>
+  <service-name>ExtendProxy</service-name>
+  <acceptor-config>
+    <tcp-acceptor>
+      <local-address>
+        <address>0.0.0.0</address>
+        <port>9099</port>
+      </local-address>
+      <pipeline-count>0</pipeline-count>
+    </tcp-acceptor>
+  </acceptor-config>
+  <autostart>true</autostart>
+</proxy-scheme>
+----
+
+For a grid proxy service, the element has these values:
+
+[cols="1,4",options="header"]
+|===
+| Value | Behavior
+
+| Omitted or `0`
+| Automatic mode. This is the default. Coherence starts with a small number
+of pipelines and may add more as new connections arrive.
+
+| `1`
+| The original single-pipeline topology. Use this value to compare behavior
+with an earlier release or to keep one selector and decoder.
+
+| `2` through `256`
+| Exactly that many pipelines. The count remains fixed until the service is
+reconfigured or restarted.
+|===
+
+Automatic mode starts with one pipeline on a 4-processor member, two on an
+8-processor member, and three on members with 12 or more processors. It can
+grow one pipeline when a new connection arrives and either the existing
+pipelines each have more than eight connections on average or all active
+pipelines show decode pressure. Its safety ceiling is approximately half the
+available processor count, up to 256; the ceiling is not a target. New
+connections are placed using recent queue, busy-time, traffic, and connection
+counts. Automatic mode does not remove pipelines or migrate connections.
+
+An explicitly configured `<thread-count>0</thread-count>` on the proxy keeps
+the original single-threaded request path and one pipeline by default.
+Automatic pipeline selection does not add concurrent request processing to
+that configuration. A fixed pipeline count greater than one must be requested
+explicitly if that is intended.
+
+For most deployments, leave `<pipeline-count>` omitted. Set it to `1` for a
+controlled comparison or to retain the prior topology. Use a fixed count
+only when measurements of the intended client connection mix justify it;
+processor count alone does not determine the best fixed value.
+
+== Observe the Proxy
+
+The proxy's `ConnectionManager` MBean exposes these attributes for TCP grid
+proxies:
+
+[cols="2,4",options="header"]
+|===
+| Attribute | Meaning
+
+| `PipelineCountConfigured`
+| The resolved setting: `0` for automatic mode, `1` for the original path,
+or the requested fixed count.
+
+| `PipelineCount`
+| The number of pipelines currently active. In automatic mode it may
+increase as new connections arrive.
+
+| `PipelineCountLimit`
+| The automatic safety ceiling, or the exact count in fixed mode.
+|===
+
+For connection managers to which TCP proxy pipelines do not apply, these
+attributes return `-1`. Existing connection, request, message, and byte
+statistics remain aggregated across the active pipelines. At diagnostic log
+level 5, the proxy records pipeline growth and connection assignment; the
+growth record includes the old and new count, connection count, observed
+pressure, and ceiling.
+
+When investigating performance, compare the active pipeline count with live
+connections, request throughput, latency, proxy worker count, and worker
+backlog. A rising pipeline count is normal under new connection load. If
+throughput remains flat while latency or worker backlog rises, adding more
+decode pipelines is unlikely to remove the downstream bottleneck.
+
+== Upgrade and Compatibility
+
+The server-side change preserves per-connection ordering and the existing
+Extend wire protocol. Older clients can connect to an updated proxy and
+benefit from concurrent processing across their independent connections.
+The 8 KiB framing improvement applies to updated Java Extend initiators;
+it is internal and has no new configuration element.
+
+To compare a deployment with the previous single-pipeline behavior, set
+`<pipeline-count>1</pipeline-count>` on its proxy service and keep the same
+client connection count and worker-pool settings for both measurements.
