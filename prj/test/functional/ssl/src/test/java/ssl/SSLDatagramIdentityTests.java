@@ -6,6 +6,8 @@
  */
 package ssl;
 
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Timeout;
 import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.oracle.coherence.common.net.TcpSocketProvider;
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
@@ -40,9 +42,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 
 import javax.net.ssl.ExtendedSSLSession;
 import javax.net.ssl.KeyManager;
@@ -156,6 +160,12 @@ public class SSLDatagramIdentityTests
         }
 
     @Test(timeout = 20000)
+    public void shouldRejectMatchingCachedDNSSANBeforeServerCompletes() throws Exception
+        {
+        exchange("cached-dns", cachedAddress(f_loopback), false, 0, true);
+        }
+
+    @Test(timeout = 20000)
     public void shouldRejectCNWithoutIPSAN() throws Exception
         {
         exchange("cn", cachedAddress(f_loopback), false, 0);
@@ -216,10 +226,17 @@ public class SSLDatagramIdentityTests
 
     private void exchange(String sCert, InetAddress destination, boolean fAccept, int nPolicy) throws Exception
         {
+        exchange(sCert, destination, fAccept, nPolicy, false);
+        }
+
+    private void exchange(String sCert, InetAddress destination, boolean fAccept, int nPolicy,
+            boolean fWaitForSender) throws Exception
+        {
         InetAddress bindAddress = InetAddress.getByAddress(destination.getAddress());
         String sClientCert = destination.getAddress().length == 16 ? "ipv6" : "ip";
         AtomicReference<Verification> verification = new AtomicReference<>();
         AtomicBoolean policy = new AtomicBoolean();
+        CountDownLatch senderDone = new CountDownLatch(fWaitForSender ? 1 : 0);
         try (CoherenceModeHelper.ModeScope mode = CoherenceModeHelper.securityHardened();
              SSLServerSocket server = (SSLServerSocket) context(sCert).getServerSocketFactory()
                      .createServerSocket(0, 1, bindAddress);
@@ -269,8 +286,25 @@ public class SSLDatagramIdentityTests
                     // rejection may reset TLS before the server finishes its handshake
                     return null;
                     }
+                finally
+                    {
+                    // hold completion until sending stops to expose retries after rejection
+                    assertTrue("sender must finish before the server task completes",
+                            senderDone.await(7, TimeUnit.SECONDS));
+                    }
                 });
-            sendUntilDone(client, packet, result);
+            try
+                {
+                sendUntilDone(client, packet, result, () ->
+                    {
+                    Verification observed = verification.get();
+                    return observed != null && (!observed.accepted || policy.get());
+                    });
+                }
+            finally
+                {
+                senderDone.countDown();
+                }
             byte[] received = result.get(7, TimeUnit.SECONDS);
             if (fAccept)
                 {
@@ -284,13 +318,26 @@ public class SSLDatagramIdentityTests
     private static void sendUntilDone(TcpDatagramSocket socket, DatagramPacket packet,
             java.util.concurrent.Future<?> result) throws Exception
         {
-        long lDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(6);
-        do
+        sendUntilDone(socket, packet, result, () -> false);
+        }
+
+    private static void sendUntilDone(TcpDatagramSocket socket, DatagramPacket packet,
+            java.util.concurrent.Future<?> result, BooleanSupplier rejected) throws Exception
+        {
+        // include blocking connect and TLS negotiation in the send deadline
+        try (Timeout timeout = Timeout.after(6, TimeUnit.SECONDS))
             {
-            socket.send(packet);
-            Thread.sleep(20);
+            while (!result.isDone() && !rejected.getAsBoolean())
+                {
+                socket.send(packet);
+                if (!(socket instanceof NonBlockingTcpDatagramSocket))
+                    {
+                    // a blocking send already completes the handshake and verification
+                    return;
+                    }
+                Blocking.sleep(20);
+                }
             }
-        while (!result.isDone() && System.nanoTime() < lDeadline);
         }
 
     private static DatagramPacket receive(TcpDatagramSocket socket) throws IOException
