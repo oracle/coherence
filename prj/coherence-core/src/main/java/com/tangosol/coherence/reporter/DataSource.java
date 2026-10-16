@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.coherence.reporter;
@@ -25,6 +25,7 @@ import com.tangosol.util.processor.ExtractorProcessor;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -453,7 +454,94 @@ public class DataSource
         }
 
 
+    /**
+    * Begin wildcard join resolution for one report execution. The scope must
+    * remain open through delta post-processing and be closed even on failure.
+    * This DataSource, like the report pipeline, supports one execution at a time.
+    *
+    * @return the scope to close when execution ends
+    *
+    * @throws IllegalStateException if a scope is already active
+    * @since 26.10
+    */
+    public JoinResolution beginJoinResolution()
+        {
+        if (m_joinResolution != null)
+            {
+            throw new IllegalStateException("Join resolution is already active");
+            }
+        return m_joinResolution = new JoinResolution(getMBeanServer());
+        }
+
+    /**
+    * Resolve a wildcard join to its unique target, or retain the pattern when
+    * no unique target exists. Within an active scope, the first result for each
+    * pattern is reused, including missing and ambiguous results. Only names
+    * are cached; the joined extractor continues to read attribute values.
+    * Calls outside the scope or against a different server query directly.
+    * Query exceptions propagate without being cached.
+    *
+    * @param server   the server used by the joined attribute extractor
+    * @param pattern  the fully expanded join pattern
+    *
+    * @return the unique target or the unresolved pattern
+    * @since 26.10
+    */
+    public ObjectName resolveJoinTarget(MBeanServer server, ObjectName pattern)
+        {
+        JoinResolution scope = m_joinResolution;
+        Map<ObjectName, ObjectName> mapTargets = scope != null && scope.f_server == server
+                ? scope.f_mapTargets : null;
+        ObjectName target = mapTargets == null ? null : mapTargets.get(pattern);
+        if (target == null)
+            {
+            Set<ObjectName> setNames = server.queryNames(pattern, null);
+            target = setNames.size() == 1 ? setNames.iterator().next() : pattern;
+            if (mapTargets != null)
+                {
+                mapTargets.put(pattern, target);
+                }
+            }
+        return target;
+        }
+
+    // ----- inner class: JoinResolution ------------------------------------
+
+    /**
+    * Name resolution state for one execution. Closing releases all entries
+    * without advancing delta baselines or performing report post-processing.
+    *
+    * @since 26.10
+    */
+    public class JoinResolution
+            implements AutoCloseable
+        {
+        private JoinResolution(MBeanServer server)
+            {
+            f_server = server;
+            }
+
+        @Override
+        public void close()
+            {
+            f_mapTargets.clear();
+            if (m_joinResolution == this)
+                {
+                m_joinResolution = null;
+                }
+            }
+
+        private final MBeanServer f_server;
+
+        private final Map<ObjectName, ObjectName> f_mapTargets = new HashMap<>();
+        }
+
     // ----- data members ---------------------------------------------------
+
+    /**
+    * Active report execution's wildcard join resolution state.
+    */
+    protected JoinResolution m_joinResolution;
 
     /**
     * The working list of detail ValueExtractors.

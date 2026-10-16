@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,7 @@ import java.io.NotSerializableException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -74,11 +75,30 @@ public class JoinExtractor
     public JoinExtractor(ValueExtractor[] aExtractors, String sJoinTemplate,
                          ValueExtractor veSource, MBeanServer server)
         {
+        this(aExtractors, sJoinTemplate, veSource, server, null);
+        }
+
+    /**
+    * Construct a JoinExtractor with an optional wildcard target resolver.
+    *
+    * @param aExtractors    the extractors for the template macros, in order
+    * @param sJoinTemplate  the target ObjectName template
+    * @param veSource       the extractor to apply to the resolved target
+    * @param server         the MBeanServer to query when no resolver is supplied
+    * @param resolver       the wildcard target resolver, or null for direct queries
+    *
+    * @since 26.10
+    */
+    public JoinExtractor(ValueExtractor[] aExtractors, String sJoinTemplate,
+                         ValueExtractor veSource, MBeanServer server,
+                         Function<ObjectName, ObjectName> resolver)
+        {
         super(aExtractors);
 
         m_sJoinTemplate = sJoinTemplate;
         m_veSource      = veSource;
         f_mbs           = server;
+        f_resolver      = resolver;
         }
 
     // ----- ValueExtractor interface ----------------------------------------
@@ -117,11 +137,16 @@ public class JoinExtractor
             ObjectName onameTarget = new ObjectName(sJoinTarget);
             if (sJoinTarget.contains("*"))
                 {
-                // Wild card in ObjectName. Need to resolve the actual ObjectName.
-                Set<ObjectName> setNames = f_mbs.queryNames(onameTarget, null);
-                // We only support join with a single target. Else we pass the unresolved object name
-                // and let the value extractor handle it.
-                onameTarget = setNames.size() == 1 ? setNames.iterator().next() : onameTarget;
+                if (f_resolver == null)
+                    {
+                    Set<ObjectName> setNames = f_mbs.queryNames(onameTarget, null);
+                    // pass an unresolved name to the value extractor unless the match is unique
+                    onameTarget = setNames.size() == 1 ? setNames.iterator().next() : onameTarget;
+                    }
+                else
+                    {
+                    onameTarget = f_resolver.apply(onameTarget);
+                    }
                 }
             return m_veSource.extract(onameTarget);
             }
@@ -203,6 +228,11 @@ public class JoinExtractor
     * The {@link MBeanServer} this ValueExtractor operates against.
     */
     protected final MBeanServer f_mbs;
+
+    /**
+    * Optional report-scoped wildcard target resolver.
+    */
+    protected final Function<ObjectName, ObjectName> f_resolver;
 
     /*
     * a macro-ized string used to map the related object.
