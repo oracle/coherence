@@ -8,8 +8,15 @@ package com.tangosol.coherence.config.builder;
 
 import com.oracle.coherence.common.net.SSLSocketProvider;
 
+import com.oracle.coherence.testing.SystemPropertyIsolation;
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
+import com.oracle.coherence.testing.util.SSLSocketProviderBuilderHelper;
 
+import com.tangosol.config.xml.DefaultProcessingContext;
+import com.tangosol.run.xml.XmlElement;
+import com.tangosol.run.xml.XmlHelper;
+
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.net.InetAddress;
@@ -116,6 +123,113 @@ public class SSLSocketProviderHostnameVerifierTest
     public void shouldTreatSystemPropertyDefaultActionAllowAsDefaultInProd()
         {
         assertSystemPropertyDefaultIsDefaultVerifier(CoherenceModeHelper.securityHardened());
+        }
+
+    @Test
+    public void shouldResolveHostnameFallbackInBothXmlLoaders()
+        {
+        System.clearProperty(PROP_HOSTNAME_VERIFICATION);
+        for (String sMode : new String[]{"hardened", "compatibility"})
+            {
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityMode(sMode))
+                {
+                for (boolean fLegacy : new boolean[]{false, true})
+                    {
+                    HostnameVerifier verifier = loadVerifier(hostnameFallback(), fLegacy);
+                    assertThat(verifier.verify("not-a-cert-name.example.com", rejectingSession()),
+                            is("compatibility".equals(sMode)));
+                    }
+                }
+            }
+        }
+
+    @Test
+    public void shouldRejectExplicitAllowPropertyInBothXmlLoaders()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            System.setProperty(PROP_HOSTNAME_VERIFICATION, "allow");
+            for (boolean fLegacy : new boolean[]{false, true})
+                {
+                assertThrows(IllegalArgumentException.class, () -> loadVerifier(hostnameFallback(), fLegacy));
+                }
+            }
+        }
+
+    @Test
+    public void shouldRejectExplicitAllowXmlInBothXmlLoaders()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            for (boolean fLegacy : new boolean[]{false, true})
+                {
+                assertThrows(IllegalArgumentException.class, () -> loadVerifier(
+                        XmlHelper.loadXml("<hostname-verifier><action>allow</action></hostname-verifier>"), fLegacy));
+                }
+            }
+        }
+
+    @Test
+    public void shouldRetainExplicitAllowOverrideAfterLegacyDefaultResolution()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            System.clearProperty(PROP_HOSTNAME_VERIFICATION);
+            XmlElement xmlBase = XmlHelper.loadXml("<ssl><hostname-verifier><action system-property=\""
+                    + PROP_HOSTNAME_VERIFICATION + "\">allow</action></hostname-verifier></ssl>");
+            XmlHelper.replaceSystemProperties(xmlBase, "system-property");
+            XmlElement xmlOverride = XmlHelper.loadXml(
+                    "<ssl><hostname-verifier><action>allow</action></hostname-verifier></ssl>");
+            XmlHelper.replaceSystemProperties(xmlOverride, "system-property");
+            XmlHelper.overrideElement(xmlBase, xmlOverride, "id");
+
+            assertThrows(IllegalArgumentException.class,
+                    () -> loadVerifier(xmlBase.getElement("hostname-verifier"), false));
+            }
+        }
+
+    @Test
+    public void shouldPreserveExplicitDefaultPropertyInLegacyLoader()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            System.setProperty(PROP_HOSTNAME_VERIFICATION, "default");
+            HostnameVerifier verifier = loadVerifier(hostnameFallback(), true);
+            assertThat(verifier.verify("not-a-cert-name.example.com", rejectingSession()), is(false));
+            }
+        }
+
+    @Test
+    public void shouldNotTreatOtherPropertyFallbackAsShippedDefault()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            System.clearProperty("test.ssl.hostname.verification");
+            XmlElement xml = XmlHelper.loadXml("<hostname-verifier>"
+                    + "<action system-property=\"test.ssl.hostname.verification\">allow</action>"
+                    + "</hostname-verifier>");
+            assertThrows(IllegalArgumentException.class, () -> loadVerifier(xml, true));
+            }
+        }
+
+    private XmlElement hostnameFallback()
+        {
+        return XmlHelper.loadXml("<hostname-verifier><action system-property=\""
+                + PROP_HOSTNAME_VERIFICATION + "\">allow</action></hostname-verifier>");
+        }
+
+    private HostnameVerifier loadVerifier(XmlElement xml, boolean fLegacy)
+        {
+        if (fLegacy)
+            {
+            XmlHelper.replaceSystemProperties(xml, "system-property");
+            }
+        try (DefaultProcessingContext context = SSLSocketProviderBuilderHelper.createDefaultProcessingContext(xml))
+            {
+            SSLSocketProviderDependenciesBuilder.HostnameVerifierBuilder builder =
+                    (SSLSocketProviderDependenciesBuilder.HostnameVerifierBuilder) context.processDocument(xml);
+            return builder.realize(null, null, null);
+            }
         }
 
     @Test
@@ -308,4 +422,9 @@ public class SSLSocketProviderHostnameVerifierTest
             throw new IllegalStateException(e);
             }
         }
+    private static final String PROP_HOSTNAME_VERIFICATION = "coherence.security.hostname.verification";
+
+    @Rule
+    public final SystemPropertyIsolation f_properties = new SystemPropertyIsolation();
+
     }
