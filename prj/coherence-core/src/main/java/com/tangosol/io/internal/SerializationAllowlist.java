@@ -670,6 +670,7 @@ public final class SerializationAllowlist
             "javax.management.MBeanNotificationInfo",
             "javax.management.MBeanOperationInfo",
             "javax.management.MBeanParameterInfo",
+            "javax.management.Notification",
             "javax.management.ObjectName",
             "javax.management.modelmbean.DescriptorSupport",
             "javax.management.remote.JMXServiceURL",
