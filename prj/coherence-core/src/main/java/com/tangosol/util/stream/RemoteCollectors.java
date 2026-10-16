@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.stream;
 
@@ -46,7 +46,6 @@ import com.tangosol.util.function.Remote;
 
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -825,7 +824,7 @@ public abstract class RemoteCollectors
     RemoteCollector<T, ?, Map<K, D>> groupingBy(ValueExtractor<? super U, ? extends K> classifier,
                                                 RemoteCollector<? super T, A, D> downstream)
         {
-        return groupingBy(classifier, HashMap::new, downstream);
+        return groupingBy(classifier, PortableMap::new, downstream);
         }
 
     /**
