@@ -11,6 +11,8 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.CompatibilityWarnings;
+import com.tangosol.internal.util.security.CompatibilityWarnings.Category;
 
 import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlHelper;
@@ -32,10 +34,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
@@ -838,7 +837,8 @@ public final class ReporterSecurity
 
     private static void shadow(String sScope, String sOperation, String sGate, String sReason, String sValue)
         {
-        if (!LOGGED_COMPATIBILITY_WARNINGS.add(new CompatibilityWarningKey(sGate, sReason)))
+        Map<String, Category> mapWarnings = sGate == null ? null : COMPATIBILITY_WARNINGS.get(sGate);
+        if (!CompatibilityWarnings.shouldLog(mapWarnings == null || sReason == null ? null : mapWarnings.get(sReason)))
             {
             return;
             }
@@ -889,56 +889,20 @@ public final class ReporterSecurity
     // ----- constants ------------------------------------------------------
 
     /**
-     * A compatibility warning category.
+     * Fixed Reporter compatibility categories, shared across scopes and operations.
      *
-     * @since 26.07
+     * @since 26.10
      */
-    private static final class CompatibilityWarningKey
-        {
-        /**
-         * Construct a compatibility warning category.
-         *
-         * @param sGate    the security gate
-         * @param sReason  the rejection reason
-         */
-        private CompatibilityWarningKey(String sGate, String sReason)
-            {
-            f_sGate   = sGate;
-            f_sReason = sReason;
-            }
-
-        @Override
-        public boolean equals(Object o)
-            {
-            if (this == o)
-                {
-                return true;
-                }
-            if (o == null || getClass() != o.getClass())
-                {
-                return false;
-                }
-            CompatibilityWarningKey that = (CompatibilityWarningKey) o;
-            return Objects.equals(f_sGate, that.f_sGate)
-                    && Objects.equals(f_sReason, that.f_sReason);
-            }
-
-        @Override
-        public int hashCode()
-            {
-            return Objects.hash(f_sGate, f_sReason);
-            }
-
-        /**
-         * The security gate.
-         */
-        private final String f_sGate;
-
-        /**
-         * The rejection reason.
-         */
-        private final String f_sReason;
-        }
+    private static final Map<String, Map<String, Category>> COMPATIBILITY_WARNINGS = Map.of(
+            "reporter-resource-allowlist", Map.of(
+                    "file-outside-root", new Category(),
+                    "remote-source-not-approved", new Category(),
+                    "unsupported-uri-scheme", new Category()),
+            "reporter-output-allowlist", Map.of("output-outside-root", new Category()),
+            "reporter-objectname-allowlist", Map.of(
+                    "object-name-not-allowed", new Category(), "object-name-pattern-too-broad", new Category()),
+            "reporter-operation-allowlist", Map.of("untrusted-method-column", new Category()),
+            "reporter-column-class-allowlist", Map.of("unsupported-column-class", new Category()));
 
     private static final ThreadLocal<ReportSource> CURRENT_SOURCE =
             ThreadLocal.withInitial(() -> ReportSource.UNKNOWN);
@@ -954,13 +918,6 @@ public final class ReporterSecurity
             "PagedTopicSubscriberGroup", "PartitionAssignment", "Platform", "Service",
             "StorageManager", "Test", "TestJoin", "TransactionManager", "View",
             "WebLogicHttpSessionManager"));
-
-    /**
-     * Compatibility warning categories already logged by this runtime.
-     *
-     * @since 26.07
-     */
-    private static final Set<CompatibilityWarningKey> LOGGED_COMPATIBILITY_WARNINGS = ConcurrentHashMap.newKeySet();
 
     /**
      * Comma-separated list of approved remote Reporter XML sources.

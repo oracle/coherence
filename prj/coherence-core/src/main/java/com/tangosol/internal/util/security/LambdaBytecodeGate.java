@@ -383,7 +383,9 @@ public final class LambdaBytecodeGate
         METRICS.computeIfAbsent(metricKey(sResult, sReason, site), key -> new LongAdder()).increment();
         SerializationTelemetry.recordLambdaBytecodeCheck(sResult, sReason, site.name().toLowerCase(Locale.ROOT));
 
-        if (result instanceof Result.Rejected)
+        if (result instanceof Result.Rejected
+                && (!isCompatibilityShadow((Result.Rejected) result)
+                    || CompatibilityWarnings.shouldLog(WARN_MISSING_SECURITY_CONFIG)))
             {
             Result.Rejected rejected = (Result.Rejected) result;
             SerializationTelemetry.logRejection("lambda-bytecode-deny", SerializationRole.current().name(),
@@ -1057,6 +1059,14 @@ public final class LambdaBytecodeGate
         }
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Compatibility warning for a class without security configuration.
+     *
+     * @since 26.10
+     */
+    private static final CompatibilityWarnings.Category WARN_MISSING_SECURITY_CONFIG =
+            new CompatibilityWarnings.Category();
 
     /**
      * Per-class emergency allow property.

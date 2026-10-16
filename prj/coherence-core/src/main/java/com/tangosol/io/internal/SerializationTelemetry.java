@@ -9,6 +9,8 @@ package com.tangosol.io.internal;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.CompatibilityWarnings;
+import com.tangosol.internal.util.security.CompatibilityWarnings.Category;
 
 import com.tangosol.io.SerializationRole;
 
@@ -17,6 +19,7 @@ import com.tangosol.net.management.Registry;
 import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.OperationReason;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -150,7 +153,9 @@ public final class SerializationTelemetry
                 "mode", sMode,
                 "route", role.name());
 
-        if ("rejected".equals(sResult) || "would_reject".equals(sResult))
+        if ("rejected".equals(sResult)
+                || ("would_reject".equals(sResult) && CompatibilityWarnings.shouldLog(
+                        sReason == null ? null : SERIALIZER_WARNINGS.get(sReason))))
             {
             logRejection("serializer", role.name(), currentSubject(), null, sReason);
             }
@@ -262,7 +267,9 @@ public final class SerializationTelemetry
                     roleResolved, sMode, null, null));
             }
 
-        if ("would_reject".equals(sResult)
+        if (("would_reject".equals(sResult)
+                && CompatibilityWarnings.shouldLog(reason == null ? UNSPECIFIED_EXECUTABLE_WARNING
+                        : EXECUTABLE_WARNINGS[reason.ordinal()]))
                 || ("rejected".equals(sResult) && SUB_REASON_POLICY.equals(sSubReason)))
             {
             logRejection("remote-executable-policy", sRole, subject, sClass, sReason);
@@ -873,6 +880,29 @@ public final class SerializationTelemetry
         }
 
     // ----- constants --------------------------------------------------------
+
+    /**
+     * One compatibility warning category per fixed executable operation.
+     *
+     * @since 26.10
+     */
+    private static final Category[] EXECUTABLE_WARNINGS = Arrays.stream(OperationReason.values())
+            .map(reason -> new Category()).toArray(Category[]::new);
+
+    /**
+     * Compatibility warning for an unspecified executable operation.
+     *
+     * @since 26.10
+     */
+    private static final Category UNSPECIFIED_EXECUTABLE_WARNING = new Category();
+
+    /**
+     * Fixed serializer compatibility warning categories.
+     *
+     * @since 26.10
+     */
+    private static final Map<String, Category> SERIALIZER_WARNINGS = Map.of(
+            "client-serializer-unsafe", new Category(), "client-serializer-not-allowed", new Category());
 
     private static final ConcurrentHashMap<String, LongAdder> COUNTERS = new ConcurrentHashMap<>();
 

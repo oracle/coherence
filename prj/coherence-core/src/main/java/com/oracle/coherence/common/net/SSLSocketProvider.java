@@ -43,6 +43,7 @@ import com.tangosol.coherence.config.unit.Seconds;
 
 import com.tangosol.internal.net.ssl.SSLContextDependencies;
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.CompatibilityWarnings;
 
 import com.tangosol.net.ssl.RefreshPolicy;
 
@@ -255,9 +256,12 @@ public class SSLSocketProvider
      */
     protected void logHostnameVerificationWouldReject(String sSource, String sPeer)
         {
-        getDependencies().getLogger().log(Level.WARNING, String.format(Locale.ROOT,
-                "TLS hostname verification would_reject; security-mode=compatibility; source=%s; peer=%s",
-                sSource, sPeer));
+        if (CompatibilityWarnings.shouldLog("null".equals(sSource) ? WARN_HOSTNAME_NO_VERIFIER : null))
+            {
+            getDependencies().getLogger().log(Level.WARNING, String.format(Locale.ROOT,
+                    "TLS hostname verification would_reject; security-mode=compatibility; source=%s; peer=%s",
+                    sSource, sPeer));
+            }
         }
 
 
@@ -943,6 +947,14 @@ public class SSLSocketProvider
 
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Compatibility warning for a mismatch with no configured hostname verifier.
+     *
+     * @since 26.10
+     */
+    private static final CompatibilityWarnings.Category WARN_HOSTNAME_NO_VERIFIER =
+            new CompatibilityWarnings.Category();
 
     /**
      * The default Logger for all derivations of this class.
