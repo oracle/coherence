@@ -152,6 +152,18 @@ public class JMXQueryHandler
         }
 
     /**
+    * Begin wildcard join resolution for this handler's execution. The caller
+    * must close the scope after consuming results and any post-processing.
+    *
+    * @return the execution scope
+    * @since 26.10
+    */
+    public DataSource.JoinResolution beginJoinResolution()
+        {
+        return m_source.beginJoinResolution();
+        }
+
+    /**
     * Obtain the keys for the report.
     *
     * @return a set containing the keys from the query
