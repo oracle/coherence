@@ -106,3 +106,5 @@ task runCohQLSecondary(type: Exec) {
             "-Dcoherence.wka=127.0.0.1", "-Dcoherence.cluster=SecondaryCluster", "-Dcoherence.clusterport=7575",
             "-Dcoherence.distributed.localstorage=false", "com.tangosol.coherence.dslquery.QueryPlus"
 }
+
+apply from: '../../gradle/example-test-network.gradle'

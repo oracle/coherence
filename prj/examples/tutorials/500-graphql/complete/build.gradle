@@ -35,7 +35,9 @@ def pomProperty = { String name ->
 def junitVersion = pomProperty('junit.jupiter.version')
 def junitPlatformVersion = junitVersion.replaceFirst(/^5\./, '1.')
 
-sourceCompatibility = '21'
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+}
 
 repositories {
 	mavenCentral()
@@ -94,6 +96,7 @@ task runApp(type: Exec) {
 
 test {
 	useJUnitPlatform()
+    systemProperty 'jdk.serialFilter', '*;!*'
 }
 
 // This is a work-around for running unit tests.
@@ -108,7 +111,7 @@ tasks.register('moveBeansXML', Copy) {
 }
 
 tasks.named('compileTestJava') {
-    dependsOn(jandex)
+    dependsOn('jandex')
     dependsOn('moveBeansXML')
 }
 
@@ -120,3 +123,5 @@ tasks.withType(Jar) {
 securityConfig {
     processTestClasses = true
 }
+
+apply from: '../../../gradle/example-test-network.gradle'

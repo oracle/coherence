@@ -125,3 +125,5 @@ test.dependsOn moveBeansXML
 securityConfig {
     processTestClasses = true
 }
+
+apply from: '../../gradle/example-test-network.gradle'

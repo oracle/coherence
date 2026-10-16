@@ -94,3 +94,5 @@ task runNotifications(type: Exec) {
             "-Dcoherence.wka=127.0.0.1",  "-Dcoherence.distributed.persistence.base.dir=persistence-data",
             "-Dcoherence.distributed.localstorage=false", "com.oracle.coherence.tutorials.persistence.NotificationWatcher", "PartitionedCache"
 }
+
+apply from: '../../gradle/example-test-network.gradle'
