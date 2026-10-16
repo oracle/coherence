@@ -51,3 +51,5 @@ dependencies {
 test {
 	useJUnitPlatform()
 }
+
+apply from: '../../gradle/example-test-network.gradle'

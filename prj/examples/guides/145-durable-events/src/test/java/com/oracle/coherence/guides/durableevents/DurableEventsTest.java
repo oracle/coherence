@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,9 +11,11 @@ import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
+import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -86,15 +88,20 @@ public class DurableEventsTest {
     public static void startup() throws IOException {
         persistenceDir = FileHelper.createTempDir();
         File eventsDir = new File(persistenceDir, "events");
+        String projectBuildDirectory = System.getProperty("project.build.directory",
+                                                          new File("target").getAbsolutePath());
 
         CoherenceClusterBuilder builder = new CoherenceClusterBuilder()
             .with(SystemProperty.of("coherence.distributed.partitions", 23),  // <1>
                   SystemProperty.of("coherence.distributed.persistence.mode", "active"), // <2>
                   SystemProperty.of("coherence.distributed.persistence.base.dir", persistenceDir.getAbsolutePath()), // <3>
                   SystemProperty.of("coherence.distributed.persistence.events.dir", eventsDir.getAbsolutePath()), // <4>
+                  SystemProperty.of("project.build.directory", projectBuildDirectory),
                   ClusterName.of(CLUSTER_NAME),
                   RoleName.of("storage"),
                   DisplayName.of("storage"),
+                  WellKnownAddress.loopback(),
+                  LocalHost.only(),
                   Multicast.ttl(0))
             .include(2, CoherenceClusterMember.class, testLogs,
                      LocalStorage.enabled());

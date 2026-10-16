@@ -10,7 +10,7 @@ import groovy.xml.XmlSlurper
 plugins {
     id "application"
     id "java"
-    id "org.kordamp.gradle.jandex" version "1.1.0"
+    id "org.kordamp.gradle.jandex" version "0.13.2"
     id 'com.oracle.coherence' version "${coherenceVersion}"
 }
 
@@ -35,7 +35,13 @@ def pomProperty = { String name ->
 def junitVersion = pomProperty('junit.jupiter.version')
 def junitPlatformVersion = junitVersion.replaceFirst(/^5\./, '1.')
 
-sourceCompatibility = '21'
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+}
+
+jandex {
+    version = '2.3.1.Final'
+}
 
 repositories {
 	mavenCentral()
@@ -59,7 +65,7 @@ dependencies {
 	implementation "${coherenceGroupId}:coherence"
 	implementation "${coherenceGroupId}:coherence-cdi-server"
 
-	testImplementation "io.helidon.microprofile.testing:helidon-microprofile-testing-junit5"
+	testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5"
 }
 
 // define a custom task to copy all dependencies in the runtime classpath
@@ -94,6 +100,7 @@ task runApp(type: Exec) {
 
 test {
 	useJUnitPlatform()
+    systemProperty 'jdk.serialFilter', '*;!*'
 }
 
 // This is a work-around for running unit tests.
@@ -108,7 +115,7 @@ tasks.register('moveBeansXML', Copy) {
 }
 
 tasks.named('compileTestJava') {
-    dependsOn(jandex)
+    dependsOn('jandex')
     dependsOn('moveBeansXML')
 }
 
@@ -120,3 +127,5 @@ tasks.withType(Jar) {
 securityConfig {
     processTestClasses = true
 }
+
+apply from: '../../../gradle/example-test-network.gradle'

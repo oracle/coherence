@@ -81,3 +81,5 @@ task runClient(type: Exec) {
 securityConfig {
     processTestClasses = true
 }
+
+apply from: '../../gradle/example-test-network.gradle'

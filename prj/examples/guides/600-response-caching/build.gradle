@@ -10,11 +10,15 @@ import groovy.xml.XmlSlurper
 plugins {
 	id 'java'
     id 'com.oracle.coherence' version "${coherenceVersion}"
-	id "org.kordamp.gradle.jandex" version "1.1.0"
+	id "org.kordamp.gradle.jandex" version "0.13.2"
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_17
+}
+
+jandex {
+	version = '2.3.1.Final'
 }
 
 ext {
@@ -64,7 +68,7 @@ dependencies {
 	implementation "io.helidon.microprofile.config:helidon-microprofile-config:${helidonVersion}"
 	implementation "io.helidon.config:helidon-config-yaml:${helidonVersion}"
 
-	testImplementation "io.helidon.microprofile.testing:helidon-microprofile-testing-junit5:${helidonVersion}"
+	testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5:${helidonVersion}"
 	testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 }
 
@@ -125,3 +129,5 @@ test.dependsOn moveBeansXML
 securityConfig {
     processTestClasses = true
 }
+
+apply from: '../../gradle/example-test-network.gradle'
