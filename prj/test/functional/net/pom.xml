@@ -68,11 +68,11 @@
                 <module>
                   <moduleInfo>
                     <!--
-                     This dependency is optional, so that test Coherence servers
-                     can be run without it on the classpath.
+                     The test runner needs the data module. ServiceTests uses
+                     a classpath server to exclude the data JAR independently.
                      -->
                     <requires>
-                      static com.oracle.coherence.testing.data;
+                      com.oracle.coherence.testing.data;
                     </requires>
                   </moduleInfo>
                 </module>
