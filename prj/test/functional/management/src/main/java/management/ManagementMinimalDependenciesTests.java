@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -56,15 +57,7 @@ public class ManagementMinimalDependenciesTests
         {
         LocalPlatform    platform = LocalPlatform.get();
         Capture<Integer> port     = new Capture<>(platform.getAvailablePorts());
-        String           sCluster = "Storage";
-
-        if (JavaModules.useModules())
-            {
-            // Java Modules would include bedrock and its dependencies.
-            // So, this test would fail with those dependencies modules
-            // not found errors.
-            return;
-            }
+        String           sCluster = "ManagementMinimal-" + UUID.randomUUID();
 
         // We only need Coherence and Coherence JSON on the classpath
         // We add Coherence and PartitionedCache so that we can run this in an IDE
@@ -73,17 +66,22 @@ public class ManagementMinimalDependenciesTests
                                            ClassPath.ofClass(PartitionedCache.class),
                                            ClassPath.ofClass(JsonSerializer.class));
 
+        // use the minimal classpath even when the test runner uses modules
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class, classPath,
+                                    JavaModules.disabled(),
                                     LocalHost.only(),
                                     WellKnownAddress.of("127.0.0.1"),
                                     SystemProperty.of("coherence.management", "dynamic"),
-                                    SystemProperty.of("coherence.cluster", "Storage"),
+                                    SystemProperty.of("coherence.cluster", sCluster),
                                     SystemProperty.of("coherence.management.extendedmbeanname", true),
                                     SystemProperty.of("coherence.management.http", "inherit"),
+                                    SystemProperty.of("coherence.management.http.address", "127.0.0.1"),
+                                    // this dependency test does not configure an authentication provider
+                                    SystemProperty.of("coherence.management.http.auth", "none"),
                                     SystemProperty.of("coherence.management.http.override-port", port),
                                     f_testLogs))
             {
-            URI uri = URI.create("http://localhost:" + port.get() + "/management/coherence/cluster");
+            URI uri = URI.create("http://127.0.0.1:" + port.get() + "/management/coherence/cluster");
 
             Eventually.assertDeferred(() -> this.canConnect(uri), is(true));
 
