@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.internal;
+
+import com.oracle.coherence.common.net.InetAddresses;
 
 import com.tangosol.net.AddressProvider;
 import com.tangosol.net.AddressProviderFactory;
@@ -43,7 +45,7 @@ public class SubstitutionAddressProvider
         InetSocketAddress address = f_delegate.getNextAddress();
         if (address != null && f_nPort != 0 && address.getPort() == 0)
             {
-            address = new InetSocketAddress(address.getAddress(), f_nPort);
+            address = (InetSocketAddress) InetAddresses.setPort(address, f_nPort);
             }
 
         return address;
