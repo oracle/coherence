@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
 
+
+import com.oracle.coherence.common.net.InetSocketAddressWithHostname;
 
 import com.tangosol.coherence.config.Config;
 
@@ -402,6 +404,25 @@ public class TcpDatagramSocket
             }
 
         /**
+        * Return the peer address with the datagram's numeric reference identity.
+        * A datagram identifies its destination by IP address and port; a cached
+        * hostname on its InetAddress is not a separately supplied DNS identity.
+        * Retain the numeric identity explicitly for SSL certificate validation
+        * without performing a name lookup or changing the destination.
+        *
+        * @param packet  the datagram to send
+        *
+        * @return the peer address retaining its numeric reference identity
+        *
+        * @since 26.10
+        */
+        protected InetSocketAddress getPeerAddress(DatagramPacket packet)
+            {
+            InetAddress address = packet.getAddress();
+            return new InetSocketAddressWithHostname(address.getHostAddress(), address, packet.getPort());
+            }
+
+        /**
         * {@inheritDoc}
         */
         protected void send(DatagramPacket packet)
@@ -412,7 +433,7 @@ public class TcpDatagramSocket
             Connection   conn;
             try
                 {
-                conn = ensureConnection(packet.getSocketAddress());
+                conn = ensureConnection(getPeerAddress(packet));
                 out  = conn.m_out;
                 }
             catch (IOException e)

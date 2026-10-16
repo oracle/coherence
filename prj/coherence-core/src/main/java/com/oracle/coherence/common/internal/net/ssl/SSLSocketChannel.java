@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 
 import java.net.Socket;
+import java.net.SocketAddress;
 
 import java.nio.ByteBuffer;
 
@@ -106,6 +107,22 @@ public class SSLSocketChannel
         {
         return new WrapperSocket(socket)
             {
+            public void connect(SocketAddress address, int cMillis)
+                    throws IOException
+                {
+                synchronized (SSLSocketChannel.this)
+                    {
+                    rememberPeerName(address);
+                    super.connect(address, cMillis);
+                    }
+                }
+
+            public void connect(SocketAddress address)
+                    throws IOException
+                {
+                connect(address, 0);
+                }
+
              public void shutdownInput()
                 throws IOException
                 {
@@ -158,6 +175,32 @@ public class SSLSocketChannel
 
             protected volatile boolean m_fInputShutdown;
             };
+        }
+
+    // ----- SocketChannel methods -----------------------------------------
+
+    @Override
+    public synchronized boolean connect(SocketAddress address)
+            throws IOException
+        {
+        rememberPeerName(address);
+        return super.connect(address);
+        }
+
+    /**
+     * Publish the destination before the delegate can become connected.
+     * Attempts to connect an already connected or pending channel must not
+     * replace the identity of its existing connection.
+     *
+     * @param address  the requested destination
+     */
+    private void rememberPeerName(SocketAddress address)
+            throws SSLException
+        {
+        if (!isConnected() && !isConnectionPending())
+            {
+            m_sPeerName = SSLSocketProvider.getPeerName(address);
+            }
         }
 
     // ----- ByteChannel methods --------------------------------------------
@@ -1010,7 +1053,7 @@ public class SSLSocketChannel
 
         try
             {
-            provider.ensureSessionValidity(session, socket, f_engine.getUseClientMode());
+            provider.ensureSessionValidity(session, socket, f_engine.getUseClientMode(), m_sPeerName);
             }
         catch (SSLException e)
             {
@@ -1561,6 +1604,11 @@ public class SSLSocketChannel
     * The SSLEngine which provides SSL to this channel.
     */
     protected final SSLEngine f_engine;
+
+    /**
+     * The destination identity retained before connecting.
+     */
+    protected volatile String m_sPeerName;
 
    /**
     * A cached copy of the configured blocking mode.

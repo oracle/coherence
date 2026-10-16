@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 <!-- ANT build script for the tcmp-ssl test project.                       -->
@@ -30,7 +30,7 @@
 
     <!-- Create the server keystore -->
     <exec executable="keytool">
-      <arg line="-genkey -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -alias server -keypass password -keystore src/test/resources/keystore.jks -storepass password"/>
+      <arg line="-genkey -validity 3650 -dname 'CN=server, O=Oracle, L=Burlington, ST=MA, C=US' -ext 'SAN=dns:localhost,ip:127.0.0.1,ip:::1' -alias server -keypass password -keystore src/test/resources/keystore.jks -storepass password"/>
     </exec>
   </target>
 </project>

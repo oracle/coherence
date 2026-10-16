@@ -6,6 +6,8 @@
  */
 package com.tangosol.net.internal;
 
+import com.oracle.coherence.common.net.InetSocketAddressWithHostname;
+
 import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.WriteBuffer;
 
@@ -41,6 +43,7 @@ import javax.security.auth.Subject;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -189,6 +192,36 @@ public class NameServicePofContextTest
             {
             // expected
             }
+        }
+
+    @Test
+    public void shouldEncodeRetainedHostnameWithExistingWireFormat()
+            throws IOException
+        {
+        InetAddress address = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
+        InetSocketAddress plain = new InetSocketAddress(address, 7574);
+        InetSocketAddressWithHostname named = new InetSocketAddressWithHostname("service.example", address, 7574);
+        assertEquals(908, NameServicePofContext.INSTANCE.getUserTypeIdentifier(named.getClass()));
+        assertTrue(NameServicePofContext.INSTANCE.isUserType(named.getClass()));
+        assertEquals(ExternalizableHelper.toBinary(plain, NameServicePofContext.INSTANCE),
+                ExternalizableHelper.toBinary(named, NameServicePofContext.INSTANCE));
+        Object result = roundTrip(named);
+        assertEquals(InetSocketAddress.class, result.getClass());
+        assertEquals(plain, result);
+        }
+
+    @Test
+    public void shouldStillRejectUnregisteredSocketAddressSubclasses()
+        {
+        class UnknownSocketAddress extends InetSocketAddress
+            {
+            UnknownSocketAddress()
+                {
+                super(7574);
+                }
+            }
+        assertFalse(NameServicePofContext.INSTANCE.isUserType(UnknownSocketAddress.class));
+        assertThrowsIllegalArgument(() -> NameServicePofContext.INSTANCE.getUserTypeIdentifier(UnknownSocketAddress.class));
         }
 
     private static Object roundTrip(Object oValue)

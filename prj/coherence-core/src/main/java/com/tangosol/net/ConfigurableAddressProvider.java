@@ -7,6 +7,8 @@
 
 package com.tangosol.net;
 
+import com.oracle.coherence.common.net.InetSocketAddressWithHostname;
+
 import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.Base;
@@ -481,7 +483,7 @@ public class ConfigurableAddressProvider
                 {
                 if (hasNext())
                     {
-                    return new InetSocketAddress(f_aAddr[m_iAddr++], nPort);
+                    return new InetSocketAddressWithHostname(sHost, f_aAddr[m_iAddr++], nPort);
                     }
                 throw new NoSuchElementException();
                 }
@@ -501,7 +503,7 @@ public class ConfigurableAddressProvider
         catch (UnknownHostException e)
             {
             // return unresolved address
-            return Collections.singleton(new InetSocketAddress(sHost, nPort)).iterator();
+            return Collections.<InetSocketAddress>singleton(new InetSocketAddressWithHostname(sHost, nPort)).iterator();
             }
         }
 

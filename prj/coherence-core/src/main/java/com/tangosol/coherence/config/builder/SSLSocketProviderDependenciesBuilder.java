@@ -1183,39 +1183,54 @@ public class SSLSocketProviderDependenciesBuilder
             {
             boolean fMatched = false;
 
-            if (sUrlHostname != null && sslSession != null)
+            if (sUrlHostname != null && !sUrlHostname.isEmpty() && sslSession != null)
                 {
-                Collection<String> colWildcardDNSNames = SSLCertUtility.getDNSSubjAltNames(sslSession, true, false);
-                String             sCertHostname       = SSLCertUtility.getCommonName(sslSession);
-
-                if (colWildcardDNSNames != null && colWildcardDNSNames.size() > 0)
+                byte[] abAddress = SSLCertUtility.getIPAddress(sUrlHostname);
+                if (abAddress != null)
                     {
-                    fMatched = VERIFY_CN_AFTER_SAN
-                            ? verifySANWildcardDNSNames(sUrlHostname, colWildcardDNSNames)
-                                || isLegalWildcarded(sUrlHostname, sCertHostname)
-                            : verifySANWildcardDNSNames(sUrlHostname, colWildcardDNSNames);
+                    for (String sAddress : SSLCertUtility.getIPSubjAltNames(sslSession))
+                        {
+                        if (Arrays.equals(abAddress, SSLCertUtility.getIPAddress(sAddress)))
+                            {
+                            fMatched = true;
+                            break;
+                            }
+                        }
                     }
-                else
+                else if (!SSLCertUtility.hasIPAddressSyntax(sUrlHostname))
                     {
-                    // seek match against wildcard CN if SAN is not found
-                    fMatched = isLegalWildcarded(sUrlHostname, sCertHostname);
-                    }
+                    Collection<String> colWildcardDNSNames = SSLCertUtility.getDNSSubjAltNames(sslSession, true, false);
+                    String             sCertHostname       = SSLCertUtility.getCommonName(sslSession);
 
-                if (!fMatched)
-                    {
-                    // non-wildcard SAN DNS Names
-                    Collection<String> colSubAltNames = SSLCertUtility.getDNSSubjAltNames(sslSession, false, true);
-
-                    if (colSubAltNames != null && colSubAltNames.size() > 0)
+                    if (colWildcardDNSNames != null && !colWildcardDNSNames.isEmpty())
                         {
                         fMatched = VERIFY_CN_AFTER_SAN
-                                ? doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames) || doVerify(sUrlHostname, sCertHostname)
-                                : doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames);
+                                ? verifySANWildcardDNSNames(sUrlHostname, colWildcardDNSNames)
+                                    || isLegalWildcarded(sUrlHostname, sCertHostname)
+                                : verifySANWildcardDNSNames(sUrlHostname, colWildcardDNSNames);
                         }
                     else
                         {
-                        // seek match against CN if there are no non-wildcard DNS Names
-                        fMatched = doVerify(sUrlHostname, sCertHostname);
+                        // seek match against wildcard CN if SAN is not found
+                        fMatched = isLegalWildcarded(sUrlHostname, sCertHostname);
+                        }
+
+                    if (!fMatched)
+                        {
+                        // non-wildcard SAN DNS Names
+                        Collection<String> colSubAltNames = SSLCertUtility.getDNSSubjAltNames(sslSession, false, true);
+
+                        if (colSubAltNames != null && !colSubAltNames.isEmpty())
+                            {
+                            fMatched = VERIFY_CN_AFTER_SAN
+                                    ? doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames) || doVerify(sUrlHostname, sCertHostname)
+                                    : doDNSSubjAltNamesVerify(sUrlHostname, colSubAltNames);
+                            }
+                        else
+                            {
+                            // seek match against CN if there are no non-wildcard DNS Names
+                            fMatched = doVerify(sUrlHostname, sCertHostname);
+                            }
                         }
                     }
                 }

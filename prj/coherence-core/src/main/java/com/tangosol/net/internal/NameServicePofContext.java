@@ -6,6 +6,8 @@
  */
 package com.tangosol.net.internal;
 
+import com.oracle.coherence.common.net.InetSocketAddressWithHostname;
+
 import com.tangosol.io.pof.InetAddressSerializer;
 import com.tangosol.io.pof.InetSocketAddressSerializer;
 import com.tangosol.io.pof.PofContext;
@@ -92,6 +94,11 @@ public final class NameServicePofContext
             {
             return ITypeId.intValue();
             }
+        if (clz == InetSocketAddressWithHostname.class)
+            {
+            // preserve the numeric socket-address wire format for this exact type
+            return 908;
+            }
         if (Throwable.class.isAssignableFrom(clz))
             {
             return THROWABLE_TYPE_ID;
@@ -112,7 +119,8 @@ public final class NameServicePofContext
         {
         return clz != null && (Throwable.class.isAssignableFrom(clz)
                 || Principal.class.isAssignableFrom(clz)
-                || InetAddress.class.isAssignableFrom(clz))
+                || InetAddress.class.isAssignableFrom(clz)
+                || clz == InetSocketAddressWithHostname.class)
                 || super.isUserType(clz);
         }
 
