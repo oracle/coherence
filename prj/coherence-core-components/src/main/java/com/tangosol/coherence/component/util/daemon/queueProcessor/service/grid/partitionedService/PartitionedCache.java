@@ -24488,8 +24488,11 @@ public class PartitionedCache
                 // see $Module#onIndexRequest
                 setReadException(Base.ensureRuntimeException(t));
                 }
-            
-            readTracing(input);
+
+            if (getReadException() == null)
+                {
+                readTracing(input);
+                }
             }
         
         // Declared at the super level
@@ -27620,9 +27623,9 @@ public class PartitionedCache
                     versions.readExternal(input);
                     setOwnershipVersions(versions);
                     }
+
+                readTracing(input);
                 }
-            
-            readTracing(input);
             }
         
         // Declared at the super level
@@ -30946,20 +30949,23 @@ public class PartitionedCache
                 {
                 setReadException(Base.ensureRuntimeException(t));
                 }
-            
-            setFilterId(ExternalizableHelper.readLong(input));
-            setAdd(input.readBoolean());
-            setLite(input.readBoolean());
-            setMemberId(input.readInt());
-            
-            readTracing(input);
-            
-            if (input.available() > 0)
+
+            if (getReadException() == null)
                 {
-                // if we still have more bytes to read it must be PartitionVersions and Partitions
-                setPartitionVersions((VersionedPartitions) readObject(input));
-            
-                setPartitions((PartitionSet) readObject(input));
+                setFilterId(ExternalizableHelper.readLong(input));
+                setAdd(input.readBoolean());
+                setLite(input.readBoolean());
+                setMemberId(input.readInt());
+
+                readTracing(input);
+
+                if (input.available() > 0)
+                    {
+                    // if we still have more bytes to read it must be PartitionVersions and Partitions
+                    setPartitionVersions((VersionedPartitions) readObject(input));
+
+                    setPartitions((PartitionSet) readObject(input));
+                    }
                 }
             }
         
@@ -36605,10 +36611,12 @@ public class PartitionedCache
                 throws java.io.IOException
             {
             super.read(input);
-            
-            setKeysOnly(input.readBoolean());
-            
-            readTracing(input);
+
+            if (getReadException() == null)
+                {
+                setKeysOnly(input.readBoolean());
+                readTracing(input);
+                }
             }
         
         // Declared at the super level
@@ -36913,7 +36921,10 @@ public class PartitionedCache
             {
             super.read(input);
 
-            readTracing(input);
+            if (getReadException() == null)
+                {
+                readTracing(input);
+                }
             }
 
         // Declared at the super level
