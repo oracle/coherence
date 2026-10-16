@@ -11,6 +11,12 @@ import com.oracle.coherence.testing.util.CoherenceModeHelper;
 import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.SecurityConfig;
 
+import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.function.Remote;
+import com.tangosol.util.stream.RemoteCollector;
+import com.tangosol.util.stream.RemoteCollectors;
+
 import java.io.IOException;
 import java.io.InvalidClassException;
 import java.io.ObjectInputFilter;
@@ -18,6 +24,12 @@ import java.io.ObjectStreamException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.SortedSet;
 
 import javax.management.Attribute;
 import javax.management.BadAttributeValueExpException;
@@ -294,6 +306,40 @@ public class SerializationAllowlistTest
         }
 
     @Test
+    public void testGroupingCollectorRoundTrip()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                assertGroupingCollectorRoundTrip(RemoteCollectors.groupingBy(
+                        new ReflectionExtractor<String, Integer>("length"),
+                        RemoteCollectors.toSortedSet(Remote.Comparator.<String>naturalOrder())));
+                });
+            }
+        }
+
+    @Test
+    public void testGroupingCollectorOptionalResultRoundTrip()
+        {
+        for (String sSecurityMode : new String[] {null, CoherenceMode.SECURITY_MODE_HARDENED,
+                CoherenceMode.SECURITY_MODE_COMPATIBILITY})
+            {
+            withProperties("dev", sSecurityMode, null, () ->
+                {
+                Map<Integer, Optional<String>> original = List.of("a", "bb", "cc").stream().collect(
+                        RemoteCollectors.groupingBy(new ReflectionExtractor<String, Integer>("length"),
+                                RemoteCollectors.maxBy(Remote.Comparator.<String>naturalOrder())));
+                Map<Integer, Optional<String>> copy = ExternalizableHelper.fromBinary(
+                        ExternalizableHelper.toBinary(original));
+
+                assertEquals(Map.of(1, Optional.of("a"), 2, Optional.of("cc")), copy);
+                });
+            }
+        }
+
+    @Test
     public void testRestGeneratedPartialNamesAreNotAllowlistedByPrefix()
         {
         withProperties("prod", null, () ->
@@ -382,6 +428,26 @@ public class SerializationAllowlistTest
         {
         assertTrue(sName, SerializationAllowlist.isAllowlistedName(sName, true));
         assertFalse(sName, SerializationAllowlist.isAllowlistedName(sName, false));
+        }
+
+    private static <A> void assertGroupingCollectorRoundTrip(
+            RemoteCollector<String, A, Map<Integer, SortedSet<String>>> collector)
+        {
+        A partial = collector.supplier().get();
+        for (String value : List.of("a", "cc", "bb"))
+            {
+            collector.accumulator().accept(partial, value);
+            }
+
+        A copiedPartial = ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(partial));
+        collector.accumulator().accept(copiedPartial, "aa");
+        Map<Integer, SortedSet<String>> result = collector.finisher().apply(copiedPartial);
+        Map<Integer, SortedSet<String>> copy = ExternalizableHelper.fromBinary(
+                ExternalizableHelper.toBinary(result));
+
+        assertEquals(2, copy.size());
+        assertEquals(List.of("a"), new ArrayList<>(copy.get(1)));
+        assertEquals(List.of("aa", "bb", "cc"), new ArrayList<>(copy.get(2)));
         }
 
     private static void assertDirectlyAllowed(String sName)
