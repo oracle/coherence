@@ -71,6 +71,7 @@ public class ClusteredTaskCoordinator<T>
         f_cacheService = service;
         f_subject      = manager.getSubject();
         m_nResultVersion = manager.getResultVersion();
+        m_fTaskInstalled = true;
 
         // TODO - only add map listener if there is at least one subscriber
         Caches.tasks(service).addMapListener(this, getTaskId(), false);
@@ -128,6 +129,7 @@ public class ClusteredTaskCoordinator<T>
 
             throw new IllegalArgumentException("Task with identity [" + f_sTaskId + "] already exists");
             }
+        m_fTaskInstalled = true;
         }
 
     // ----- AbstractTaskCoordinator methods --------------------------------
@@ -261,6 +263,36 @@ public class ClusteredTaskCoordinator<T>
         }
 
     // ----- public methods -------------------------------------------------
+
+    /**
+     * Return the terminal result, reconciling cached task state if completion
+     * has not yet been observed by this coordinator. This allows a Future to
+     * finish before queued subscriber notifications are delivered.
+     *
+     * @return the terminal result, an empty result when cancelled without a
+     *         value, or {@code null} while the task is still active
+     *
+     * @since 26.10
+     */
+    public synchronized Result<T> getTerminalResult()
+        {
+        if (!isDone() && m_fTaskInstalled)
+            {
+            ClusteredTaskManager<?, ?, T> manager =
+                    (ClusteredTaskManager<?, ?, T>) Caches.tasks(getCacheService()).get(getTaskId());
+            if (manager == null)
+                {
+                closeExceptionally(new IllegalStateException("Task [" + getTaskId()
+                        + "] is no longer available while reconciling completion."));
+                }
+            else
+                {
+                processTaskUpdate(manager);
+                }
+            }
+
+        return isDone() ? (m_lastValue == null ? Result.none() : m_lastValue) : null;
+        }
 
     /**
      * Adds the specified {@link MemberListener}.
@@ -508,6 +540,11 @@ public class ClusteredTaskCoordinator<T>
      * The latest task result version delivered to subscribers.
      */
     protected int m_nResultVersion;
+
+    /**
+     * Whether task installation has completed.
+     */
+    protected volatile boolean m_fTaskInstalled;
 
     /**
      * The member listener for cluster member.
