@@ -6504,6 +6504,33 @@ public abstract class ExternalizableHelper
         }
 
     /**
+     * Wrap stream-filtered input while retaining its original serialization filter.
+     *
+     * @param in        the stream-filtered input
+     * @param loader    the context class loader
+     * @param original  the original filter-bearing input
+     *
+     * @return the wrapper delegating filter access to the original input
+     */
+    public static BufferInput createFilteredBufferInput(DataInput in, ClassLoader loader, final BufferInput original)
+        {
+        return new WrapperBufferInput(in, loader)
+            {
+            @Override
+            public Object getObjectInputFilter()
+                {
+                return original.getObjectInputFilter();
+                }
+
+            @Override
+            public void setObjectInputFilter(Object filter)
+                {
+                original.setObjectInputFilter(filter);
+                }
+            };
+        }
+
+    /**
      * Return ObjectInputFilter associated with {@link DataInput}.
      *
      * @param in  DataInput that may or may not have a ObjectInputFilter associated with it
@@ -6516,6 +6543,15 @@ public abstract class ExternalizableHelper
             {
             while (in instanceof WrapperDataInputStream)
                 {
+                // consult a BufferInput wrapper before unwrapping its data input
+                if (in instanceof BufferInput)
+                    {
+                    Object filter = ((BufferInput) in).getObjectInputFilter();
+                    if (filter != null)
+                        {
+                        return filter;
+                        }
+                    }
                 in = ((WrapperDataInputStream) in).getDataInput();
                 }
 
