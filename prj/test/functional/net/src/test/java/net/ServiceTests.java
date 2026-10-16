@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package net;
 
@@ -37,9 +37,11 @@ import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -59,6 +61,7 @@ public class ServiceTests
     public static void _startup()
         {
         System.setProperty("coherence.role", "test,client");
+        System.setProperty("coherence.cluster", "ServiceTests-" + UUID.randomUUID());
 
         AbstractFunctionalTest._startup();
         }
@@ -136,12 +139,30 @@ public class ServiceTests
         {
         try
             {
+            // exclude the data classes to validate replacing the service class loader
             CoherenceClusterMember server = startCacheServer("testCacheServiceClassLoader-1", "net", null, null, true,
                     createSansClassPath(Person.class));
 
+            // verify that the original service class loader cannot load Person without the data JAR,
+            // so the later successful invocation validates the replacement service class loader
+            assertThat(server.invoke(() ->
+                {
+                ClassLoader loader = CacheFactory.getCache("resetCL").getCacheService().getContextClassLoader();
+                try
+                    {
+                    loader.loadClass("data.Person");
+                    return true;
+                    }
+                catch (ClassNotFoundException e)
+                    {
+                    return false;
+                    }
+                }), is(false));
+
             NamedCache<Integer, Person> cachePpl = CacheFactory.getCache("resetCL");
 
-            cachePpl.put(1, new Person("435-34-8278", "Vladamir", "Putin", 1957, "mrs putin", new String[0]));
+            Person person = new Person("435-34-8278", "Vladamir", "Putin", 1957, "mrs putin", new String[0]);
+            cachePpl.put(1, person);
 
             try
                 {
@@ -151,22 +172,21 @@ public class ServiceTests
             catch (RuntimeException e)
                 {
                 Base.log("Expected exception  " + e.getMessage());
-               }
+                }
 
             String sLocation = getLocation(Person.class);
 
-            server.invoke(() ->
+            assertThat(server.invoke(() ->
             {
             CacheService service = CacheFactory.getCache("resetCL").getCacheService();
 
             ClassLoader loaderNew = new URLClassLoader(new URL[]{new File(sLocation).toURI().toURL()});
             service.setContextClassLoader(loaderNew);
-            Class<?> c1 = loaderNew.loadClass("data.Person");
-            return null;
-            });
+            return loaderNew.loadClass("data.Person").getClassLoader() == loaderNew;
+            }), is(true));
 
             Person p = cachePpl.invoke(1, new ExtractorProcessor<>(ValueExtractor.identity()));
-            assertNotNull(p);
+            assertThat(p, is(person));
             }
         catch (URISyntaxException e)
             {
