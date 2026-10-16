@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.net;
 
@@ -28,6 +28,12 @@ import java.net.UnknownHostException;
  */
 public class InetSocketAddress32 extends SocketAddress
     {
+    /**
+     * Preserve the native serialization identity from before reference provenance
+     * was added. Older streams leave referenceIdentityKnown false.
+     */
+    private static final long serialVersionUID = -1427225018059246879L;
+
     // Note: this is a literal copy-n-past of java.net.InetAddress with the
     // port restrictions removed
 
@@ -43,6 +49,12 @@ public class InetSocketAddress32 extends SocketAddress
      * @serial
      */
     private int port;
+
+    /**
+     * Whether the original reference identity has known provenance. An absent
+     * field in a legacy serialized stream defaults to false.
+     */
+    private boolean referenceIdentityKnown = true;
 
     private InetSocketAddress32() {
     }
@@ -103,7 +115,38 @@ public class InetSocketAddress32 extends SocketAddress
 	public InetSocketAddress32(InetSocketAddress addr)
 		{
 		this (addr.getAddress(), addr.getPort());
+		this.hostname = InetAddresses.getHostString(addr);
+		this.addr = addr.getAddress();
+		this.referenceIdentityKnown = InetAddresses.hasKnownReferenceIdentity(addr);
 		}
+
+    /**
+     * Copy an extended address with a different port, retaining its identity.
+     *
+     * @param address  the address to copy
+     * @param port     the new port
+     *
+     * @since 26.10
+     */
+    public InetSocketAddress32(InetSocketAddress32 address, int port) {
+        this.addr = address.addr;
+        this.hostname = address.hostname;
+        this.port = port;
+        this.referenceIdentityKnown = address.referenceIdentityKnown;
+    }
+
+    /**
+     * Copy a regular address with an extended port, retaining known provenance.
+     *
+     * @param address  the address to copy
+     * @param port     the extended port
+     *
+     * @since 26.10
+     */
+    public InetSocketAddress32(InetSocketAddress address, int port) {
+        this(address);
+        this.port = port;
+    }
 
     /**
      *
@@ -132,6 +175,7 @@ public class InetSocketAddress32 extends SocketAddress
 	if (hostname == null) {
 	    throw new IllegalArgumentException("hostname can't be null");
 	}
+	this.hostname = hostname;
 	try {
 	    addr = InetAddress.getByName(hostname);
 	} catch(UnknownHostException e) {
@@ -217,22 +261,30 @@ public class InetSocketAddress32 extends SocketAddress
 
     /**
      * Returns the hostname, or the String form of the address if it
-     * doesn't have a hostname (it was created using a litteral).
-     * This has the benefit of <b>not</b> attemptimg a reverse lookup.
+     * doesn't have a hostname (it was created using a literal).
+     * This has the benefit of <b>not</b> attempting a reverse lookup.
      *
      * @return the hostname, or String representation of the address.
      * @since 1.6
      */
-    final String getHostString() {
+    public final String getHostString() {
 	if (hostname != null)
 	    return hostname;
 	if (addr != null) {
-	    if (addr.getHostName() != null)
-		return addr.getHostName();
-	    else
-		return addr.getHostAddress();
+	    return addr.getHostAddress();
 	}
 	return null;
+    }
+
+    /**
+     * Return whether the original reference identity has known provenance.
+     * Copies of ambiguous ordinary Java addresses retain that ambiguity.
+     *
+     * @return whether this address may supply a TLS reference identity
+     * @since 26.10
+     */
+    public final boolean hasKnownReferenceIdentity() {
+        return referenceIdentityKnown;
     }
 
     /**
