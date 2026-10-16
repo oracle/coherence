@@ -8,6 +8,8 @@ package com.tangosol.coherence.reporter;
 
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
+import com.tangosol.internal.util.security.CompatibilityWarnings.Category;
+
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -25,8 +27,9 @@ import java.net.URLStreamHandler;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.management.ObjectName;
 
@@ -550,31 +553,39 @@ public class ReporterSecurityTest
     public void shouldLogCompatibilityWarningOncePerCategory()
             throws Exception
         {
-        Field field = ReporterSecurity.class.getDeclaredField("LOGGED_COMPATIBILITY_WARNINGS");
+        Field field = ReporterSecurity.class.getDeclaredField("COMPATIBILITY_WARNINGS");
         field.setAccessible(true);
 
-        Set<Object> setWarnings      = (Set<Object>) field.get(null);
-        Set<Object> setWarningsSaved = new HashSet<>(setWarnings);
-        setWarnings.clear();
+        Map<String, Map<String, Category>> mapCategories = (Map<String, Map<String, Category>>) field.get(null);
+        Field fieldLogged = Category.class.getDeclaredField("f_logged");
+        fieldLogged.setAccessible(true);
+        Map<AtomicBoolean, Boolean> mapSaved = new HashMap<>();
+        for (Map<String, Category> mapReasons : mapCategories.values())
+            {
+            for (Category category : mapReasons.values())
+                {
+                AtomicBoolean logged = (AtomicBoolean) fieldLogged.get(category);
+                mapSaved.put(logged, logged.getAndSet(false));
+                }
+            }
 
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             ReporterSecurity.validateObjectNamePattern("java.lang:type=Memory", "test");
-            assertThat(setWarnings.size(), is(1));
+            assertThat(mapSaved.keySet().stream().filter(AtomicBoolean::get).count(), is(1L));
 
             ReporterSecurity.validateObjectNamePattern("com.sun.management:type=DiagnosticCommand", "test");
-            assertThat(setWarnings.size(), is(1));
+            assertThat(mapSaved.keySet().stream().filter(AtomicBoolean::get).count(), is(1L));
 
             ReporterSecurity.validateObjectNamePattern("*:type=Memory", "test");
-            assertThat(setWarnings.size(), is(2));
+            assertThat(mapSaved.keySet().stream().filter(AtomicBoolean::get).count(), is(2L));
 
             ReporterSecurity.validateObjectNamePattern("*:type=Threading", "test");
-            assertThat(setWarnings.size(), is(2));
+            assertThat(mapSaved.keySet().stream().filter(AtomicBoolean::get).count(), is(2L));
             }
         finally
             {
-            setWarnings.clear();
-            setWarnings.addAll(setWarningsSaved);
+            mapSaved.forEach(AtomicBoolean::set);
             }
         }
 

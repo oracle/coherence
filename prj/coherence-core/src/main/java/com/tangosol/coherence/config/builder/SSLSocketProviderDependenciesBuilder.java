@@ -21,6 +21,7 @@ import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.CompatibilityWarnings;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.InetAddressHelper;
@@ -1079,13 +1080,21 @@ public class SSLSocketProviderDependenciesBuilder
         @Override
         public boolean verify(String sUrlHostname, SSLSession sslSession)
             {
-            if (!createDefaultHostnameVerifier(false).verify(sUrlHostname, sslSession))
+            if (!createDefaultHostnameVerifier(false).verify(sUrlHostname, sslSession)
+                    && CompatibilityWarnings.shouldLog(WARN_HOSTNAME_ALLOW))
                 {
                 CacheFactory.log("TLS hostname verification would_reject; security-mode=compatibility; source=allow; peer="
                         + sUrlHostname, Base.LOG_WARN);
                 }
             return true;
             }
+
+        /**
+         * Compatibility warning for a mismatch accepted by the allow verifier.
+         *
+         * @since 26.10
+         */
+        private static final CompatibilityWarnings.Category WARN_HOSTNAME_ALLOW = new CompatibilityWarnings.Category();
         }
 
     /**

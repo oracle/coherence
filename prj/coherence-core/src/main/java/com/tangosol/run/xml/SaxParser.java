@@ -10,6 +10,7 @@ package com.tangosol.run.xml;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.CompatibilityWarnings;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Resources;
@@ -540,7 +541,8 @@ public class SaxParser
                     }
                 catch (Exception e)
                     {
-                    handleRequiredProtectionFailure("parser factory", factory.getClass(), protection, e);
+                    handleRequiredProtectionFailure("parser factory", factory.getClass(), protection,
+                            protection.f_warningFactory, e);
                     }
                 }
             }
@@ -566,7 +568,8 @@ public class SaxParser
                     }
                 catch (Exception e)
                     {
-                    handleRequiredProtectionFailure("parser", parser.getClass(), protection, e);
+                    handleRequiredProtectionFailure("parser", parser.getClass(), protection,
+                            protection.f_warningInstance, e);
                     }
                 }
             }
@@ -592,7 +595,8 @@ public class SaxParser
                     }
                 catch (Exception e)
                     {
-                    handleRequiredProtectionFailure("schema factory", factory.getClass(), protection, e);
+                    handleRequiredProtectionFailure("schema factory", factory.getClass(), protection,
+                            protection.f_warningFactory, e);
                     }
                 }
             }
@@ -618,7 +622,8 @@ public class SaxParser
                     }
                 catch (Exception e)
                     {
-                    handleRequiredProtectionFailure("validator", validator.getClass(), protection, e);
+                    handleRequiredProtectionFailure("validator", validator.getClass(), protection,
+                            protection.f_warningInstance, e);
                     }
                 }
             }
@@ -693,9 +698,12 @@ public class SaxParser
                 throw new SAXException("Unable to create a SAX parser with required XML external-entity protections", e);
                 }
             String sFactoryClass = factory == null ? "unavailable" : factory.getClass().getName();
-            Logger.warn("SaxParser compatibility is using the deprecated parser fallback after protected "
-                    + "parser factory setup failed. Parser factory: " + sFactoryClass
-                    + System.lineSeparator() + "Error: " + e.getLocalizedMessage());
+            if (CompatibilityWarnings.shouldLog(WARN_PARSER_FALLBACK))
+                {
+                Logger.warn("SaxParser compatibility is using the deprecated parser fallback after protected "
+                        + "parser factory setup failed. Parser factory: " + sFactoryClass
+                        + System.lineSeparator() + "Error: " + e.getLocalizedMessage());
+                }
             return ParserFactory.makeParser();
             }
         }
@@ -729,12 +737,14 @@ public class SaxParser
      * @param sTarget     the protected target type
      * @param clzTarget   the protected target class
      * @param protection  the missing protection
+     * @param warning     the fixed target/protection warning category
      * @param e           the failure
      *
      * @throws SAXException if the current mode requires the protection
      */
     private static void handleRequiredProtectionFailure(String sTarget, Class<?> clzTarget,
-                                                       RequiredXmlProtection protection, Exception e)
+                                                       RequiredXmlProtection protection,
+                                                       CompatibilityWarnings.Category warning, Exception e)
             throws SAXException
         {
         String sMessage = "XML protection '" + protection.getName() + "' could not be applied to "
@@ -745,8 +755,11 @@ public class SaxParser
             throw new SAXException(sMessage, e);
             }
 
-        Logger.warn(sMessage + "; continuing because security hardening is disabled"
-                + System.lineSeparator() + "Error: " + e.getLocalizedMessage());
+        if (CompatibilityWarnings.shouldLog(warning))
+            {
+            Logger.warn(sMessage + "; continuing because security hardening is disabled"
+                    + System.lineSeparator() + "Error: " + e.getLocalizedMessage());
+            }
         }
 
 
@@ -758,6 +771,13 @@ public class SaxParser
     private static Parser s_parser;
 
     private static Boolean s_parserSecurityHardened;
+
+    /**
+     * Compatibility warning for falling back after protected parser setup fails.
+     *
+     * @since 26.10
+     */
+    private static final CompatibilityWarnings.Category WARN_PARSER_FALLBACK = new CompatibilityWarnings.Category();
 
     /**
      * Required parser and validation protections for XXE hardening.
@@ -869,6 +889,20 @@ public class SaxParser
         private final Boolean f_oBooleanValue;
         private final String  f_sStringValue;
         private final int     f_nTarget;
+
+        /**
+         * Warning for this protection at the parser/schema factory.
+         *
+         * @since 26.10
+         */
+        private final CompatibilityWarnings.Category f_warningFactory = new CompatibilityWarnings.Category();
+
+        /**
+         * Warning for this protection at the parser/validator instance.
+         *
+         * @since 26.10
+         */
+        private final CompatibilityWarnings.Category f_warningInstance = new CompatibilityWarnings.Category();
         }
 
 

@@ -11,6 +11,8 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.management.DiagnosticCommandPolicy;
 import com.tangosol.internal.net.management.MBeanCollectorFunction;
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.CompatibilityWarnings;
+import com.tangosol.internal.util.security.CompatibilityWarnings.Category;
 
 import com.tangosol.io.SerializationRole;
 
@@ -37,6 +39,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -496,6 +500,12 @@ public final class ManagementInvocationPolicy
 
     private static void shadow(String sScope, String sGate, String sReason, String sValue, Subject subject)
         {
+        Map<String, Category> mapWarnings = sGate == null ? null : COMPATIBILITY_WARNINGS.get(sGate);
+        if (!CompatibilityWarnings.shouldLog(mapWarnings == null || sReason == null ? null : mapWarnings.get(sReason)))
+            {
+            return;
+            }
+
         Logger.warn("Allowed compatibility management TCMP request that security hardening would reject:"
                 + " route=management-tcmp"
                 + ", scope=" + sanitize(sScope)
@@ -1154,6 +1164,33 @@ public final class ManagementInvocationPolicy
         }
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Fixed management compatibility categories, shared across caller scopes.
+     *
+     * @since 26.10
+     */
+    private static final Map<String, Map<String, Category>> COMPATIBILITY_WARNINGS;
+
+    static
+        {
+        Map<String, Map<String, Category>> mapWarnings = new HashMap<>();
+        mapWarnings.put("remote-function", Collections.singletonMap("function-not-allowed", new Category()));
+        mapWarnings.put("object-name", Collections.singletonMap("foreign-domain", new Category()));
+        mapWarnings.put("attribute", Collections.singletonMap("attribute-not-writable", new Category()));
+        mapWarnings.put("remote-model-method", Collections.singletonMap("attribute-not-writable", new Category()));
+        mapWarnings.put("attribute-filter", Collections.singletonMap("filter-not-allowed", new Category()));
+        mapWarnings.put("query-filter", Collections.singletonMap("filter-not-allowed", new Category()));
+        Map<String, Category> mapAttributeValues = new HashMap<>();
+        mapAttributeValues.put("executable-value", new Category());
+        mapAttributeValues.put("unsupported-value", new Category());
+        mapWarnings.put("attribute-value", Collections.unmodifiableMap(mapAttributeValues));
+        Map<String, Category> mapArguments = new HashMap<>();
+        mapArguments.put("executable-value", new Category());
+        mapArguments.put("unsupported-value", new Category());
+        mapWarnings.put("argument", Collections.unmodifiableMap(mapArguments));
+        COMPATIBILITY_WARNINGS = Collections.unmodifiableMap(mapWarnings);
+        }
 
     private static final String DEFAULT_DOMAIN = "Coherence";
 

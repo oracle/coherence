@@ -99,6 +99,18 @@
 
     <!-- test dependencies -->
     <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>3.12.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-inline</artifactId>
+      <version>3.12.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-testing-support</artifactId>
       <version>${project.version}</version>
