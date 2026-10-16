@@ -100,6 +100,20 @@ public class SaxParserTest
         }
 
     @Test
+    public void testValidateTcpAcceptorBufferPools()
+            throws Exception
+        {
+        validateTcpAcceptorBufferPools("8", "0");
+        }
+
+    @Test
+    public void testValidateNegativeTcpAcceptorBufferPoolCapacity()
+            throws Exception
+        {
+        validateTcpAcceptorBufferPools("-1", "0");
+        }
+
+    @Test
     public void testValidateXsdWithStrictCatalogUsesLocalResolver()
             throws Exception
         {
@@ -399,6 +413,47 @@ public class SaxParserTest
             + "        <local-scheme />"
             + "      </backing-map-scheme>"
             + "    </distributed-scheme>"
+            + "  </caching-schemes>"
+            + "</cache-config>";
+
+        SaxParser    saxParser    = new SaxParser();
+        SimpleParser simpleParser = new SimpleParser(false);
+        XmlDocument  xml          = simpleParser.parseXml(sXml);
+
+        saxParser.validateXsd(sXml, xml);
+        }
+
+    /**
+     * Validate a cache configuration containing TCP acceptor buffer pools.
+     *
+     * @param sIncomingCapacity  the incoming buffer pool capacity
+     * @param sOutgoingCapacity  the outgoing buffer pool capacity
+     *
+     * @throws Exception  if an exception is thrown while parsing
+     */
+    protected void validateTcpAcceptorBufferPools(String sIncomingCapacity, String sOutgoingCapacity)
+            throws Exception
+        {
+        String sXml = "<?xml version=\"1.0\"?>"
+            + LOCAL_LOCATION
+            + "  <caching-schemes>"
+            + "    <proxy-scheme>"
+            + "      <scheme-name>tcp-proxy</scheme-name>"
+            + "      <acceptor-config>"
+            + "        <tcp-acceptor>"
+            + "          <incoming-buffer-pool>"
+            + "            <buffer-size>8KB</buffer-size>"
+            + "            <buffer-type>heap</buffer-type>"
+            + "            <capacity>" + sIncomingCapacity + "</capacity>"
+            + "          </incoming-buffer-pool>"
+            + "          <outgoing-buffer-pool>"
+            + "            <buffer-size>16KB</buffer-size>"
+            + "            <buffer-type>direct</buffer-type>"
+            + "            <capacity>" + sOutgoingCapacity + "</capacity>"
+            + "          </outgoing-buffer-pool>"
+            + "        </tcp-acceptor>"
+            + "      </acceptor-config>"
+            + "    </proxy-scheme>"
             + "  </caching-schemes>"
             + "</cache-config>";
 
