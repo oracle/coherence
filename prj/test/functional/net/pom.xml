@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -100,11 +100,11 @@
                 <module>
                   <moduleInfo>
                     <!--
-                     This dependency is optional, so that test Coherence servers
-                     can be run without it on the classpath.
+                     The test runner needs the data module. ServiceTests uses
+                     a classpath server to exclude the data JAR independently.
                      -->
                     <requires>
-                      static com.oracle.coherence.testing.data;
+                      com.oracle.coherence.testing.data;
                     </requires>
                   </moduleInfo>
                 </module>
