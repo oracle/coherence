@@ -1,15 +1,17 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.subscribers.internal;
 
+import com.oracle.coherence.concurrent.executor.ClusteredTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.Result;
 import com.oracle.coherence.concurrent.executor.Task;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +40,7 @@ public class FutureSubscriber<T>
         {
         f_fCompleted   = new AtomicBoolean(false);
         f_fError       = new AtomicBoolean(false);
+        f_fCancelled   = new AtomicBoolean(false);
         m_result       = Result.none();
         f_subscription = new AtomicReference<>();
         }
@@ -51,7 +54,14 @@ public class FutureSubscriber<T>
      */
     public void setCoordinator(Task.Coordinator<T> coordinator)
         {
-        m_coordinator = coordinator;
+        synchronized (this)
+            {
+            if (isDone() && m_coordinator != coordinator)
+                {
+                throw new UnsupportedOperationException("FutureSubscriber reuse is not supported.");
+                }
+            m_coordinator = coordinator;
+            }
         }
 
     // ----- Subscriber interface -------------------------------------------
@@ -59,38 +69,66 @@ public class FutureSubscriber<T>
     @Override
     public void onComplete()
         {
-        f_fCompleted.compareAndSet(false, true);
-        f_subscription.set(null);
         synchronized (this)
             {
-            notifyAll();
+            if (!isDone())
+                {
+                f_fCompleted.set(true);
+                f_subscription.set(null);
+                notifyAll();
+                }
             }
         }
 
     @Override
     public void onError(Throwable throwable)
         {
-        f_fError.compareAndSet(false, true);
-        f_subscription.set(null);
-        m_result = Result.throwable(throwable);
         synchronized (this)
             {
-            notifyAll();
+            if (!isDone())
+                {
+                Task.Coordinator<?> coordinator = getTaskCoordinator();
+                if (coordinator != null && coordinator.isCancelled())
+                    {
+                    f_fCancelled.set(true);
+                    }
+                else
+                    {
+                    m_result = Result.throwable(throwable);
+                    f_fError.set(true);
+                    }
+                f_subscription.set(null);
+                notifyAll();
+                }
             }
         }
 
     @Override
     public void onNext(T result)
         {
-        m_result = Result.of(result);
+        synchronized (this)
+            {
+            if (!isDone())
+                {
+                m_result = Result.of(result);
+                }
+            }
         }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onSubscribe(Task.Subscription subscription)
         {
-        if (!f_subscription.compareAndSet(null, subscription))
+        synchronized (this)
             {
-            throw new UnsupportedOperationException("FutureSubscriber reuse is not supported.");
+            if (isDone() || !f_subscription.compareAndSet(null, subscription))
+                {
+                throw new UnsupportedOperationException("FutureSubscriber reuse is not supported.");
+                }
+            if (m_coordinator == null)
+                {
+                m_coordinator = (Task.Coordinator<T>) subscription.getCoordinator();
+                }
             }
         }
 
@@ -99,62 +137,168 @@ public class FutureSubscriber<T>
     @Override
     public boolean cancel(boolean mayInterruptIfRunning)
         {
-        Task.Coordinator<T> coordinator = m_coordinator;
+        Task.Coordinator<?> coordinator;
+        synchronized (this)
+            {
+            if (isDone())
+                {
+                return false;
+                }
+            coordinator = getTaskCoordinator();
+            if (coordinator == null)
+                {
+                // serialize local cancellation with coordinator and subscription publication
+                f_fCancelled.set(true);
+                f_subscription.set(null);
+                notifyAll();
+                return true;
+                }
+            }
 
-        // coordinator may be null if Task has not yet been submitted
-        return !isDone() && coordinator != null && coordinator.cancel(mayInterruptIfRunning);
+        // do not hold the subscriber monitor across a coordinator request
+        if (!coordinator.cancel(mayInterruptIfRunning))
+            {
+            reconcileTerminalResult(coordinator);
+            return false;
+            }
+
+        synchronized (this)
+            {
+            if (!isDone())
+                {
+                f_fCancelled.set(true);
+                f_subscription.set(null);
+                notifyAll();
+                }
+            return f_fCancelled.get();
+            }
         }
 
     @Override
     public boolean isCancelled()
         {
-        return m_coordinator.isCancelled();
+        return f_fCancelled.get();
         }
 
     @Override
     public boolean isDone()
         {
-        return f_fCompleted.get() || f_fError.get();
+        return f_fCompleted.get() || f_fError.get() || f_fCancelled.get();
         }
 
     @Override
     public T get()
             throws InterruptedException, ExecutionException
         {
-        if (!hasResult())
+        synchronized (this)
             {
-            synchronized (this)
+            while (!isDone())
                 {
                 wait();
                 }
             }
 
-        try
-            {
-            return m_result.get();
-            }
-        catch (Throwable throwable)
-            {
-            throw new ExecutionException(throwable);
-            }
-
+        return getResult();
         }
 
     @Override
     public T get(long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException
         {
-        if (timeout > 0 && !hasResult())
-            {
-            synchronized (this)
-                {
-                wait(unit.toMillis(timeout));
-                }
+        long cNanos = unit.toNanos(timeout);
+        long ldtEnd = System.nanoTime() + cNanos;
 
-            if (!hasResult())
+        synchronized (this)
+            {
+            while (!isDone())
                 {
-                throw new TimeoutException("Timed out before the task is completed.");
+                if (cNanos <= 0)
+                    {
+                    throw new TimeoutException("Timed out before the task is completed.");
+                    }
+                TimeUnit.NANOSECONDS.timedWait(this, cNanos);
+                cNanos = ldtEnd - System.nanoTime();
                 }
+            }
+
+        return getResult();
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Reconcile a terminal result when the clustered task has already finished
+     * or been cancelled, but subscriber callbacks have not yet been delivered.
+     *
+     * @param coordinator  the coordinator that refused cancellation
+     */
+    @SuppressWarnings("unchecked")
+    private void reconcileTerminalResult(Task.Coordinator<?> coordinator)
+        {
+        Result<?> result = coordinator instanceof ClusteredTaskCoordinator
+                ? ((ClusteredTaskCoordinator<?>) coordinator).getTerminalResult()
+                : null;
+        boolean cancelled = coordinator.isCancelled();
+
+        synchronized (this)
+            {
+            if (!isDone())
+                {
+                if (cancelled)
+                    {
+                    f_fCancelled.set(true);
+                    }
+                else if (result != null && result.isPresent())
+                    {
+                    m_result = (Result<T>) result;
+                    if (result.isThrowable())
+                        {
+                        f_fError.set(true);
+                        }
+                    else
+                        {
+                        f_fCompleted.set(true);
+                        }
+                    }
+
+                if (isDone())
+                    {
+                    f_subscription.set(null);
+                    notifyAll();
+                    }
+                }
+            }
+        }
+
+    /**
+     * Obtain the explicitly assigned coordinator or the current subscription's
+     * coordinator when this future was subscribed directly.
+     *
+     * @return the coordinator, or {@code null} before submission
+     */
+    private Task.Coordinator<?> getTaskCoordinator()
+        {
+        Task.Coordinator<?> coordinator = m_coordinator;
+        Task.Subscription   subscription = f_subscription.get();
+        return coordinator == null && subscription != null
+                ? subscription.getCoordinator()
+                : coordinator;
+        }
+
+    /**
+     * Return the terminal result, reporting cancellation directly.
+     *
+     * @return the result
+     *
+     * @throws CancellationException if this future was cancelled
+     * @throws ExecutionException    if the task failed
+     */
+    protected T getResult()
+            throws ExecutionException
+        {
+        if (isCancelled())
+            {
+            throw new CancellationException("Task has been cancelled.");
             }
 
         try
@@ -207,7 +351,7 @@ public class FutureSubscriber<T>
     /**
      * Task coordinator.
      */
-    protected Task.Coordinator<T> m_coordinator;
+    protected volatile Task.Coordinator<T> m_coordinator;
 
     /**
      * Completed.
@@ -220,9 +364,14 @@ public class FutureSubscriber<T>
     protected final AtomicBoolean f_fError;
 
     /**
+     * Cancelled.
+     */
+    protected final AtomicBoolean f_fCancelled;
+
+    /**
      * The result.
      */
-    protected Result<T> m_result;
+    protected volatile Result<T> m_result;
 
     /**
      * Subscription.

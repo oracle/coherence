@@ -68,6 +68,7 @@ public class ClusteredTaskCoordinator<T>
 
         f_cacheService = service;
         f_subject      = manager.getSubject();
+        m_fTaskInstalled = true;
 
         // TODO - only add map listener if there is at least one subscriber
         Caches.tasks(service).addMapListener(this, getTaskId(), false);
@@ -124,6 +125,8 @@ public class ClusteredTaskCoordinator<T>
 
             throw new IllegalArgumentException("Task with identity [" + f_sTaskId + "] already exists");
             }
+
+        m_fTaskInstalled = true;
         }
 
     // ----- AbstractTaskCoordinator methods --------------------------------
@@ -235,12 +238,92 @@ public class ClusteredTaskCoordinator<T>
         {
         ExecutorTrace.entering(this.getClass(), "entryUpdated",() -> mapEvent);
 
-        ClusteredTaskManager<?, ?, T> oldManager = (ClusteredTaskManager) mapEvent.getOldValue();
-        ClusteredTaskManager<?, ?, T> manager    = (ClusteredTaskManager) mapEvent.getNewValue();
+        processTaskUpdate((ClusteredTaskManager<?, ?, T>) mapEvent.getNewValue());
+
+        ExecutorTrace.exiting(this.getClass(), "entryUpdated");
+        }
+
+    @Override
+    public void entryDeleted(MapEvent mapEvent)
+        {
+        ExecutorTrace.log(() -> String.format("Task [%s] has been removed.", getTaskId()));
+
+        // we no longer require the map listener
+        removeMapListener();
+        }
+
+    // ----- public methods -------------------------------------------------
+
+    /**
+     * Return the terminal result, reconciling cached task state if completion
+     * has not yet been observed by this coordinator. This allows a Future to
+     * finish before queued subscriber notifications are delivered.
+     *
+     * @return the terminal result, an empty result when cancelled without a
+     *         value, or {@code null} while the task is still active
+     *
+     * @since 26.10
+     */
+    public synchronized Result<T> getTerminalResult()
+        {
+        if (!isDone() && m_fTaskInstalled)
+            {
+            ClusteredTaskManager<?, ?, T> manager =
+                    (ClusteredTaskManager<?, ?, T>) Caches.tasks(getCacheService()).get(getTaskId());
+            if (manager == null)
+                {
+                closeExceptionally(new IllegalStateException("Task [" + getTaskId()
+                        + "] is no longer available while reconciling completion."));
+                }
+            else
+                {
+                processTaskUpdate(manager);
+                }
+            }
+
+        return isDone() ? (m_lastValue == null ? Result.none() : m_lastValue) : null;
+        }
+
+    /**
+     * Adds the specified {@link MemberListener}.
+     *
+     * @param listener  the {@link MemberListener} to add
+     */
+    public void addMemberListener(MemberListener listener)
+        {
+        getCacheService().addMemberListener(listener);
+        }
+
+    /**
+     * Removes the specified {@link MemberListener}.
+     *
+     * @param listener  the {@link MemberListener} to remove
+     */
+    public void removeMemberListener(MemberListener listener)
+        {
+        getCacheService().removeMemberListener(listener);
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Reconcile the latest task state, including results that may have been
+     * produced while an Extend connection was unavailable.
+     *
+     * @param manager  the latest task state
+     */
+    protected synchronized void processTaskUpdate(ClusteredTaskManager<?, ?, T> manager)
+        {
+        if (isDone())
+            {
+            return;
+            }
 
         int latestResultVersion = manager.getResultVersion();
-        if (oldManager.getResultVersion() != latestResultVersion)
+        if (latestResultVersion > m_nResultVersion)
             {
+            m_nResultVersion = latestResultVersion;
+
             // remember this option as the last, so we can publish it to new subscribers
             Result<T> lastResult = m_lastValue = manager.getLastResult();
 
@@ -281,42 +364,25 @@ public class ClusteredTaskCoordinator<T>
             // we no longer require the map listener
             removeMapListener();
             }
-
-        ExecutorTrace.exiting(this.getClass(), "entryUpdated");
         }
 
-    @Override
-    public void entryDeleted(MapEvent mapEvent)
+    /**
+     * Close this coordinator when a task is no longer available.
+     *
+     * @param throwable  the completion failure
+     */
+    protected synchronized void closeExceptionally(Throwable throwable)
         {
-        ExecutorTrace.log(() -> String.format("Task [%s] has been removed.", getTaskId()));
+        if (isDone())
+            {
+            return;
+            }
 
-        // we no longer require the map listener
+        m_lastValue = Result.throwable(throwable);
+        offer(m_lastValue);
+        close();
         removeMapListener();
         }
-
-    // ----- public methods -------------------------------------------------
-
-    /**
-     * Adds the specified {@link MemberListener}.
-     *
-     * @param listener  the {@link MemberListener} to add
-     */
-    public void addMemberListener(MemberListener listener)
-        {
-        getCacheService().addMemberListener(listener);
-        }
-
-    /**
-     * Removes the specified {@link MemberListener}.
-     *
-     * @param listener  the {@link MemberListener} to remove
-     */
-    public void removeMemberListener(MemberListener listener)
-        {
-        getCacheService().removeMemberListener(listener);
-        }
-
-    // ----- helper methods -------------------------------------------------
 
     /**
      * Return the underlying {@link CacheService} for the executor service.
@@ -425,6 +491,16 @@ public class ClusteredTaskCoordinator<T>
         }
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The latest result version observed by this coordinator.
+     */
+    protected int m_nResultVersion;
+
+    /**
+     * Whether the task has been installed in the cluster.
+     */
+    protected volatile boolean m_fTaskInstalled;
 
     /**
      * The sharable {@link Task.Properties} for this task.
