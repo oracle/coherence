@@ -53,6 +53,8 @@ import static org.hamcrest.Matchers.greaterThan;
 public class MBeanServerProxyNotificationFailureTests
         extends BaseMBeanServerProxyNotificationTests
     {
+    private static final String CLUSTER_NAME = "jmx-notify-" + UUID.randomUUID().toString().substring(0, 8);
+
     @After
     public void cleanupTest()
         {
@@ -62,10 +64,15 @@ public class MBeanServerProxyNotificationFailureTests
     @Test
     public void shouldStillReceiveNotificationsWhenManagementSeniorFailsOver() throws Exception
         {
-        String sClusterName = m_testName.getMethodName();
+        String sClusterName = getClusterName();
         int    nClusterSize = 3;
 
-        try (CoherenceCluster cluster = startCluster(sClusterName, 3))
+        System.setProperty("coherence.cluster", sClusterName);
+
+        try (CoherenceCluster cluster = startCluster(sClusterName, 3,
+                SystemProperty.of("coherence.cluster", sClusterName),
+                SystemProperty.of("test.unicast.port", Integer.getInteger("test.unicast.port", 0)),
+                SystemProperty.of("test.multicast.port", Integer.getInteger("test.multicast.port", 7778))))
             {
             // register an MBean on each member
             cluster.forEach(BaseMBeanServerProxyNotificationTests::registerMBean);
@@ -101,11 +108,13 @@ public class MBeanServerProxyNotificationFailureTests
 
             // wait for the member to depart
             Eventually.assertThat(invoking(this).getClusterSize(), is(cMemberCount - 1));
+            Eventually.assertThat(invoking(this).hasNewMBeanServerMember(proxy, nSenior), is(true));
             // eventually a new member will become management senior and we will be able to see the Mbean
             Eventually.assertThat(invoking(this).getValue(proxy, sMBeanName), is(1234));
 
-            // update the MBean cache size attribute
-            proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 9999);
+            // retry the write while the new management senior publishes itself
+            Eventually.assertThat(invoking(this).setAttributeWhenManaged(proxy, sMBeanName,
+                                  ATTRIBUTE_CACHE_SIZE, 9999), is(true));
 
             // we should get a notification if everythign failed over
             assertThat(listener.await(1, TimeUnit.MINUTES), is(true));
@@ -122,11 +131,13 @@ public class MBeanServerProxyNotificationFailureTests
     @Test
     public void shouldRemainLiveWhenManagementSeniorRestartsDuringPofTelemetryRegistration() throws Exception
         {
-        String sClusterName = System.getProperty("coherence.cluster",
-                "COH33830RollingRestart-" + UUID.randomUUID());
+        String sClusterName = getClusterName();
         int    nClusterSize = 3;
 
+        System.setProperty("coherence.cluster", sClusterName);
+
         try (CoherenceCluster cluster = startCluster(sClusterName, nClusterSize,
+                SystemProperty.of("coherence.cluster", sClusterName),
                 SystemProperty.of("test.unicast.port", Integer.getInteger("test.unicast.port", 0)),
                 SystemProperty.of("test.multicast.port", Integer.getInteger("test.multicast.port", 7778)),
                 SystemProperty.of("coherence.management", "dynamic"),
@@ -162,6 +173,21 @@ public class MBeanServerProxyNotificationFailureTests
         return CacheFactory.ensureCluster().getMemberSet().size();
         }
 
+    /**
+     * Return the test-specific cluster identity.
+     *
+     * @return  the cluster identity
+     */
+    public String getClusterName()
+        {
+        String sMethod = m_testName.getMethodName();
+        String sSuffix = sMethod.substring(0, Math.min(sMethod.length(), 24))
+                + '-' + Integer.toUnsignedString(sMethod.hashCode(), 36);
+        int    cLength = Math.min(CLUSTER_NAME.length(), 66 - sSuffix.length() - 1);
+
+        return CLUSTER_NAME.substring(0, cLength) + '-' + sSuffix;
+        }
+
     // must be public - used in Eventually.assertThat
     public Integer getValue(MBeanServerProxy proxy, String sMbean)
         {
@@ -174,6 +200,33 @@ public class MBeanServerProxyNotificationFailureTests
             // can be cause if the management senior has left the cluster
             // and a new senior has not yet taken over
             return null;
+            }
+        }
+
+    // must be public - used in Eventually.assertThat
+    public boolean hasNewMBeanServerMember(MBeanServerProxy proxy, int nSenior)
+        {
+        int nMember = findMBeanServerMemberSafely(proxy);
+
+        return nMember > 0 && nMember != nSenior;
+        }
+
+    // must be public - used in Eventually.assertThat
+    public boolean setAttributeWhenManaged(MBeanServerProxy proxy, String sMBeanName,
+                                           String sAttribute, Object oValue)
+        {
+        try
+            {
+            proxy.setAttribute(sMBeanName, sAttribute, oValue);
+            return true;
+            }
+        catch (RuntimeException e)
+            {
+            if ("None of the nodes are managed".equals(e.getMessage()))
+                {
+                return false;
+                }
+            throw e;
             }
         }
 
