@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -81,6 +81,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -130,6 +131,12 @@ public class ClientCompatibilityIT
             }, cTimeoutMinute + 5, TimeUnit.MINUTES);
 
         sClusterExtension = new CoherenceClusterExtension();
+
+        String sSecurityMode = Config.getProperty("coherence.compatability.security.mode");
+        if (sSecurityMode != null && !sSecurityMode.isBlank())
+            {
+            sClusterExtension.with(SystemProperty.of("coherence.security.mode", sSecurityMode));
+            }
 
         CompletableFuture<CoherenceClusterExtension> future = CompletableFuture.supplyAsync(() ->
             {
@@ -434,7 +441,7 @@ public class ClientCompatibilityIT
 
     static final Map<String, Session> SESSIONS = new HashMap<>();
 
-    static final String CLUSTER_NAME = "ClientCompatibilityIT";
+    static final String CLUSTER_NAME = "ClientCompatibilityIT-" + UUID.randomUUID();
 
     static final LocalPlatform PLATFORM = LocalPlatform.get();
 

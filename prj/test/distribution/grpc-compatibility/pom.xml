@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -33,6 +33,7 @@
     <coherence.compatability.version/>
     <coherence.compatability.allow.snapshots/>
     <coherence.compatability.groupId/>
+    <coherence.compatability.security.mode/>
     <coherence.compatability.minJavaVersion/>
     <coherence.compatability.maxJavaVersion/>
     <skip.similarity.search>false</skip.similarity.search>
@@ -62,6 +63,7 @@
               <coherence.compatability.groupId>${coherence.compatability.groupId}</coherence.compatability.groupId>
               <coherence.compatability.version>${coherence.compatability.version}</coherence.compatability.version>
               <coherence.compatability.allow.snapshots>${coherence.compatability.allow.snapshots}</coherence.compatability.allow.snapshots>
+              <coherence.compatability.security.mode>${coherence.compatability.security.mode}</coherence.compatability.security.mode>
               <coherence.compatability.settings>${coherence.compatability.settings}</coherence.compatability.settings>
               <coherence.compatability.minJavaVersion>${coherence.compatability.minJavaVersion}</coherence.compatability.minJavaVersion>
               <coherence.compatability.maxJavaVersion>${coherence.compatability.maxJavaVersion}</coherence.compatability.maxJavaVersion>

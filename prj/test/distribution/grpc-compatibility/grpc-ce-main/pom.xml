@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -30,6 +30,9 @@
         <coherence.compatability.allow.snapshots>true</coherence.compatability.allow.snapshots>
         <!-- This is the groupId of the version server being tested against, not the current version being built -->
         <coherence.compatability.groupId>com.oracle.coherence.ce</coherence.compatability.groupId>
+
+        <!-- revisit compatibility mode when 14.1.2.0 becomes hardened by default -->
+        <coherence.compatability.security.mode>compatibility</coherence.compatability.security.mode>
 
         <coherence.compatability.minJavaVersion>17</coherence.compatability.minJavaVersion>
         <coherence.compatability.maxJavaVersion/>
