@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,9 +24,13 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
+import com.sun.management.HotSpotDiagnosticMXBean;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+
+import java.lang.management.ManagementFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -143,11 +147,23 @@ public class IndexTests
         System.gc();
         long afterIndex = getMemoryUsage();
 
-        long   overhead = afterIndex - beforeIndex;
-        double variance = Math.abs(overhead - index.getUnits()) * 1.0 / overhead;
+        long overhead = afterIndex - beforeIndex;
+        Assert.assertTrue("Measured index memory must be positive: " + overhead, overhead > 0);
+
+        long    cbCalculated = index.getUnits();
+        boolean fCompact     = isCompactObjectHeadersEnabled();
+        int     cbHeader     = SimpleMemoryCalculator.SIZE_BASIC_OBJECT;
+
+        // temporarily allow overestimation from the legacy header model (COH-34026)
+        // restore the normal bounds once the calculator supports compact headers
+        double dUpperLimit = fCompact && cbHeader > Long.BYTES ? 0.15 : 0.1;
+        double variance    = (cbCalculated - overhead) * 1.0 / overhead;
 
         System.out.println("Overhead=" + Base.toMemorySizeString(overhead, false));
         System.out.println(index);
+        System.out.printf("Compact object headers=%s, calculator header=%d, calculated=%d, measured=%d, "
+                        + "relative error=%f, bounds=(-0.10, %.2f)%n",
+                fCompact, cbHeader, cbCalculated, overhead, variance, dUpperLimit);
 
         long keySizes = 0L;
 
@@ -165,8 +181,33 @@ public class IndexTests
         System.out.printf("\nInverse index keys: %s (%,d)", Base.toMemorySizeString(keySizes, false), keySizes);
         System.out.println();
 
-        Assert.assertTrue("The variance percentage is " + variance + ". Real memory Cost for index: " +
-                    overhead + "; but calculated memory cost: " + index.getUnits(), variance < 0.1);
+        Assert.assertTrue("The relative error is " + variance + ". Real memory cost for index: " +
+                    overhead + "; but calculated memory cost: " + cbCalculated +
+                    "; compact object headers: " + fCompact + "; calculator header: " + cbHeader +
+                    "; expected bounds: (-0.10, " + dUpperLimit + ")",
+                    variance > -0.1 && variance < dUpperLimit);
+        }
+
+    /**
+     * Return whether this JVM uses compact object headers.
+     * <p>
+     * This method can be removed when COH-34026 is complete and
+     * {@link SimpleMemoryCalculator} accounts for compact object headers.
+     *
+     * @return true if the VM option is available and enabled
+     */
+    private static boolean isCompactObjectHeadersEnabled()
+        {
+        try
+            {
+            HotSpotDiagnosticMXBean bean = ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class);
+            return bean != null && Boolean.parseBoolean(bean.getVMOption("UseCompactObjectHeaders").getValue());
+            }
+        catch (RuntimeException | LinkageError e)
+            {
+            Base.log("Compact object header flag is unavailable; retaining the normal index-size tolerance: " + e);
+            return false;
+            }
         }
 
     //@Test
