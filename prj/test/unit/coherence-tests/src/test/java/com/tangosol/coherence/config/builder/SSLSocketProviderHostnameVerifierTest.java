@@ -15,6 +15,11 @@ import org.junit.Test;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+
+import javax.security.auth.x500.X500Principal;
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
@@ -25,6 +30,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -110,6 +116,116 @@ public class SSLSocketProviderHostnameVerifierTest
     public void shouldTreatSystemPropertyDefaultActionAllowAsDefaultInProd()
         {
         assertSystemPropertyDefaultIsDefaultVerifier(CoherenceModeHelper.securityHardened());
+        }
+
+    @Test
+    public void shouldAllowCompletedHandshakeWithoutOptionalClientIdentity()
+            throws Exception
+        {
+        for (String sMode : new String[] {null, "hardened", "compatibility"})
+            {
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityMode(sMode))
+                {
+                for (SSLSocketProvider.ClientAuthMode mode : new SSLSocketProvider.ClientAuthMode[]
+                        {SSLSocketProvider.ClientAuthMode.none, SSLSocketProvider.ClientAuthMode.wanted})
+                    {
+                    provider(null, mode).ensureSessionValidity(anonymousSession(true), peerSocket(), false);
+                    }
+                }
+            }
+        }
+
+    @Test
+    public void shouldStillRequireServerIdentityOnClient()
+            throws Exception
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            for (SSLSocketProvider.ClientAuthMode mode : SSLSocketProvider.ClientAuthMode.values())
+                {
+                assertThrows(SSLException.class,
+                        () -> provider(null, mode).ensureSessionValidity(anonymousSession(true), peerSocket(), true));
+                }
+            }
+        }
+
+    @Test
+    public void shouldStillRequireMandatoryClientIdentity()
+            throws Exception
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            assertThrows(SSLException.class, () -> provider(null, SSLSocketProvider.ClientAuthMode.required)
+                    .ensureSessionValidity(anonymousSession(true), peerSocket(), false));
+            }
+        }
+
+    @Test
+    public void shouldNotAcceptIncompleteAnonymousHandshake()
+            throws Exception
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            for (SSLSocketProvider.ClientAuthMode mode : new SSLSocketProvider.ClientAuthMode[]
+                    {SSLSocketProvider.ClientAuthMode.none, SSLSocketProvider.ClientAuthMode.wanted})
+                {
+                assertThrows(SSLException.class,
+                        () -> provider(null, mode).ensureSessionValidity(anonymousSession(false), peerSocket(), false));
+                }
+            }
+        }
+
+    @Test
+    public void shouldStillVerifyProvidedClientIdentity()
+            throws Exception
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            X509Certificate cert = mock(X509Certificate.class);
+            when(cert.getSubjectX500Principal()).thenReturn(new X500Principal("CN=wrong.example.invalid"));
+            SSLSession session = mock(SSLSession.class);
+            when(session.isValid()).thenReturn(true);
+            when(session.getPeerCertificates()).thenReturn(new Certificate[] {cert});
+
+            for (SSLSocketProvider.ClientAuthMode mode : new SSLSocketProvider.ClientAuthMode[]
+                    {SSLSocketProvider.ClientAuthMode.none, SSLSocketProvider.ClientAuthMode.wanted})
+                {
+                assertThrows(SSLException.class,
+                        () -> provider(null, mode).ensureSessionValidity(session, peerSocket(), false));
+                }
+            }
+        }
+
+    @Test
+    public void shouldPreserveExplicitVerifierForAnonymousClient()
+            throws Exception
+        {
+        for (String sMode : new String[] {"hardened", "compatibility"})
+            {
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityMode(sMode))
+                {
+                for (SSLSocketProvider.ClientAuthMode mode : new SSLSocketProvider.ClientAuthMode[]
+                        {SSLSocketProvider.ClientAuthMode.none, SSLSocketProvider.ClientAuthMode.wanted})
+                    {
+                    HostnameVerifier verifier = (sHost, session) -> false;
+                    assertThrows(SSLException.class, () -> provider(verifier, mode)
+                            .ensureSessionValidity(anonymousSession(true), peerSocket(), false));
+                    }
+                }
+            }
+        }
+
+    private SSLSocketProvider provider(HostnameVerifier verifier, SSLSocketProvider.ClientAuthMode mode)
+        {
+        return new SSLSocketProvider(new SSLSocketProvider.DefaultDependencies()
+                .setHostnameVerifier(verifier).setClientAuth(mode));
+        }
+
+    private SSLSession anonymousSession(boolean fValid)
+        {
+        SSLSession session = rejectingSession();
+        when(session.isValid()).thenReturn(fValid);
+        return session;
         }
 
     private void assertNullVerifierRejected(CoherenceModeHelper.ModeScope scope)

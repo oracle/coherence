@@ -1011,7 +1011,7 @@ public class SSLSocketChannel
 
         try
             {
-            provider.ensureSessionValidity(session, socket);
+            provider.ensureSessionValidity(session, socket, f_engine.getUseClientMode());
             }
         catch (SSLException e)
             {
