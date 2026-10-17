@@ -30,13 +30,20 @@ import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
 
+import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+
 import com.oracle.coherence.concurrent.executor.RemoteExecutor;
 import com.oracle.coherence.concurrent.executor.Task;
 import com.oracle.coherence.concurrent.executor.TaskExecutorService;
 
 import com.oracle.coherence.concurrent.executor.function.Predicates;
+import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
+import com.tangosol.coherence.component.net.extend.RemoteService;
+import com.tangosol.coherence.component.util.SafeService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer;
 
 import com.tangosol.coherence.config.xml.preprocessor.ConcurrentProxyPreprocessor;
 
@@ -48,15 +55,20 @@ import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.Service;
+import com.tangosol.net.Session;
 
-import com.tangosol.util.Base;
+import com.tangosol.util.Filters;
 import com.tangosol.util.OperationReason;
 
 import com.tangosol.util.function.Remote;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -79,12 +91,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Functional install-mode coverage for RemoteExecutor client paths.
  */
 @Execution(ExecutionMode.SAME_THREAD)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RemoteExecutorInstallModeMatrixIT
     {
     private static final String CLUSTER_NAME = System.getProperty("coherence.cluster",
             RemoteExecutorInstallModeMatrixIT.class.getSimpleName());
 
-    @BeforeEach
+    @BeforeAll
     public void setUp()
         {
         m_sModeOld        = System.getProperty("coherence.mode");
@@ -106,48 +119,114 @@ public class RemoteExecutorInstallModeMatrixIT
         System.setProperty("coherence.executor.trace.logging", "true");
         System.setProperty(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED, "true");
 
+        Eventually.assertDeferred(() -> storageMember().isServiceRunning("$SYS:ConcurrentProxy"), is(true));
         m_clientMember = Coherence.client().start().join();
-        Base.sleep(4000);
+        m_session      = m_clientMember.getSession(ConcurrentServicesSessionConfiguration.SESSION_NAME);
+
+        Service service = Caches.executors(m_session).getCacheService();
+        if (service instanceof SafeService)
+            {
+            service = ((SafeService) service).getService();
+            }
+        m_initiator = (Peer) ((RemoteService) service).getInitiator();
+
+        Eventually.assertDeferred(() -> Caches.executors(m_session)
+                .values(Filters.equal("getExecutorName()", RemoteExecutor.DEFAULT_EXECUTOR_NAME)).isEmpty(), is(false));
+        }
+
+    @BeforeEach
+    public void resetTelemetry()
+        {
+        m_executor = RemoteExecutor.getDefault();
         storageMember().invoke(new ResetTelemetry());
         }
 
     @AfterEach
+    public void cleanUpTask()
+            throws InterruptedException
+        {
+        try
+            {
+            if (m_future != null)
+                {
+                m_future.cancel(true);
+                }
+            if (m_coordinator != null)
+                {
+                m_coordinator.cancel(true);
+                }
+
+            // drain server-side work before the next method resets telemetry
+            Eventually.assertDeferred(() -> Caches.tasks(m_session).isEmpty(), is(true));
+            Eventually.assertDeferred(() -> Caches.assignments(m_session).isEmpty(), is(true));
+            }
+        finally
+            {
+            m_future      = null;
+            m_coordinator = null;
+            if (m_executor != null)
+                {
+                m_executor.shutdown();
+                assertThat(m_executor.awaitTermination(1, TimeUnit.MINUTES), is(true));
+                m_executor = null;
+                }
+            }
+        }
+
+    @AfterAll
     public void tearDown()
         {
-        Coherence.closeAll();
-        CacheFactory.shutdown();
-        m_clientMember = null;
+        try
+            {
+            Coherence.closeAll();
+            // service stop can return while its transport thread is still exiting
+            if (m_initiator != null)
+                {
+                assertThat("concurrent transport terminated", m_initiator.join(TimeUnit.MINUTES.toMillis(1)), is(true));
+                }
+            }
+        finally
+            {
+            try
+                {
+                CacheFactory.shutdown();
+                }
+            finally
+                {
+                m_clientMember = null;
+                m_session      = null;
+                m_initiator    = null;
 
-        restore("coherence.mode", m_sModeOld);
-        restore(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityOld);
-        restore(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicOld);
-        restore("coherence.cluster", m_sClusterOld);
-        restore(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED, m_sExtendOld);
-        restore("coherence.localhost", m_sLocalhostOld);
-        restore("coherence.wka", m_sWkaOld);
-        restore("coherence.executor.trace.logging", m_sTraceOld);
-        CoherenceModeHelper.reset();
-        RemoteExecutionMode.resetForTesting();
+                restore("coherence.mode", m_sModeOld);
+                restore(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityOld);
+                restore(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicOld);
+                restore("coherence.cluster", m_sClusterOld);
+                restore(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED, m_sExtendOld);
+                restore("coherence.localhost", m_sLocalhostOld);
+                restore("coherence.wka", m_sWkaOld);
+                restore("coherence.executor.trace.logging", m_sTraceOld);
+                CoherenceModeHelper.reset();
+                RemoteExecutionMode.resetForTesting();
+                }
+            }
         }
 
     @Test
     public void shouldAllowAnnotatedCallableThroughRemoteExecutorSubmission()
             throws Exception
         {
-        RemoteExecutor def = RemoteExecutor.getDefault();
-        Future<String> future = def.submit(new AnnotatedCallable("remote-ok"));
+        m_future = m_executor.submit(new AnnotatedCallable("remote-ok"));
 
-        assertThat(future.get(1, TimeUnit.MINUTES), is("remote-ok"));
+        assertThat(m_future.get(1, TimeUnit.MINUTES), is("remote-ok"));
         }
 
     @Test
     public void shouldShadowPlainCallableThroughRemoteExecutorSubmissionInCompatibility()
             throws Exception
         {
-        RemoteExecutor def = RemoteExecutor.getDefault();
-        Future<String> future = def.submit(new PlainCallable("remote-shadowed"));
+        m_future = m_executor.submit(new PlainCallable("remote-shadowed"));
 
-        assertThat(future.get(1, TimeUnit.MINUTES), is("remote-shadowed"));
+        assertThat(m_future.get(1, TimeUnit.MINUTES), is("remote-shadowed"));
         assertWouldRejectCounter(PlainCallable.class);
         }
 
@@ -156,26 +235,24 @@ public class RemoteExecutorInstallModeMatrixIT
         {
         AtomicInteger cPredicateInvoked = new AtomicInteger();
 
-        RemoteExecutor def = RemoteExecutor.getDefault();
-        Task.Coordinator<String> coordinator = def.orchestrate(new AnnotatedTask("remote-shadowed"))
+        m_coordinator = m_executor.orchestrate(new AnnotatedTask("remote-shadowed"))
                 .filter(Predicates.not(new PlainExecutorPredicate(cPredicateInvoked, false)))
                 .limit(1)
                 .submit();
 
-        Eventually.assertDeferred(coordinator::isDone, is(true));
+        Eventually.assertDeferred(m_coordinator::isDone, is(true));
         assertWouldRejectCounter(PlainExecutorPredicate.class);
         }
 
     @Test
     public void shouldAllowExecutableNamedFilterThroughRemoteExecutorSubmission()
         {
-        RemoteExecutor def = RemoteExecutor.getDefault();
-        Task.Coordinator<String> coordinator = def.orchestrate(new AnnotatedTask("named-filter-ok"))
+        m_coordinator = m_executor.orchestrate(new AnnotatedTask("named-filter-ok"))
                 .filter(new AnnotatedExecutorPredicate())
                 .limit(1)
                 .submit();
 
-        Eventually.assertDeferred(coordinator::isDone, is(true));
+        Eventually.assertDeferred(m_coordinator::isDone, is(true));
         }
 
     private static void restore(String sName, String sValue)
@@ -374,4 +451,10 @@ public class RemoteExecutorInstallModeMatrixIT
     private String    m_sWkaOld;
     private String    m_sTraceOld;
     private Coherence m_clientMember;
+    private Session   m_session;
+    private Peer      m_initiator;
+
+    private RemoteExecutor           m_executor;
+    private Future<String>           m_future;
+    private Task.Coordinator<String> m_coordinator;
     }
