@@ -17,7 +17,6 @@ import java.io.IOException;
 
 import java.net.SocketAddress;
 import java.net.Socket;
-import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 
 
@@ -67,6 +66,7 @@ public class SSLSocket
         {
         Socket delegate       = m_delegate;
         int    cMillisRestore = delegate.getSoTimeout();
+        String sPeer          = SSLSocketProvider.getPeerName(addr);
         try (Timeout t = Timeout.after(cMillis == 0 ? Long.MAX_VALUE : cMillis))
             {
             Blocking.connect(delegate, addr);
@@ -74,7 +74,23 @@ public class SSLSocket
             // include SSL Handshake in the connect timeout by setting SO_TIMEOUT
             long cMillisRemaining = Timeout.remainingTimeoutMillis();
             delegate.setSoTimeout(cMillisRemaining >= Integer.MAX_VALUE ? 0 : (int) cMillisRemaining);
-            m_delegate = wrapSocket(delegate, true);
+            WrappingIdentity previous = m_tlWrappingIdentity.get();
+            m_tlWrappingIdentity.set(new WrappingIdentity(delegate, sPeer));
+            try
+                {
+                m_delegate = wrapSocket(delegate, true);
+                }
+            finally
+                {
+                if (previous == null)
+                    {
+                    m_tlWrappingIdentity.remove();
+                    }
+                else
+                    {
+                    m_tlWrappingIdentity.set(previous);
+                    }
+                }
             }
         catch (InterruptedException e)
             {
@@ -121,15 +137,36 @@ public class SSLSocket
     public javax.net.ssl.SSLSocket wrapSocket(Socket delegate, boolean fClientMode)
             throws IOException
         {
+        WrappingIdentity identity = m_tlWrappingIdentity.get();
+        String sPeer = fClientMode
+                ? identity != null && identity.socket == delegate ? identity.name
+                    : SSLSocketProvider.getPeerName(delegate.getRemoteSocketAddress())
+                : delegate.getInetAddress().getHostAddress();
+        return wrapSocket(delegate, fClientMode, sPeer);
+        }
+
+    /**
+     * Wrap a connected socket using the retained peer identity.
+     *
+     * @param delegate     the connected socket
+     * @param fClientMode  whether this endpoint is the TLS client
+     * @param sPeer        the expected DNS name or IP literal
+     *
+     * @return the SSL socket
+     *
+     * @throws IOException if an I/O error occurs
+     */
+    protected javax.net.ssl.SSLSocket wrapSocket(Socket delegate, boolean fClientMode, String sPeer)
+            throws IOException
+        {
         try
             {
             SSLSocketProvider              provider = m_provider;
             SSLSocketProvider.Dependencies deps     = provider.getDependencies();
-            InetAddress addrConnected = delegate.getInetAddress();
 
             javax.net.ssl.SSLSocket sslDelegate = (javax.net.ssl.SSLSocket)
                      deps.getSSLContext().getSocketFactory()
-                    .createSocket(delegate, addrConnected.getHostName(),
+                    .createSocket(delegate, sPeer,
                             delegate.getPort(), true);
 
             sslDelegate.setUseClientMode(fClientMode);
@@ -165,7 +202,7 @@ public class SSLSocket
                 sslDelegate.setEnabledProtocols(asProtocols);
                 }
 
-            provider.ensureSessionValidity(sslDelegate.getSession(), delegate, fClientMode);
+            provider.ensureSessionValidity(sslDelegate.getSession(), delegate, fClientMode, sPeer);
 
             return sslDelegate;
             }
@@ -193,4 +230,11 @@ public class SSLSocket
     * The SSLSocketProvider that created this SSLSocket.
     */
     protected final SSLSocketProvider m_provider;
+
+    /**
+     * The destination scoped to the exact delegate during the original wrap hook.
+     */
+    private final ThreadLocal<WrappingIdentity> m_tlWrappingIdentity = new ThreadLocal<>();
+
+    private record WrappingIdentity(Socket socket, String name) {}
     }

@@ -1,14 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.internal;
 
 import com.oracle.coherence.common.internal.net.MultiplexedSocketProvider;
 import com.oracle.coherence.common.net.InetAddresses;
-import com.oracle.coherence.common.net.InetSocketAddress32;
 import com.tangosol.coherence.config.ParameterList;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.config.expression.ParameterResolver;
@@ -63,6 +62,7 @@ public class SubstitutionSocketAddressProvider
             if (addrInet.isAnyLocalAddress())
                 {
                 addrInet = f_addr;
+                address = InetAddresses.setAddress(address, addrInet);
                 }
 
             if (nPortBase == 0)
@@ -75,9 +75,8 @@ public class SubstitutionSocketAddressProvider
                 nPortSub = f_nSubPort;
                 }
 
-            address = address instanceof InetSocketAddress
-                    ? new InetSocketAddress(addrInet, nPort)
-                    : new InetSocketAddress32(addrInet, MultiplexedSocketProvider.getPort(nPortBase, nPortSub));
+            address = InetAddresses.setPort(address, address instanceof InetSocketAddress
+                    ? nPort : MultiplexedSocketProvider.getPort(nPortBase, nPortSub));
             }
 
         return address;
