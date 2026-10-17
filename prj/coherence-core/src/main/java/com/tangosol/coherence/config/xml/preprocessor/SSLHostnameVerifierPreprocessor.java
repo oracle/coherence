@@ -15,6 +15,8 @@ import com.tangosol.config.expression.Value;
 import com.tangosol.config.xml.DocumentElementPreprocessor.ElementPreprocessor;
 import com.tangosol.config.xml.ProcessingContext;
 
+import com.tangosol.internal.util.CoherenceMode;
+
 import com.tangosol.run.xml.SimpleValue;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlValue;
@@ -33,6 +35,38 @@ public class SSLHostnameVerifierPreprocessor
     public boolean preprocess(ProcessingContext context, XmlElement element)
             throws ConfigurationException
         {
+        if (isSystemPropertyDefault(context, element))
+            {
+            element.setAttribute(ATTR_SYSTEM_PROPERTY_DEFAULT, new SimpleValue(PROP_HOSTNAME_VERIFICATION, true));
+            }
+        return false;
+        }
+
+    /**
+     * Resolve the shipped fallback before legacy XML processing removes its
+     * system-property attribute. Use a value rather than a provenance marker
+     * because subsequent operational overrides may replace that value.
+     *
+     * @param element  the element to process
+     */
+    public void resolveLegacyDefault(XmlElement element)
+        {
+        if (isSystemPropertyDefault(null, element) && CoherenceMode.isSecurityHardeningEnabled())
+            {
+            element.setString("default");
+            }
+        }
+
+    /**
+     * Return whether this action uses the unset hostname-verification fallback.
+     *
+     * @param context  the processing context, or {@code null} for legacy XML
+     * @param element  the element to inspect
+     *
+     * @return {@code true} if the shipped fallback applies
+     */
+    private boolean isSystemPropertyDefault(ProcessingContext context, XmlElement element)
+        {
         if (!"action".equals(element.getName()) || element.getParent() == null
                 || !"hostname-verifier".equals(element.getParent().getName()))
             {
@@ -46,11 +80,7 @@ public class SSLHostnameVerifierPreprocessor
             return false;
             }
 
-        if (!hasPropertyValue(context, PROP_HOSTNAME_VERIFICATION))
-            {
-            element.setAttribute(ATTR_SYSTEM_PROPERTY_DEFAULT, new SimpleValue(PROP_HOSTNAME_VERIFICATION, true));
-            }
-        return false;
+        return !hasPropertyValue(context, PROP_HOSTNAME_VERIFICATION);
         }
 
     /**
@@ -66,7 +96,7 @@ public class SSLHostnameVerifierPreprocessor
         {
         try
             {
-            ParameterResolver resolver  = context.getDefaultParameterResolver();
+            ParameterResolver resolver  = context == null ? null : context.getDefaultParameterResolver();
             Parameter         parameter = resolver == null ? null : resolver.resolve(sName);
 
             if (parameter != null)
