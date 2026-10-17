@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1070,6 +1070,9 @@ public class NamedCacheOperationsTracingIT
                              RoleName.of("storage"),
                              SystemProperty.of("otel.service.name",       "storage"),
                              SystemProperty.of("coherence.proxy.enabled", "false"),
+                             // The golden span trees expect three partition-work helpers.
+                             SystemProperty.of("coherence.distributed.threads.min", "8"),
+                             SystemProperty.of("coherence.distributed.threads.max", "8"),
                              LocalStorage.enabled())
                     .include(1,
                              DisplayName.of("proxy"),
