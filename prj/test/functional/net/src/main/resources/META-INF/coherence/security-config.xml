@@ -8,6 +8,8 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <!-- the class-loader test loads this type after starting without the data JAR -->
+    <class name="data.Person" source="manual"/>
     <class name="net.DeltaBackupTests$RandomType" source="manual"/>
   </allowed-classes>
 </security-config>
