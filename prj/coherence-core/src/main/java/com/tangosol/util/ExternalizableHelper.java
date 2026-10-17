@@ -6829,6 +6829,15 @@ public abstract class ExternalizableHelper
             {
             while (in instanceof WrapperDataInputStream)
                 {
+                // consult a BufferInput wrapper before unwrapping its data input
+                if (in instanceof BufferInput)
+                    {
+                    Object filter = ((BufferInput) in).getObjectInputFilter();
+                    if (filter != null)
+                        {
+                        return filter;
+                        }
+                    }
                 in = ((WrapperDataInputStream) in).getDataInput();
                 }
 

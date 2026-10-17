@@ -913,7 +913,21 @@ public abstract class Peer
             din = new DataInputStream(stream);
             }
         
-        return new WrapperBufferInput(din, getContextClassLoader());
+        // retain the original buffer's serialization filter across stream wrappers
+        return new WrapperBufferInput(din, getContextClassLoader())
+            {
+            @Override
+            public Object getObjectInputFilter()
+                {
+                return in.getObjectInputFilter();
+                }
+
+            @Override
+            public void setObjectInputFilter(Object filter)
+                {
+                in.setObjectInputFilter(filter);
+                }
+            };
         }
     
     /**
