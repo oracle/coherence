@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.stream.collectors;
+
+import com.tangosol.internal.util.collection.PortableMap;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 
@@ -25,7 +27,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -88,7 +89,8 @@ public class GroupingByCollector<T, K, D, A, M extends Map<K, D>>
     @Override
     public Supplier<Map<K, A>> supplier()
         {
-        return HashMap::new;
+        // preserve Coherence serialization for nested downstream containers
+        return PortableMap::new;
         }
 
     @Override
