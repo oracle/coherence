@@ -11,6 +11,8 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.management.DiagnosticCommandPolicy;
 import com.tangosol.internal.net.management.MBeanCollectorFunction;
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.CompatibilityWarnings;
+import com.tangosol.internal.util.security.CompatibilityWarnings.Category;
 
 import com.tangosol.io.SerializationRole;
 
@@ -496,6 +498,12 @@ public final class ManagementInvocationPolicy
 
     private static void shadow(String sScope, String sGate, String sReason, String sValue, Subject subject)
         {
+        Map<String, Category> mapWarnings = sGate == null ? null : COMPATIBILITY_WARNINGS.get(sGate);
+        if (!CompatibilityWarnings.shouldLog(mapWarnings == null || sReason == null ? null : mapWarnings.get(sReason)))
+            {
+            return;
+            }
+
         Logger.warn("Allowed compatibility management TCMP request that security hardening would reject:"
                 + " route=management-tcmp"
                 + ", scope=" + sanitize(sScope)
@@ -1154,6 +1162,21 @@ public final class ManagementInvocationPolicy
         }
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Fixed management compatibility categories, shared across caller scopes.
+     *
+     * @since 26.10
+     */
+    private static final Map<String, Map<String, Category>> COMPATIBILITY_WARNINGS = Map.of(
+            "remote-function", Map.of("function-not-allowed", new Category()),
+            "object-name", Map.of("foreign-domain", new Category()),
+            "attribute", Map.of("attribute-not-writable", new Category()),
+            "remote-model-method", Map.of("attribute-not-writable", new Category()),
+            "attribute-filter", Map.of("filter-not-allowed", new Category()),
+            "query-filter", Map.of("filter-not-allowed", new Category()),
+            "attribute-value", Map.of("executable-value", new Category(), "unsupported-value", new Category()),
+            "argument", Map.of("executable-value", new Category(), "unsupported-value", new Category()));
 
     private static final String DEFAULT_DOMAIN = "Coherence";
 

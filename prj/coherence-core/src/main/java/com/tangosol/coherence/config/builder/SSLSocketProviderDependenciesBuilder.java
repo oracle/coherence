@@ -30,6 +30,7 @@ import com.tangosol.internal.net.ssl.SSLContextDependencies;
 import com.tangosol.internal.net.ssl.SSLContextProvider;
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.CompatibilityWarnings;
 
 import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.SocketProviderFactory;
@@ -631,13 +632,21 @@ public class SSLSocketProviderDependenciesBuilder
         @Override
         public boolean verify(String sUrlHostname, SSLSession sslSession)
             {
-            if (!createDefaultHostnameVerifier(false).verify(sUrlHostname, sslSession))
+            if (!createDefaultHostnameVerifier(false).verify(sUrlHostname, sslSession)
+                    && CompatibilityWarnings.shouldLog(WARN_HOSTNAME_ALLOW))
                 {
                 Logger.warn("TLS hostname verification would_reject; security-mode=compatibility; source=allow; peer="
                         + sUrlHostname);
                 }
             return true;
             }
+
+        /**
+         * Compatibility warning for a mismatch accepted by the allow verifier.
+         *
+         * @since 26.10
+         */
+        private static final CompatibilityWarnings.Category WARN_HOSTNAME_ALLOW = new CompatibilityWarnings.Category();
         }
 
     // ----- inner class: DefaultHostnameVerifier ---------------------------
