@@ -4391,16 +4391,21 @@ public class TcpAcceptor
             // import com.tangosol.util.ThreadGate;
             
             ThreadGate gate = getThreadGate();
+            boolean    fClosed;
             gate.barEntry(-1L);
             try
                 {
                 notifyWaitingThreads();
-                return super.closeInternal(fNotify, e, cMillis);
+                fClosed = super.closeInternal(fNotify, e, cMillis);
                 }
             finally
                 {
                 gate.open();
                 }
+
+            // the last worker may have exited while the entry barrier prevented
+            // its close-on-exit attempt; retry after releasing that barrier
+            return fClosed || super.closeInternal(fNotify, e, 0L);
             }
         
         // Accessor for the property "ClusterName"
