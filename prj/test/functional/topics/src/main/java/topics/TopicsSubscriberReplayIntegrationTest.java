@@ -13,6 +13,9 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
+import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.TopicsPersistedPolicyDrift;
 
@@ -21,6 +24,8 @@ import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.CacheService;
+import com.tangosol.net.PartitionedService;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
 import com.tangosol.net.topic.NamedTopic;
@@ -192,8 +197,9 @@ public class TopicsSubscriberReplayIntegrationTest
         startServer(sCluster + "-initial", sMode, sSecurityMode, sPolicyDrift, sExecutableClassPath);
 
         String sServiceName = m_member.invoke(new EnsureSubscriberGroup(sTopic, sGroup));
-        // subscriber group metadata must be flushed before the snapshot is created
-        m_member.invoke(new WaitForPersistenceIdle(sServiceName));
+        m_member.invoke(new WaitForServiceReady(sServiceName));
+        assertTrue("The snapshot must contain the subscriber group and its filter",
+                m_member.invoke(new HasPersistedSubscriberGroup(sTopic, sGroup)));
         m_member.invoke(new SnapshotOperation("create", sServiceName, sSnapshot));
 
         stopServer();
@@ -205,7 +211,9 @@ public class TopicsSubscriberReplayIntegrationTest
 
         startServer(sCluster + "-replay", sMode, sSecurityMode, sPolicyDrift,
                 fExecutableOnReplay ? sExecutableClassPath : null);
-        m_member.invoke(new WaitForPersistenceIdle(sServiceName));
+        m_member.invoke(new WaitForServiceReady(sServiceName));
+        assertFalse("The replay member must start without the subscriber group",
+                m_member.invoke(new HasPersistedSubscriberGroup(sTopic, sGroup)));
 
         Throwable error = null;
         try
@@ -232,6 +240,12 @@ public class TopicsSubscriberReplayIntegrationTest
         if (fExpectFailure && error == null)
             {
             fail("Expected snapshot recovery to fail");
+            }
+
+        if (!fExpectFailure)
+            {
+            assertTrue("Snapshot recovery did not restore the subscriber group and its filter",
+                    m_member.invoke(new HasPersistedSubscriberGroup(sTopic, sGroup)));
             }
 
         return new ReplayResult(mapTelemetry, error);
@@ -471,6 +485,31 @@ public class TopicsSubscriberReplayIntegrationTest
             }
         }
 
+    public static class HasPersistedSubscriberGroup
+            implements RemoteCallable<Boolean>
+        {
+        public HasPersistedSubscriberGroup(String sTopic, String sGroup)
+            {
+            m_sTopic = sTopic;
+            m_sGroup = sGroup;
+            }
+
+        @Override
+        public Boolean call()
+            {
+            // inspect the persisted partition/channel entry, including the replayed filter
+            String sCache = PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(m_sTopic);
+            CacheService service = (CacheService) CacheFactory.getConfigurableCacheFactory()
+                    .ensureTopic(m_sTopic).getService();
+            Subscription subscription = (Subscription) service.ensureCache(sCache, null).get(
+                    new Subscription.Key(0, 0, SubscriberGroupId.withName(m_sGroup)));
+            return subscription != null && subscription.getFilter() instanceof DriftFilter;
+            }
+
+        private final String m_sTopic;
+        private final String m_sGroup;
+        }
+
     public static class SnapshotOperation
             implements RemoteCallable<Void>
         {
@@ -491,9 +530,19 @@ public class TopicsSubscriberReplayIntegrationTest
                 }
             else if ("recover".equals(m_sOperation))
                 {
-                helper.invokeOperationWithReturn("recoverSnapshot", m_sService,
-                        new String[] {m_sSnapshot}, new String[] {"java.lang.String"});
-                waitForPersistenceIdle(m_sService);
+                // suspend before entering the synchronized persistence management operation
+                // so initial recovery can finish without waiting for its controller monitor
+                CacheFactory.ensureCluster().suspendService(m_sService);
+                try
+                    {
+                    helper.invokeOperationWithReturn("recoverSnapshot", m_sService,
+                            new String[] {m_sSnapshot}, new String[] {"java.lang.String"});
+                    waitForPersistenceIdle(m_sService);
+                    }
+                finally
+                    {
+                    CacheFactory.ensureCluster().resumeService(m_sService);
+                    }
                 }
             else
                 {
@@ -537,10 +586,10 @@ public class TopicsSubscriberReplayIntegrationTest
         private final String m_sSnapshot;
         }
 
-    public static class WaitForPersistenceIdle
+    public static class WaitForServiceReady
             implements RemoteCallable<Void>
         {
-        public WaitForPersistenceIdle(String sService)
+        public WaitForServiceReady(String sService)
             {
             m_sService = sService;
             }
@@ -548,6 +597,12 @@ public class TopicsSubscriberReplayIntegrationTest
         @Override
         public Void call() throws Exception
             {
+            // Idle can be true before startup has assigned the partitions; the single
+            // storage member must own them all before coordinating a snapshot operation
+            PartitionedService service = (PartitionedService) CacheFactory.ensureCluster().getService(m_sService);
+            Eventually.assertDeferred("partition ownership for " + m_sService,
+                    () -> service.getOwnedPartitions().cardinality(), is(service.getPartitionCount()),
+                    within(2, TimeUnit.MINUTES));
             SnapshotOperation.waitForPersistenceIdle(m_sService);
             return null;
             }
