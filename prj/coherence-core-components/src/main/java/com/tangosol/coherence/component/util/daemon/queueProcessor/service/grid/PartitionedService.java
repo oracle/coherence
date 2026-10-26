@@ -4803,19 +4803,6 @@ public abstract class PartitionedService
                 }
             else
                 {
-                if (isBackupPersistence())
-                    {
-                    if (shouldRetainBackupPersistentStore(iPartition))
-                        {
-                        // durable backup stores are retained for services whose backup maps persist directly
-                        }
-                    else
-                        {
-                        // delete backup store
-                        ctrl.deleteBackupPersistentStore();
-                        }
-                    }
-
                 // backup to primary
                 saveQuorum(iPartition);
         
@@ -4828,7 +4815,14 @@ public abstract class PartitionedService
                         com.tangosol.persistence.CachePersistenceHelper.seal(storeEvents, this, /*oToken*/ null);
                         }
 
-                    com.tangosol.persistence.CachePersistenceHelper.seal(ctrl.ensurePersistentStore(), this, /*oToken*/ null);
+                    com.oracle.coherence.persistence.PersistentStore store = ctrl.ensurePersistentStore();
+                    com.tangosol.persistence.CachePersistenceHelper.seal(store, this, /*oToken*/ null);
+
+                    if (store.isOpen() && isBackupPersistence() && !shouldRetainBackupPersistentStore(iPartition))
+                        {
+                        // preserve the backup until the new active store is recoverable
+                        ctrl.deleteBackupPersistentStore();
+                        }
                     }
                 }
             }
