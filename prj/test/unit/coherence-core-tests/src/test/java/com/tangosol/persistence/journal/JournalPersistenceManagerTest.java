@@ -25,11 +25,17 @@ import java.io.IOException;
 
 import java.lang.reflect.Field;
 
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -397,6 +403,246 @@ public class JournalPersistenceManagerTest
             if (manager != null)
                 {
                 manager.continuePromotion();
+                manager.release();
+                }
+            executor.shutdownNow();
+            FileHelper.deleteDir(fileData);
+            FileHelper.deleteDir(fileTrash);
+            }
+        }
+
+    /**
+     * Verify opening another manager on the same snapshot directory cannot
+     * delete a live promotion belonging to the first manager.
+     *
+     * @throws Exception on test failure
+     */
+    @Test
+    public void testSecondManagerDoesNotDeleteLivePromotion()
+            throws Exception
+        {
+        File fileData  = FileHelper.createTempDir();
+        File fileTrash = FileHelper.createTempDir();
+        PausingPromotionManager manager  = null;
+        JournalPersistenceManager second = null;
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        try
+            {
+            manager = new PausingPromotionManager(fileData, fileTrash);
+            manager.setJournalConfig(new PartitionJournalConfig().setMaximumFileSize(1024 * 1024));
+
+            Binary binKey   = new Binary(new byte[] {5});
+            Binary binValue = new Binary(new byte[] {55});
+            AbstractPersistentStore storeSource =
+                    (AbstractPersistentStore) manager.open(TEST_FROM_STORE_ID, null);
+            storeSource.ensureExtent(1L);
+            storeSource.store(1L, binKey, binValue, null);
+
+            PausingPromotionManager managerFinal = manager;
+            Future<AbstractPersistentStore> future = executor.submit(() ->
+                    (AbstractPersistentStore) managerFinal.open(TEST_STORE_ID, storeSource));
+
+            assertTrue("promotion did not reach publication", manager.awaitPublication());
+            assertTrue(manager.getStagedStore().isDirectory());
+
+            second = new JournalPersistenceManager(fileData, fileTrash, null);
+            second.setJournalConfig(new PartitionJournalConfig().setMaximumFileSize(1024 * 1024));
+
+            assertTrue("second manager removed the live staged store", manager.getStagedStore().isDirectory());
+
+            second.release();
+            second = null;
+            assertTrue("releasing second manager removed the live staged store", manager.getStagedStore().isDirectory());
+
+            manager.continuePublication();
+            AbstractPersistentStore storeTarget = future.get(30, TimeUnit.SECONDS);
+            assertEquals(binValue, storeTarget.load(1L, binKey));
+            }
+        finally
+            {
+            if (manager != null)
+                {
+                manager.continuePublication();
+                manager.release();
+                }
+            if (second != null)
+                {
+                second.release();
+                }
+            executor.shutdownNow();
+            FileHelper.deleteDir(fileData);
+            FileHelper.deleteDir(fileTrash);
+            }
+        }
+
+    /**
+     * Verify an unowned promotion is reclaimed, but a work directory locked
+     * by another manager or process is retained.
+     *
+     * @throws Exception on test failure
+     */
+    @Test
+    public void testAbandonedPromotionCleanupHonorsOwnerLock()
+            throws Exception
+        {
+        File fileData = FileHelper.createTempDir();
+        File fileRoot = new File(fileData.getParentFile(),
+                '.' + fileData.getName() + ".journal-promotion");
+        File dirWork = new File(fileRoot, "promotion-external");
+        File fileLock = new File(dirWork, "owner.lock");
+        JournalPersistenceManager manager = null;
+
+        try
+            {
+            FileHelper.ensureDir(dirWork);
+            Files.write(new File(dirWork, "marker").toPath(), new byte[] {1});
+
+            try (FileChannel channel = FileChannel.open(fileLock.toPath(),
+                         StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+                 FileLock ignored = channel.lock())
+                {
+                manager = new JournalPersistenceManager(fileData, null, null);
+                assertTrue("live promotion was removed", dirWork.isDirectory());
+                manager.release();
+                manager = null;
+                }
+
+            manager = new JournalPersistenceManager(fileData, null, null);
+            assertFalse("abandoned promotion was retained", dirWork.exists());
+            }
+        finally
+            {
+            if (manager != null)
+                {
+                manager.release();
+                }
+            FileHelper.deleteDir(fileData);
+            FileHelper.deleteDirSilent(fileRoot);
+            }
+        }
+
+    /**
+     * Verify an owner in a separate JVM is not mistaken for abandoned work.
+     *
+     * @throws Exception on test failure
+     */
+    @Test
+    public void testPromotionOwnerLockAcrossProcesses()
+            throws Exception
+        {
+        File fileData = FileHelper.createTempDir();
+        File fileRoot = new File(fileData.getParentFile(),
+                '.' + fileData.getName() + ".journal-promotion");
+        File dirWork = new File(fileRoot, "promotion-process");
+        File fileLock = new File(dirWork, "owner.lock");
+        File fileReady = new File(dirWork, "ready");
+        JournalPersistenceManager manager = null;
+        Process process = null;
+
+        try
+            {
+            FileHelper.ensureDir(dirWork);
+            process = new ProcessBuilder(new File(System.getProperty("java.home"), "bin/java").getPath(),
+                    "-cp", System.getProperty("java.class.path"),
+                    PromotionLockProcess.class.getName(), fileLock.getPath(), fileReady.getPath())
+                    .redirectErrorStream(true)
+                    .start();
+
+            long ldtEnd = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30);
+            while (!fileReady.exists() && process.isAlive() && System.currentTimeMillis() < ldtEnd)
+                {
+                Thread.sleep(10);
+                }
+            assertTrue("lock holder did not start", fileReady.isFile());
+
+            manager = new JournalPersistenceManager(fileData, null, null);
+            assertTrue("other process's live promotion was removed", dirWork.isDirectory());
+            manager.release();
+            manager = null;
+
+            process.destroyForcibly();
+            assertTrue("lock holder did not stop after a simulated crash",
+                    process.waitFor(30, TimeUnit.SECONDS));
+
+            manager = new JournalPersistenceManager(fileData, null, null);
+            assertFalse("abandoned process promotion was retained", dirWork.exists());
+            }
+        finally
+            {
+            if (manager != null)
+                {
+                manager.release();
+                }
+            if (process != null && process.isAlive())
+                {
+                process.destroyForcibly();
+                process.waitFor(30, TimeUnit.SECONDS);
+                }
+            FileHelper.deleteDir(fileData);
+            FileHelper.deleteDirSilent(fileRoot);
+            }
+        }
+
+    /**
+     * Verify a staged copy missing its extent manifest cannot be published
+     * as a successfully recovered empty partition.
+     *
+     * @throws Exception on test failure
+     */
+    @Test
+    public void testIncompleteStagedStoreIsNotPublished()
+            throws Exception
+        {
+        File fileData  = FileHelper.createTempDir();
+        File fileTrash = FileHelper.createTempDir();
+        PausingPromotionManager manager = null;
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        try
+            {
+            manager = new PausingPromotionManager(fileData, fileTrash);
+            manager.setJournalConfig(new PartitionJournalConfig().setMaximumFileSize(1024 * 1024));
+
+            Binary binKey   = new Binary(new byte[] {6});
+            Binary binValue = new Binary(new byte[] {66});
+            AbstractPersistentStore storeSource =
+                    (AbstractPersistentStore) manager.open(TEST_FROM_STORE_ID, null);
+            storeSource.ensureExtent(1L);
+            storeSource.store(1L, binKey, binValue, null);
+
+            PausingPromotionManager managerFinal = manager;
+            Future<AbstractPersistentStore> future = executor.submit(() ->
+                    (AbstractPersistentStore) managerFinal.open(TEST_STORE_ID, storeSource));
+
+            assertTrue("promotion did not reach publication", manager.awaitPublication());
+            Files.delete(new File(manager.getStagedStore(), "extents.coh").toPath());
+            manager.continuePublication();
+
+            try
+                {
+                future.get(30, TimeUnit.SECONDS);
+                org.junit.Assert.fail("incomplete staged store was published");
+                }
+            catch (ExecutionException expected)
+                {
+                Throwable cause = expected.getCause();
+                while (cause != null && (cause.getMessage() == null
+                        || !cause.getMessage().contains("journal promotion")))
+                    {
+                    cause = cause.getCause();
+                    }
+                assertNotNull("missing incomplete-promotion cause", cause);
+                }
+
+            assertFalse(new File(fileData, TEST_STORE_ID).exists());
+            assertEquals(binValue, storeSource.load(1L, binKey));
+            }
+        finally
+            {
+            if (manager != null)
+                {
+                manager.continuePublication();
                 manager.release();
                 }
             executor.shutdownNow();
@@ -963,6 +1209,84 @@ public class JournalPersistenceManagerTest
         private volatile String m_sDelayedId;
         private final CountDownLatch f_latchDelayed  = new CountDownLatch(1);
         private final CountDownLatch f_latchContinue = new CountDownLatch(1);
+        }
+
+
+    // ----- inner class: PausingPromotionManager --------------------------
+
+    /**
+     * Journal manager that pauses after staging and before publication.
+     */
+    private static class PausingPromotionManager
+            extends JournalPersistenceManager
+        {
+        private PausingPromotionManager(File fileData, File fileTrash)
+                throws IOException
+            {
+            super(fileData, fileTrash, null);
+            }
+
+        private boolean awaitPublication()
+                throws InterruptedException
+            {
+            return f_latchStaged.await(30, TimeUnit.SECONDS);
+            }
+
+        private void continuePublication()
+            {
+            f_latchContinue.countDown();
+            }
+
+        private File getStagedStore()
+            {
+            return m_dirStagedStore;
+            }
+
+        @Override
+        protected void publishStagedStore(File dirPromotion, File dirStore)
+                throws IOException
+            {
+            m_dirStagedStore = dirPromotion;
+            f_latchStaged.countDown();
+            try
+                {
+                if (!f_latchContinue.await(30, TimeUnit.SECONDS))
+                    {
+                    throw new IOException("timed out waiting to publish promotion");
+                    }
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                throw new IOException("interrupted while waiting to publish promotion", e);
+                }
+            super.publishStagedStore(dirPromotion, dirStore);
+            }
+
+        private volatile File m_dirStagedStore;
+        private final CountDownLatch f_latchStaged   = new CountDownLatch(1);
+        private final CountDownLatch f_latchContinue = new CountDownLatch(1);
+        }
+
+
+    // ----- inner class: PromotionLockProcess -----------------------------
+
+    /**
+     * Separate JVM that holds a promotion lease until its stdin closes.
+     */
+    public static class PromotionLockProcess
+        {
+        public static void main(String[] asArgs)
+                throws Exception
+            {
+            try (FileChannel channel = FileChannel.open(new File(asArgs[0]).toPath(),
+                         StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+                 FileLock ignored = channel.lock())
+                {
+                Files.write(new File(asArgs[1]).toPath(), new byte[] {1});
+                System.in.read();
+                }
+            }
         }
 
 

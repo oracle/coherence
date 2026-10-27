@@ -45,9 +45,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,17 +124,13 @@ public class JournalPersistenceManager
 
         f_fStagingManager = fStagingManager;
 
-        File fileDataAbsolute = fileData.getAbsoluteFile();
+        File fileDataAbsolute = fileData.getCanonicalFile();
         f_dirPromotion = new File(fileDataAbsolute.getParentFile(),
                 '.' + fileDataAbsolute.getName() + ".journal-promotion");
 
-        // A promotion is built outside the live store directory and published
-        // with a single atomic rename. Anything left here is necessarily from
-        // a process that stopped before publication and can never be a recovery
-        // candidate.
-        if (f_dirPromotion.exists())
+        if (!fStagingManager)
             {
-            FileHelper.deleteDir(f_dirPromotion);
+            cleanupAbandonedPromotions();
             }
         }
 
@@ -553,7 +553,80 @@ public class JournalPersistenceManager
     protected void publishStagedStore(File dirPromotion, File dirStore)
             throws IOException
         {
+        long[] alExpected = f_mapPromotionExtents.get(dirPromotion);
+        if (alExpected != null)
+            {
+            validateStagedStore(dirPromotion, alExpected);
+            }
         Files.move(dirPromotion.toPath(), dirStore.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        }
+
+    /**
+     * Reject a staged copy whose metadata or declared extents disappeared
+     * before publication. A genuinely empty store remains valid when both
+     * the source and staged copy have no extents.
+     *
+     * @param dirPromotion  staged store directory
+     * @param alExpected    source extent identifiers
+     *
+     * @throws IOException if the staged store is incomplete
+     */
+    private void validateStagedStore(File dirPromotion, long[] alExpected)
+            throws IOException
+        {
+        if (!dirPromotion.isDirectory())
+            {
+            throw new IOException("journal promotion staging directory is missing: " + dirPromotion);
+            }
+
+        Properties prop = readMetadata(dirPromotion);
+        if (!isMetadataComplete(prop) || !isMetadataCompatible(prop))
+            {
+            throw new IOException("journal promotion metadata is incomplete: " + dirPromotion);
+            }
+
+        Set<Long> setExpected = new HashSet<>();
+        for (long lExtentId : alExpected)
+            {
+            setExpected.add(lExtentId);
+            if (!extentDirectory(dirPromotion, lExtentId).isDirectory())
+                {
+                throw new IOException("journal promotion extent is missing: " + lExtentId + " in " + dirPromotion);
+                }
+            }
+
+        File fileExtents = new File(dirPromotion, EXTENTS_FILENAME);
+        if (!fileExtents.isFile())
+            {
+            if (!setExpected.isEmpty())
+                {
+                throw new IOException("journal promotion extent metadata is missing: " + dirPromotion);
+                }
+            return;
+            }
+
+        Set<Long> setActual = new HashSet<>();
+        try (DataInputStream in = new DataInputStream(new BufferedInputStream(new FileInputStream(fileExtents))))
+            {
+            int cExtents = in.readInt();
+            if (cExtents < 0 || cExtents > 1000000)
+                {
+                throw new IOException("invalid journal promotion extent count: " + cExtents);
+                }
+            for (int i = 0; i < cExtents; i++)
+                {
+                setActual.add(in.readLong());
+                }
+            if (setActual.size() != cExtents)
+                {
+                throw new IOException("duplicate journal promotion extent identifiers in " + dirPromotion);
+                }
+            }
+
+        if (!setExpected.equals(setActual))
+            {
+            throw new IOException("journal promotion extent metadata differs from source: " + dirPromotion);
+            }
         }
 
     /**
@@ -568,8 +641,155 @@ public class JournalPersistenceManager
     protected File createPromotionDirectory(String sId)
             throws IOException
         {
-        File dirPromotionRoot = FileHelper.ensureDir(f_dirPromotion);
-        return Files.createTempDirectory(dirPromotionRoot.toPath(), sId + '-').toFile();
+        synchronized (PROMOTION_ROOT_MONITOR)
+            {
+            try (FileChannel channelRoot = openPromotionRootLock();
+                 FileLock ignored = channelRoot.lock())
+                {
+                File dirPromotionRoot = FileHelper.ensureDir(f_dirPromotion);
+                File dirWork = Files.createTempDirectory(dirPromotionRoot.toPath(), PROMOTION_WORK_PREFIX).toFile();
+                try
+                    {
+                    FileChannel channelWork = FileChannel.open(new File(dirWork, PROMOTION_LOCK_FILENAME).toPath(),
+                            StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+                    try
+                        {
+                        FileLock lockWork = channelWork.lock();
+                        f_mapPromotionLocks.put(dirWork, new PromotionLock(channelWork, lockWork));
+                        return dirWork;
+                        }
+                    catch (IOException | RuntimeException e)
+                        {
+                        channelWork.close();
+                        throw e;
+                        }
+                    }
+                catch (IOException | RuntimeException e)
+                    {
+                    FileHelper.deleteDirSilent(dirWork);
+                    throw e;
+                    }
+                }
+            }
+        }
+
+    /**
+     * Remove only promotion work whose owner no longer holds its file lock.
+     * The root lock serializes registration and cleanup across manager
+     * instances and processes, including on a shared snapshot directory.
+     * Work from older versions has no ownership marker and is left alone.
+     *
+     * @throws IOException on directory access failure
+     */
+    private void cleanupAbandonedPromotions()
+            throws IOException
+        {
+        if (!f_dirPromotion.exists())
+            {
+            return;
+            }
+
+        synchronized (PROMOTION_ROOT_MONITOR)
+            {
+            try (FileChannel channelRoot = openPromotionRootLock();
+                 FileLock ignored = channelRoot.lock())
+                {
+                File[] aWork = f_dirPromotion.listFiles(File::isDirectory);
+                if (aWork == null)
+                    {
+                    if (f_dirPromotion.exists())
+                        {
+                        throw new IOException("unable to list journal promotion directory " + f_dirPromotion);
+                        }
+                    return;
+                    }
+
+                for (File dirWork : aWork)
+                    {
+                    if (!dirWork.getName().startsWith(PROMOTION_WORK_PREFIX))
+                        {
+                        continue;
+                        }
+
+                    File fileLock = new File(dirWork, PROMOTION_LOCK_FILENAME);
+                    if (!fileLock.isFile())
+                        {
+                        continue;
+                        }
+
+                    boolean fAbandoned = false;
+                    try (FileChannel channelWork = FileChannel.open(fileLock.toPath(), StandardOpenOption.WRITE))
+                        {
+                        try (FileLock lockWork = channelWork.tryLock())
+                            {
+                            fAbandoned = lockWork != null;
+                            }
+                        }
+                    catch (OverlappingFileLockException e)
+                        {
+                        // Another manager in this JVM still owns the promotion.
+                        }
+
+                    if (fAbandoned)
+                        {
+                        FileHelper.deleteDir(dirWork);
+                        }
+                    }
+                }
+            }
+        }
+
+    /**
+     * Release and remove only this promotion's private work directory.
+     *
+     * @param dirWork  promotion work directory
+     */
+    private void cleanupPromotionDirectory(File dirWork)
+        {
+        PromotionLock lockWork = f_mapPromotionLocks.remove(dirWork);
+        synchronized (PROMOTION_ROOT_MONITOR)
+            {
+            try (FileChannel channelRoot = openPromotionRootLock();
+                 FileLock ignored = channelRoot.lock())
+                {
+                if (lockWork != null)
+                    {
+                    lockWork.close();
+                    }
+                FileHelper.deleteDir(dirWork);
+                }
+            catch (IOException e)
+                {
+                if (lockWork != null)
+                    {
+                    try
+                        {
+                        lockWork.close();
+                        }
+                    catch (IOException eClose)
+                        {
+                        e.addSuppressed(eClose);
+                        }
+                    }
+                Logger.warn("Unable to clean journal promotion directory " + dirWork, e);
+                }
+            }
+        }
+
+    /**
+     * Open the root lock file inside the data directory. It must not be
+     * removed while any manager can use this snapshot path, or different
+     * processes could lock different inodes under the same name.
+     *
+     * @return root lock channel
+     *
+     * @throws IOException on I/O failure
+     */
+    private FileChannel openPromotionRootLock()
+            throws IOException
+        {
+        File fileRootLock = new File(f_dirData, ".journal-promotion.lock");
+        return FileChannel.open(fileRootLock.toPath(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         }
 
     /**
@@ -775,16 +995,19 @@ public class JournalPersistenceManager
                             copyIntoStagedStore(storeFrom, dirPromotionWork);
                             }
 
-                        JournalPersistenceManager.this.publishStagedStore(dirPromotion, f_dirStore);
+                        f_mapPromotionExtents.put(dirPromotion, storeFrom.extents());
+                        try
+                            {
+                            JournalPersistenceManager.this.publishStagedStore(dirPromotion, f_dirStore);
+                            }
+                        finally
+                            {
+                            f_mapPromotionExtents.remove(dirPromotion);
+                            }
                         }
                     finally
                         {
-                        // The shared promotion root belongs to the manager and
-                        // may contain work owned by other recovery threads.
-                        // Cleanup is deliberately limited to this operation's
-                        // private directory and must not invalidate a store
-                        // that has already been published successfully.
-                        FileHelper.deleteDirSilent(dirPromotionWork);
+                        JournalPersistenceManager.this.cleanupPromotionDirectory(dirPromotionWork);
                         }
 
                     openInternal();
@@ -3923,6 +4146,40 @@ public class JournalPersistenceManager
         }
 
 
+    // ----- inner class: PromotionLock ------------------------------------
+
+    /**
+     * Process-wide lease held for the entire lifetime of a staged promotion.
+     */
+    private static class PromotionLock
+        {
+        private PromotionLock(FileChannel channel, FileLock lock)
+            {
+            f_channel = channel;
+            f_lock    = lock;
+            }
+
+        private void close()
+                throws IOException
+            {
+            try
+                {
+                if (f_lock.isValid())
+                    {
+                    f_lock.release();
+                    }
+                }
+            finally
+                {
+                f_channel.close();
+                }
+            }
+
+        private final FileChannel f_channel;
+        private final FileLock f_lock;
+        }
+
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -3964,8 +4221,25 @@ public class JournalPersistenceManager
     private final File f_dirPromotion;
 
     /**
+     * Locks for promotions currently owned by this manager. The individual
+     * leases outlive manager release until their operations finish.
+     */
+    private final Map<File, PromotionLock> f_mapPromotionLocks = new ConcurrentHashMap<>();
+
+    /**
+     * Extent manifests expected by promotions that have reached publication.
+     */
+    private final Map<File, long[]> f_mapPromotionExtents = new ConcurrentHashMap<>();
+
+    /**
      * Whether this manager writes into an already isolated promotion
      * directory and should therefore copy directly into its store directory.
      */
     private final boolean f_fStagingManager;
+
+    private static final String PROMOTION_WORK_PREFIX = "promotion-";
+
+    private static final String PROMOTION_LOCK_FILENAME = "owner.lock";
+
+    private static final Object PROMOTION_ROOT_MONITOR = new Object();
     }
