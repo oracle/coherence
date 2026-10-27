@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EventListener;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,16 @@ public class MapListenerSupport
                 mapListeners = m_mapListeners = new LiteMap();
                 }
             addSafeListener(mapListeners, filter, listener);
+
+            if (filter instanceof InKeySetFilter)
+                {
+                Set<Filter> setFilters = m_setKeySetFilters;
+                if (setFilters == null)
+                    {
+                    m_setKeySetFilters = setFilters = new HashSet<>();
+                    }
+                setFilters.add(filter);
+                }
 
             Map mapStandard = m_mapStandardListeners;
             if (mapStandard == null)
@@ -235,6 +246,15 @@ public class MapListenerSupport
             if (mapListeners != null)
                 {
                 removeSafeListener(mapListeners, filter, listener);
+                Set<Filter> setFilters = m_setKeySetFilters;
+                if (setFilters != null && !mapListeners.containsKey(filter))
+                    {
+                    setFilters.remove(filter);
+                    if (setFilters.isEmpty())
+                        {
+                        m_setKeySetFilters = null;
+                        }
+                    }
                 if (mapListeners.isEmpty())
                     {
                     m_mapListeners = null;
@@ -390,6 +410,7 @@ public class MapListenerSupport
         m_mapKeyListeners = null;
         m_mapStandardListeners = null;
         m_mapStandardKeyListeners = null;
+        m_setKeySetFilters = null;
 
         m_nOptimizationPlan = PLAN_NO_LISTENERS;
         m_listenersCached   = null;
@@ -736,6 +757,25 @@ public class MapListenerSupport
                     for (Filter filter : aFilters)
                         {
                         listeners.addAll((Listeners) mapListeners.get(filter));
+                        }
+
+                    // COH-34044 - InKeySetFilter represents a batch of key subscriptions:
+                    // SafeNamedCache retains it as a filter, but the underlying
+                    // Extend and partitioned caches register it as key listeners.
+                    // Unlike ordinary filters, it has no matching filter ID in
+                    // the incoming event, so the filter list above is insufficient
+                    // to select its listeners. Check key membership separately,
+                    // preserving the exclusion of key listeners from transformed events.
+                    Set<Filter> setFilters = m_setKeySetFilters;
+                    if (setFilters != null && !isTransformedEvent(event))
+                        {
+                        for (Filter filter : setFilters)
+                            {
+                            if (evaluateEvent(filter, event))
+                                {
+                                listeners.addAll((Listeners) mapListeners.get(filter));
+                                }
+                            }
                         }
                     }
                 }
@@ -1705,6 +1745,14 @@ public class MapListenerSupport
     * corresponding Filter objects.
     */
     protected Map m_mapListeners;
+
+    /**
+    * The subset of registered filters that represent key-set subscriptions.
+    * Registrations change less frequently than events arrive, so maintaining
+    * this subset avoids scanning every registered filter during event dispatch.
+    * Access is synchronized on this support object.
+    */
+    protected Set<Filter> m_setKeySetFilters;
 
     /**
     * The collections of MapListener objects that have signed up for key based
