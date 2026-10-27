@@ -196,6 +196,60 @@ public class TcpConnectionCloseTest
         assertClosed(connection, gate, peer);
         }
 
+    @Test
+    public void shouldCompleteDeferredCloseAfterCloseRequestLimit() throws Exception
+        {
+        assertDeferredCloseAfterLimit(new TestPeer());
+        }
+
+    @Test
+    public void shouldRouteDeferredCloseAfterCloseRequestLimit() throws Exception
+        {
+        assertDeferredCloseAfterLimit(new OwnerRoutingPeer());
+        }
+
+    private void assertDeferredCloseAfterLimit(TestPeer peer) throws Exception
+        {
+        ThreadGate     gate       = new ThreadGate();
+        TestConnection connection = new TestConnection(gate, peer);
+        Throwable      error      = new IllegalStateException("deferred close");
+
+        try (Worker worker = new Worker(connection))
+            {
+            for (int i = 0; i < 100; i++)
+                {
+                connection.close(false, error, false);
+                }
+            assertEquals(100, connection.getPendingCloses());
+            assertTrue(connection.isOpen());
+            assertTrue(connection.isCloseOnExit());
+            assertEquals(0, peer.f_cClosed.get());
+
+            int cAttempts = connection.f_cCloseAttempts.get();
+            connection.close(true, new IllegalArgumentException("duplicate close"), false);
+            assertEquals(100, connection.getPendingCloses());
+            assertEquals("ordinary duplicate requests must remain throttled",
+                    cAttempts, connection.f_cCloseAttempts.get());
+
+            if (peer instanceof OwnerRoutingPeer owner)
+                {
+                worker.f_release.countDown();
+                owner.drainClose();
+                worker.finish();
+                assertEquals("deferred completion must reach the owner despite the request limit",
+                        1, owner.f_cRoutedCloses.get());
+                }
+            else
+                {
+                worker.finish();
+                }
+
+            assertClosed(connection, gate, peer);
+            assertSame(error, peer.m_error);
+            assertEquals(1, peer.f_cErrors.get());
+            }
+        }
+
     private void assertLastWorkerClose(boolean fNotify, Throwable error) throws Exception
         {
         DrainBeforeOpenGate gate = new DrainBeforeOpenGate();
@@ -340,12 +394,21 @@ public class TcpConnectionCloseTest
             }
 
         @Override
+        public boolean closeInternal(boolean fNotify, Throwable error, long cMillis)
+            {
+            f_cCloseAttempts.incrementAndGet();
+            return super.closeInternal(fNotify, error, cMillis);
+            }
+
+        @Override
         protected Channel createChannel()
             {
             TestChannel channel = new TestChannel();
             channel.setConnection(this);
             return channel;
             }
+
+        final AtomicInteger f_cCloseAttempts = new AtomicInteger();
         }
 
     private static class TestChannel extends Channel
