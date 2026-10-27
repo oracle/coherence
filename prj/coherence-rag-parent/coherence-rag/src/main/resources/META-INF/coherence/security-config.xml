@@ -9,6 +9,7 @@
                  version="1.0">
   <allowed-classes>
     <class name="com.oracle.coherence.rag.api.RagSecurity$PolicyViolation" source="manual"/>
+    <class name="com.oracle.coherence.rag.api.Store" source="manual"/>
     <class name="com.oracle.coherence.rag.config.ConfigKey" source="manual"/>
     <class name="com.oracle.coherence.rag.config.StoreConfig" source="manual"/>
     <class name="com.oracle.coherence.rag.config.index.BinaryQuantIndexConfig" source="manual"/>
