@@ -95,16 +95,15 @@
     <docker.image.name>${docker.registry}/coherence-ce:${project.version}${docker.image.suffix}</docker.image.name>
     <docker.image.arch>amd64</docker.image.arch>
     <!--
-    The base image for the Coherence image - ideally a distroless OpenJDK image.
-    We build both x86_64 (arm64) and AMD64 images so need a base image for both of these
-    that uses the correct architecture.
+    Oracle Linux base images for the standard Coherence JDK images.
+    We build both amd64 and arm64 images; Buildah selects the matching architecture.
     Image names MUST include a registry prefix (for example even Docker Hub images need a docker.io/
     prefix. This is because the images are NOT built using Docker.
     -->
-    <docker.base.image.name.amd>gcr.io/distroless/java-base-debian12</docker.base.image.name.amd>
-    <docker.base.image.name.arm>gcr.io/distroless/java-base-debian12</docker.base.image.name.arm>
-    <docker.base.image.name.amd.21>gcr.io/distroless/java21-debian12</docker.base.image.name.amd.21>
-    <docker.base.image.name.arm.21>gcr.io/distroless/java21-debian12</docker.base.image.name.arm.21>
+    <docker.base.image.name.amd>container-registry.oracle.com/os/oraclelinux:10-slim</docker.base.image.name.amd>
+    <docker.base.image.name.arm>container-registry.oracle.com/os/oraclelinux:10-slim</docker.base.image.name.arm>
+    <docker.base.image.name.amd.21>container-registry.oracle.com/os/oraclelinux:10-slim</docker.base.image.name.amd.21>
+    <docker.base.image.name.arm.21>container-registry.oracle.com/os/oraclelinux:10-slim</docker.base.image.name.arm.21>
     <graalvm.base.image.name.amd>container-registry.oracle.com/graalvm/jdk:${graalvm.image.tag}</graalvm.base.image.name.amd>
     <graalvm.base.image.name.arm>container-registry.oracle.com/graalvm/jdk:${graalvm.image.tag}</graalvm.base.image.name.arm>
     <graalvm.image.skip>false</graalvm.image.skip>

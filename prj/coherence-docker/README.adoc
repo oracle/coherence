@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Coherence OCI Image
 
@@ -19,8 +19,9 @@ for demos, experimentation and learning purposes.
 
 === Image Contents
 
-The Coherence image uses a distroless base image containing OpenJDK.
-There are many advantages of a distroless image, security being the main one.
+The standard Coherence images use an Oracle Linux 10 slim base image from
+`container-registry.oracle.com/os/oraclelinux:10-slim` with an Oracle JDK.
+The default image uses JDK 25, and the `-java21` variant uses JDK 21.
 Of course, you are free to use whatever base image or build mechanism you want for your own images.
 
 The image built by the `coherence-docker` module contains the following Coherence components:
