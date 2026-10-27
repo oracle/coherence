@@ -157,6 +157,7 @@
         <module>jpa</module>
         <module>lambda</module>
         <module>logging</module>
+        <module>lucene</module>
         <module>management</module>
         <module>mp-config</module>
         <module>mp-health</module>
