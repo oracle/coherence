@@ -59,6 +59,7 @@
     <class name="com.tangosol.net.cache.OldOldCache$KeySet" source="manual"/>
     <class name="com.tangosol.net.cache.OldOldCache$ValuesCollection" source="manual"/>
     <class name="com.tangosol.net.topic.PublisherOptionTest" source="manual"/>
+    <class name="com.tangosol.net.topic.SubscriberOptionTest" source="manual"/>
     <class name="com.tangosol.run.xml.XmlBeanTest$NarrowBean" source="manual"/>
     <class name="com.tangosol.util.ExternalizableHelperTest$Point" source="manual"/>
     <class name="com.tangosol.util.LongArrayTest$ReferenceImpl" source="manual"/>
