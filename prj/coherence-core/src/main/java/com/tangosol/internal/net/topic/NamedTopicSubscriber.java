@@ -1122,6 +1122,11 @@ public class NamedTopicSubscriber<V>
         else
             {
             f_queueReceiveOrders.resetTrigger();
+            if (isActive())
+                {
+                // wake reconnection if the delayed task already skipped an empty queue
+                f_daemon.executeTask(this::reconnectInternal);
+                }
             }
         }
 
