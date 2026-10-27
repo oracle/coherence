@@ -138,6 +138,65 @@ public class JournalPersistenceManagerTest
         }
 
     /**
+     * Closing a never-opened placeholder must not turn an empty partition into
+     * an incomplete store that recovery rejects.
+     */
+    @Test
+    public void testCloseUnopenedStoreKeepsEmptyDirectory()
+        {
+        m_manager.createStore(TEST_STORE_ID);
+        m_manager.close(TEST_STORE_ID);
+
+        assertEquals(0, m_fileStore.list().length);
+        assertTrue(m_manager.isEmpty(TEST_STORE_ID));
+        assertTrue(m_manager.open(TEST_STORE_ID, null).isOpen());
+        }
+
+    /**
+     * Manager shutdown must preserve never-opened placeholders as empty stores.
+     *
+     * @throws IOException on test failure
+     */
+    @Test
+    public void testReleaseUnopenedStoreKeepsEmptyDirectory()
+            throws IOException
+        {
+        m_manager.createStore(TEST_STORE_ID);
+        m_manager.release();
+        m_manager = createPersistenceManager();
+
+        assertEquals(0, m_fileStore.list().length);
+        assertTrue(m_manager.isEmpty(TEST_STORE_ID));
+        assertTrue(m_manager.open(TEST_STORE_ID, null).isOpen());
+        }
+
+    /**
+     * Releasing an unopened handle to an existing store must not replace its
+     * persisted extent list with the handle's uninitialized empty list.
+     *
+     * @throws IOException on test failure
+     */
+    @Test
+    public void testReleaseUnopenedExistingStorePreservesExtents()
+            throws IOException
+        {
+        Binary binKey   = new Binary(new byte[] {1});
+        Binary binValue = new Binary(new byte[] {11});
+        AbstractPersistentStore store = (AbstractPersistentStore) m_manager.open(TEST_STORE_ID, null);
+        store.ensureExtent(1L);
+        store.store(1L, binKey, binValue, null);
+        m_manager.close(TEST_STORE_ID);
+
+        m_manager.createStore(TEST_STORE_ID);
+        m_manager.release();
+        m_manager = createPersistenceManager();
+
+        assertFalse(m_manager.isEmpty(TEST_STORE_ID));
+        store = (AbstractPersistentStore) m_manager.open(TEST_STORE_ID, null);
+        assertEquals(binValue, store.load(1L, binKey));
+        }
+
+    /**
      * Verify a process failure before promotion publication cannot expose a
      * partially copied store in the live persistence directory.
      *

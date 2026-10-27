@@ -838,7 +838,9 @@ public class JournalPersistenceManager
         @Override
         protected void releaseInternal()
             {
-            if (!m_fDeleteInProgress)
+            // unopened placeholders have no initialized extent list or metadata;
+            // writing here would make an empty store appear incompletely opened
+            if (!m_fDeleteInProgress && isOpen())
                 {
                 try
                     {
