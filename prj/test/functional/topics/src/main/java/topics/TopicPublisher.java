@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package topics;
 
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
@@ -94,9 +95,14 @@ public class TopicPublisher
                 }
 
             }
+        catch (InterruptedException e)
+            {
+            Thread.currentThread().interrupt();
+            throw Exceptions.ensureRuntimeException(e);
+            }
         catch (Exception e)
             {
-            e.printStackTrace();
+            throw Exceptions.ensureRuntimeException(e);
             }
         finally
             {

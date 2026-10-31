@@ -23100,7 +23100,6 @@ public class Cluster
                     try
                         {
                         setChannelArray(new com.tangosol.util.SparseArray());
-                        setChannelPendingArray(new com.tangosol.util.SparseArray());
                         }
                     catch (java.lang.Exception e)
                         {
