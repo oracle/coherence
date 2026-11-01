@@ -746,6 +746,13 @@ public class BerkeleyDBSimplePersistenceTests
 
             assertEquals(5000, cache.size());
 
+            Map<Integer, Integer> mapExpected = new HashMap<>();
+            for (int i = 0; i < 5000; i++)
+                {
+                mapExpected.put(i, i);
+                }
+            assertEquals("recovered keys and values", mapExpected, cache.getAll(mapExpected.keySet()));
+
             stopCacheServer(sServer5);
             }
         finally

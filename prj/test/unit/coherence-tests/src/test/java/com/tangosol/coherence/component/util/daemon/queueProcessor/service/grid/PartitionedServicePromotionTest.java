@@ -13,18 +13,26 @@ import com.oracle.coherence.persistence.PersistentStore;
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
 
+import com.tangosol.net.Member;
+
 import com.tangosol.persistence.CachePersistenceHelper;
+import com.tangosol.persistence.GUIDHelper;
+import com.tangosol.persistence.bdb.BerkeleyDBManager;
 import com.tangosol.persistence.journal.JournalPersistenceManager;
 
 import com.tangosol.util.Binary;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.io.IOException;
 
 import java.nio.file.Files;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -43,13 +51,25 @@ import static org.mockito.Mockito.when;
  * @author Aleks Seovic  2026.10.26
  * @since 26.10
  */
+@RunWith(Parameterized.class)
 public class PartitionedServicePromotionTest
     {
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection<Object[]> engines()
+        {
+        return List.of(new Object[] {"Journal"}, new Object[] {"BDB"});
+        }
+
+    public PartitionedServicePromotionTest(String sEngine)
+        {
+        f_sEngine = sEngine;
+        }
+
     @Test
     public void shouldPreserveBackupAfterCrashBeforeActiveSeal()
             throws Exception
         {
-        try (PromotionContext context = new PromotionContext())
+        try (PromotionContext context = new PromotionContext(f_sEngine))
             {
             context.releaseManagers();
 
@@ -61,7 +81,7 @@ public class PartitionedServicePromotionTest
                     "-Dcoherence.log.level=2",
                     "-cp", System.getProperty("java.class.path"),
                     HaltDuringPromotion.class.getName(),
-                    context.f_dirActive.getPath(), context.f_dirBackup.getPath())
+                    context.f_dirActive.getPath(), context.f_dirBackup.getPath(), f_sEngine)
                     .redirectErrorStream(true)
                     .redirectOutput(fileOutput)
                     .start();
@@ -91,7 +111,7 @@ public class PartitionedServicePromotionTest
     public void shouldDeleteBackupAfterSuccessfulActiveSeal()
             throws Exception
         {
-        try (PromotionContext context = new PromotionContext())
+        try (PromotionContext context = new PromotionContext(f_sEngine))
             {
             context.f_service.promote();
 
@@ -105,7 +125,7 @@ public class PartitionedServicePromotionTest
     public void shouldPreserveBackupWhenServiceIsExiting()
             throws Exception
         {
-        try (PromotionContext context = new PromotionContext())
+        try (PromotionContext context = new PromotionContext(f_sEngine))
             {
             context.f_service.m_fExiting = true;
             context.f_service.promote();
@@ -119,7 +139,7 @@ public class PartitionedServicePromotionTest
     public void shouldPreserveBackupWhenServiceIsStopping()
             throws Exception
         {
-        try (PromotionContext context = new PromotionContext())
+        try (PromotionContext context = new PromotionContext(f_sEngine))
             {
             context.f_service.m_fStopping = true;
             context.f_service.promote();
@@ -130,12 +150,13 @@ public class PartitionedServicePromotionTest
         }
 
     @Test
-    public void shouldPreserveBackupWhenActiveStoreIsClosed()
+    public void shouldPreserveBackupWhenActiveStoreCannotBeOpened()
             throws Exception
         {
-        try (PromotionContext context = new PromotionContext())
+        try (PromotionContext context = new PromotionContext(f_sEngine))
             {
             context.m_active.close(STORE_ID);
+            context.f_service.f_control.m_fOpenStore = false;
             context.f_service.promote();
 
             context.assertBackupRecoverable();
@@ -146,7 +167,7 @@ public class PartitionedServicePromotionTest
     public void shouldPreserveBackupWhenActiveSealFails()
             throws Exception
         {
-        try (PromotionContext context = new PromotionContext())
+        try (PromotionContext context = new PromotionContext(f_sEngine))
             {
             PersistentStore<ReadBuffer> store = mock(PersistentStore.class);
             when(store.isOpen()).thenReturn(true);
@@ -163,13 +184,78 @@ public class PartitionedServicePromotionTest
     public void shouldHonorDirectBackupRetentionAfterActiveSeal()
             throws Exception
         {
-        try (PromotionContext context = new PromotionContext())
+        try (PromotionContext context = new PromotionContext(f_sEngine))
             {
             context.f_service.m_fRetainBackup = true;
             context.f_service.promote();
 
             CachePersistenceHelper.validateForActiveRecovery(context.m_storeActive, context.f_service);
             context.assertBackupRecoverable();
+            }
+        }
+
+    @Test
+    public void shouldReopenActiveStoreBeforeRetiringBackup()
+            throws Exception
+        {
+        try (PromotionContext context = new PromotionContext(f_sEngine))
+            {
+            context.m_active.close(STORE_ID);
+            context.f_service.promote();
+
+            PersistentStore<ReadBuffer> store = context.f_service.f_control.getPersistentStore();
+            CachePersistenceHelper.validateForActiveRecovery(store, context.f_service);
+            assertEquals(VALUE, store.load(1L, KEY));
+            assertFalse(context.backupMetadata().exists());
+            }
+        }
+
+    @Test
+    public void shouldPreserveBackupWhenActiveOpenFails()
+            throws Exception
+        {
+        try (PromotionContext context = new PromotionContext(f_sEngine))
+            {
+            context.m_active.close(STORE_ID);
+            context.f_service.f_control.m_fFailOpen = true;
+            assertThrows(IllegalStateException.class, context.f_service::promote);
+
+            context.assertBackupRecoverable();
+            }
+        }
+
+    @Test
+    public void shouldRecoverLaterWritesAfterEmptyPromotion()
+            throws Exception
+        {
+        try (PromotionContext context = new PromotionContext(f_sEngine, false))
+            {
+            assertFalse(context.m_storeActive.isOpen());
+            context.f_service.promote();
+            PersistentStore<ReadBuffer> store = context.f_service.f_control.getPersistentStore();
+            boolean fSealed = store.isOpen() && CachePersistenceHelper.isSealed(store);
+
+            // later mutations open and seal the current store, but cannot update an obsolete backup
+            store = context.m_active.open(STORE_ID, null);
+            CachePersistenceHelper.seal(store, context.f_service, null);
+            context.populate(store);
+            context.releaseManagers();
+            context.reopenManagers();
+
+            GUIDHelper.GUIDResolver resolver = new GUIDHelper.GUIDResolver(257);
+            Member memberActive = mock(Member.class);
+            Member memberBackup = mock(Member.class);
+            when(memberActive.getId()).thenReturn(1);
+            when(memberBackup.getId()).thenReturn(2);
+            resolver.registerStoreInfo(memberActive, context.m_active.listStoreInfo());
+            resolver.registerStoreInfo(memberBackup, context.m_backup.listStoreInfo());
+
+            assertEquals("obsolete backup won recovery selection", STORE_ID, resolver.getNewestGUID(92));
+            PersistentStore<ReadBuffer> recovered = context.m_active.open(resolver.getNewestGUID(92), null);
+            CachePersistenceHelper.validateForActiveRecovery(recovered, context.f_service);
+            assertEquals(VALUE, recovered.load(1L, KEY));
+            assertTrue("empty active store was not sealed during promotion", fSealed);
+            assertFalse("obsolete backup survived promotion", context.backupMetadata().exists());
             }
         }
 
@@ -183,9 +269,9 @@ public class PartitionedServicePromotionTest
         public static void main(String[] asArgs)
                 throws Exception
             {
-            JournalPersistenceManager active = new JournalPersistenceManager(new File(asArgs[0]), null, null);
-            JournalPersistenceManager backup = new JournalPersistenceManager(new File(asArgs[1]), null, null);
-            TestService service = new TestService(backup);
+            PersistenceManager<ReadBuffer> active = createManager(asArgs[2], new File(asArgs[0]));
+            PersistenceManager<ReadBuffer> backup = createManager(asArgs[2], new File(asArgs[1]));
+            TestService service = new TestService(active, backup);
             service.f_control.configure(active.open(STORE_ID, null), backup.open(STORE_ID, null));
             service.m_fHalt = true;
             service.promote();
@@ -195,25 +281,48 @@ public class PartitionedServicePromotionTest
 
     // ----- test fixtures --------------------------------------------------
 
+    private static PersistenceManager<ReadBuffer> createManager(String sEngine, File directory)
+            throws IOException
+        {
+        return "Journal".equals(sEngine)
+                ? new JournalPersistenceManager(directory, null, null)
+                : new BerkeleyDBManager(directory, null, null);
+        }
+
     private static class PromotionContext
             implements AutoCloseable
         {
-        private PromotionContext()
+        private PromotionContext(String sEngine)
                 throws IOException
             {
+            this(sEngine, true);
+            }
+
+        private PromotionContext(String sEngine, boolean fPopulated)
+                throws IOException
+            {
+            f_sEngine   = sEngine;
+            f_sBackupId = fPopulated ? STORE_ID : BACKUP_ID;
             f_dirRoot   = FileHelper.createTempDir();
             f_dirActive = new File(f_dirRoot, "active");
             f_dirBackup = new File(f_dirRoot, "backup");
             reopenManagers();
-            f_service = new TestService(m_backup);
+            f_service = new TestService(m_active, m_backup);
 
-            PersistentStore<ReadBuffer> storeBackup = m_backup.open(STORE_ID, null);
-            populate(storeBackup);
+            PersistentStore<ReadBuffer> storeBackup = m_backup.open(f_sBackupId, null);
+            storeBackup.ensureExtent(1L);
+            if (fPopulated)
+                {
+                populate(storeBackup);
+                }
             CachePersistenceHelper.seal(storeBackup, f_service, null);
 
             // ordinary backing maps copy entries before the service seals the active store
-            m_storeActive = m_active.open(STORE_ID, null);
-            populate(m_storeActive);
+            m_storeActive = fPopulated ? m_active.open(STORE_ID, null) : m_active.createStore(STORE_ID);
+            if (fPopulated)
+                {
+                populate(m_storeActive);
+                }
             f_service.f_control.configure(m_storeActive, storeBackup);
             }
 
@@ -226,13 +335,13 @@ public class PartitionedServicePromotionTest
 
         private File backupMetadata()
             {
-            return new File(new File(f_dirBackup, STORE_ID), CachePersistenceHelper.META_FILENAME);
+            return new File(new File(f_dirBackup, f_sBackupId), CachePersistenceHelper.META_FILENAME);
             }
 
         private void assertBackupRecoverable()
             {
             assertTrue("last recoverable backup was removed", backupMetadata().isFile());
-            PersistentStore<ReadBuffer> store = m_backup.open(STORE_ID, null);
+            PersistentStore<ReadBuffer> store = m_backup.open(f_sBackupId, null);
             CachePersistenceHelper.validateForActiveRecovery(store, f_service);
             assertEquals(VALUE, store.load(1L, KEY));
             }
@@ -254,8 +363,8 @@ public class PartitionedServicePromotionTest
         private void reopenManagers()
                 throws IOException
             {
-            m_active = new JournalPersistenceManager(f_dirActive, null, null);
-            m_backup = new JournalPersistenceManager(f_dirBackup, null, null);
+            m_active = createManager(f_sEngine, f_dirActive);
+            m_backup = createManager(f_sEngine, f_dirBackup);
             }
 
         @Override
@@ -270,18 +379,20 @@ public class PartitionedServicePromotionTest
         private final File f_dirActive;
         private final File f_dirBackup;
         private final TestService f_service;
-        private JournalPersistenceManager m_active;
-        private JournalPersistenceManager m_backup;
+        private final String f_sEngine;
+        private final String f_sBackupId;
+        private PersistenceManager<ReadBuffer> m_active;
+        private PersistenceManager<ReadBuffer> m_backup;
         private PersistentStore<ReadBuffer> m_storeActive;
         }
 
     private static class TestService
             extends PartitionedService
         {
-        private TestService(PersistenceManager<ReadBuffer> backup)
+        private TestService(PersistenceManager<ReadBuffer> active, PersistenceManager<ReadBuffer> backup)
             {
             super(null, null, false);
-            f_control = new TestControl(this);
+            f_control = new TestControl(this, active);
             f_persistence = new TestPersistenceControl(backup);
             }
 
@@ -359,10 +470,11 @@ public class PartitionedServicePromotionTest
     private static class TestControl
             extends PartitionedService.PartitionControl
         {
-        private TestControl(PartitionedService service)
+        private TestControl(PartitionedService service, PersistenceManager<ReadBuffer> active)
             {
             super(null, null, false);
             f_service = service;
+            f_active  = active;
             }
 
         private void configure(PersistentStore<ReadBuffer> active, PersistentStore<ReadBuffer> backup)
@@ -383,7 +495,26 @@ public class PartitionedServicePromotionTest
             return getPersistentStore();
             }
 
+        @Override
+        public PersistentStore<ReadBuffer> ensureOpenPersistentStore()
+            {
+            if (m_fFailOpen)
+                {
+                throw new IllegalStateException("injected open failure");
+                }
+            PersistentStore<ReadBuffer> store = getPersistentStore();
+            if (!store.isOpen() && m_fOpenStore)
+                {
+                store = f_active.open(store.getId(), null);
+                setPersistentStore(store);
+                }
+            return store;
+            }
+
         private final PartitionedService f_service;
+        private final PersistenceManager<ReadBuffer> f_active;
+        private boolean m_fOpenStore = true;
+        private boolean m_fFailOpen;
         }
 
     private static class TestPersistenceControl
@@ -406,6 +537,8 @@ public class PartitionedServicePromotionTest
 
     private static final int HALT_STATUS = 23;
     private static final String STORE_ID = "92-2-1a16adaabc7-3";
+    private static final String BACKUP_ID = "92-3-1a16adaabc7-3";
     private static final Binary KEY = new Binary(new byte[] {1, 8});
     private static final Binary VALUE = new Binary(new byte[] {8});
+    private final String f_sEngine;
     }

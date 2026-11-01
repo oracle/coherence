@@ -4815,7 +4815,8 @@ public abstract class PartitionedService
                         com.tangosol.persistence.CachePersistenceHelper.seal(storeEvents, this, /*oToken*/ null);
                         }
 
-                    com.oracle.coherence.persistence.PersistentStore store = ctrl.ensurePersistentStore();
+                    // even an empty promoted store must be opened before it can be sealed
+                    com.oracle.coherence.persistence.PersistentStore store = ctrl.ensureOpenPersistentStore();
                     com.tangosol.persistence.CachePersistenceHelper.seal(store, this, /*oToken*/ null);
 
                     if (store.isOpen() && isBackupPersistence() && !shouldRetainBackupPersistentStore(iPartition))
