@@ -2650,21 +2650,17 @@ public abstract class PartitionedService
                 else if (nStrength > BACKUP_STRENGTH_NODE &&
                          memberThis.getMachineId() == memberThat.getMachineId())
                     {
-                    return BACKUP_STRENGTH_NODE;
+                    nStrength = BACKUP_STRENGTH_NODE;
                     }
                 else if (nStrength > BACKUP_STRENGTH_MACHINE && 
                          Base.equals(memberThis.getRackName(), memberThat.getRackName()))
                     {
-                    return BACKUP_STRENGTH_MACHINE;
+                    nStrength = BACKUP_STRENGTH_MACHINE;
                     }
                 else if (nStrength > BACKUP_STRENGTH_RACK && 
                          Base.equals(memberThis.getSiteName(), memberThat.getSiteName()))
                     {
-                    return BACKUP_STRENGTH_RACK;
-                    }
-                else
-                    {
-                    return nStrength;
+                    nStrength = BACKUP_STRENGTH_RACK;
                     }
                 }
             }

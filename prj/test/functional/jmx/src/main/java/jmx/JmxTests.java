@@ -23,6 +23,7 @@ import com.tangosol.net.Cluster;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.PartitionedService;
 import com.tangosol.net.ServiceInfo;
 import com.tangosol.net.events.EventInterceptor;
 
@@ -251,6 +252,15 @@ public class JmxTests
         CoherenceClusterMember member1 = startCacheServerWithIdentity("server1-" + sStrategy, "site1", "rack1", "machine1");
         checkCacheStatusHA(sService, iNodeId, sEndangered);
 
+        CoherenceClusterMember memberExtra = null;
+        if (cBackup == 2)
+            {
+            // two backups require three storage members in distinct failure domains
+            memberExtra = startCacheServerWithIdentity("server-extra-" + sStrategy, "site-extra", "rack-extra", "machine-extra");
+            Eventually.assertDeferred(() -> ((PartitionedService) service).getOwnershipEnabledMembers().size(), is(2));
+            checkCacheStatusHA(sService, iNodeId, sEndangered);
+            }
+
         CoherenceClusterMember member2 = startCacheServerWithIdentity("server2-" + sStrategy, "site2", "rack2", "machine2");
         checkCacheStatusHA(sService, iNodeId, sSite);
         stopCacheServer("server2-" + sStrategy);
@@ -273,6 +283,12 @@ public class JmxTests
 
         stopCacheServer("server1-" + sStrategy);
         member1.waitFor();
+
+        if (memberExtra != null)
+            {
+            stopCacheServer("server-extra-" + sStrategy);
+            memberExtra.waitFor();
+            }
         }
 
     /**
