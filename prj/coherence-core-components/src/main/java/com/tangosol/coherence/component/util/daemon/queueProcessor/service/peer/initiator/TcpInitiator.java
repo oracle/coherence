@@ -1463,7 +1463,6 @@ public class TcpInitiator
             try
                 {
                 setChannelArray(new com.tangosol.util.SparseArray());
-                setChannelPendingArray(new com.tangosol.util.SparseArray());
                 setDataOutputStreamLock(new java.util.concurrent.locks.ReentrantLock());
                 }
             catch (java.lang.Exception e)
