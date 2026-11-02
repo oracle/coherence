@@ -314,6 +314,22 @@ public class VersionHelper
         }
 
     /**
+     * Return {@code true} iff the actual calendar version is at least the
+     * required version and has the same major, minor and micro prefix.
+     * Unlike patch compatibility, this comparison permits later calendar years.
+     *
+     * @param nRequired  the required calendar version in its encoded form
+     * @param nActual    the actual calendar version in its encoded form
+     *
+     * @return whether the actual calendar version is compatible
+     */
+    public static boolean isCalendarVersionCompatible(int nRequired, int nActual)
+        {
+        // calendar years and half-year/patch values occupy the lowest twelve bits
+        return (nRequired >>> 12) == (nActual >>> 12) && nRequired <= nActual;
+        }
+
+    /**
      * This method will map Fusion Apps versions to the correct Coherence version.
      *
      * @param anVersion  the possible FA version to resolve to a Coherence version
@@ -422,19 +438,19 @@ public class VersionHelper
     public static final int VERSION_26_1_0_0_0 = encodeVersion(26, 1, 0, 0, 0);
 
     /**
-     * The encoded CE 26.01.0 version.
+     * The encoded CE 26.07.0 version.
      */
-    public static final int VERSION_26_01 = encodeVersion(26, 1, 0);
+    public static final int VERSION_26_07 = encodeVersion(26, 7, 0);
+
+    /**
+     * The encoded CE 26.07.0 version with the legacy 15.0.0 prefix.
+     */
+    public static final int VERSION_26_07_LEGACY_CE_PREFIX = parseVersion("15.0.0.26.07");
 
     /**
      * The encoded CE 26.10.0 version.
      */
     public static final int VERSION_26_10 = encodeVersion(26, 10, 0);
-
-    /**
-     * The encoded CE 26.01.0 cluster-service version.
-     */
-    public static final int VERSION_26_01_INTERNAL = encodeVersion(15, 0, 0, 2601, 0);
 
     /**
      * The encoded 15.1.1.0.4 version.
