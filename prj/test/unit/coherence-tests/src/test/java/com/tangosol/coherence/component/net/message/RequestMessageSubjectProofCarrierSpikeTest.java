@@ -91,9 +91,8 @@ public class RequestMessageSubjectProofCarrierSpikeTest
     @Test
     public void shouldEvaluateSubjectProofV1CompatibilityPredicate()
         {
-        assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(15, 0, 0, 2601, 0)));
-        assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(26, 1, 0)));
-        assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(15, 1, 2, 0, 0)));
+        assertTrue(RequestMessage.isRequestExtensionCompatible(VersionHelper.encodeVersion(26, 1, 0, 0, 0)));
+        assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(26, 1, 0, 0, 0)));
         assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(15, 1, 1, 0, 4)));
         assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(14, 1, 2, 0, 8)));
         assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(14, 1, 1, 2206, 18)));
@@ -105,6 +104,31 @@ public class RequestMessageSubjectProofCarrierSpikeTest
         assertFalse(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(14, 1, 1, 2206, 17)));
         assertFalse(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(14, 1, 1, 0, 26)));
         assertFalse(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(12, 2, 1, 4, 30)));
+        }
+
+    @Test
+    public void shouldAcceptSupportedCeReleaseVersions()
+        {
+        for (String sVersion : new String[] {"26.07", "26.10", "27.01", "27.07", "28.01",
+                "15.0.0.26.07", "15.0.0.26.10", "15.0.0.27.01", "15.0.0.27.07", "15.0.0.28.01",
+                "15.0.0.2607.0", "15.0.0.2701.0", "26.1.0.0.0", "26.1.0.0.1"})
+            {
+            int nVersion = VersionHelper.parseVersion(sVersion);
+            assertTrue(sVersion, RequestMessage.isRequestExtensionCompatible(nVersion));
+            assertTrue(sVersion, RequestMessage.isSubjectProofV1Compatible(nVersion));
+            }
+        }
+
+    @Test
+    public void shouldRejectUnsupportedCeAndCommercialVersions()
+        {
+        for (String sVersion : new String[] {"26.04", "15.0.0.26.04", "25.03", "25.10", "15.0.0.25.10.31", "15.0.1.27.01",
+                "15.1.1.0.3", "14.1.2.0.7", "14.1.1.2206.17", "14.1.1.0.26", "12.2.1.4.30"})
+            {
+            int nVersion = VersionHelper.parseVersion(sVersion);
+            assertFalse(sVersion, RequestMessage.isRequestExtensionCompatible(nVersion));
+            assertFalse(sVersion, RequestMessage.isSubjectProofV1Compatible(nVersion));
+            }
         }
 
     @Test
@@ -339,13 +363,13 @@ public class RequestMessageSubjectProofCarrierSpikeTest
         @Override
         public boolean isVersionCompatible(Member member, IntPredicate predicate)
             {
-            return m_fSenderCompatible && predicate.test(VersionHelper.encodeVersion(15, 0, 0, 2601, 0));
+            return m_fSenderCompatible && predicate.test(VersionHelper.encodeVersion(26, 1, 0, 0, 0));
             }
 
         @Override
         public boolean isVersionCompatible(MemberSet setMembers, IntPredicate predicate)
             {
-            return m_fRecipientsCompatible && predicate.test(VersionHelper.encodeVersion(15, 0, 0, 2601, 0));
+            return m_fRecipientsCompatible && predicate.test(VersionHelper.encodeVersion(26, 1, 0, 0, 0));
             }
 
         public void setRecipientsCompatible(boolean fCompatible)
