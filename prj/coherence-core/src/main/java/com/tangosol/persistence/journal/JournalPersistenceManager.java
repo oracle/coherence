@@ -67,6 +67,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1061,21 +1062,44 @@ public class JournalPersistenceManager
         @Override
         protected void releaseInternal()
             {
-            // unopened placeholders have no initialized extent list or metadata;
-            // writing here would make an empty store appear incompletely opened
-            if (!m_fDeleteInProgress && isOpen())
+            Throwable failure = null;
+            try
                 {
-                try
+                // unopened placeholders have no initialized extent list or metadata;
+                // writing here would make an empty store appear incompletely opened
+                if (!m_fDeleteInProgress && isOpen())
                     {
                     writePersistedExtentIds(f_setExtentIds);
                     }
-                catch (IOException e)
+                }
+            catch (Throwable e)
+                {
+                failure = e;
+                }
+
+            try
+                {
+                closeExtentStates();
+                }
+            catch (Throwable e)
+                {
+                if (failure == null)
                     {
-                    throw ensurePersistenceException(e);
+                    failure = e;
+                    }
+                else
+                    {
+                    failure.addSuppressed(e);
                     }
                 }
 
-            closeExtentStates();
+            if (failure != null)
+                {
+                // the generic store release ignores exceptions; retain the diagnostic
+                Logger.warn("Failed to release journal store \"" + f_dirStore
+                        + "\"; journal handle cleanup was attempted for all extents.", failure);
+                throw ensurePersistenceException(failure);
+                }
             }
 
         /**
@@ -1877,7 +1901,7 @@ public class JournalPersistenceManager
          */
         private void closeExtentStates()
             {
-            IOException eFirst = null;
+            Throwable eFirst = null;
             try
                 {
                 for (ExtentState state : new ArrayList<>(m_mapExtentState.values()))
@@ -1886,7 +1910,7 @@ public class JournalPersistenceManager
                         {
                         state.release();
                         }
-                    catch (IOException e)
+                    catch (Throwable e)
                         {
                         if (eFirst == null)
                             {
@@ -2415,9 +2439,7 @@ public class JournalPersistenceManager
             private void closeForMove()
                     throws IOException
                 {
-                waitForCheckpointCompletion();
-
-                waitForCompactionCompletion();
+                quiesceBackgroundWork();
 
                 f_lockExtentWrite.lock();
                 try
@@ -2456,6 +2478,7 @@ public class JournalPersistenceManager
 
                     m_journal.reopenAfterMove(m_dirExtent);
                     m_compactor = new JournalCompactor(m_journal, m_tree);
+                    m_fBackgroundWorkSuspended = false;
                     }
                 finally
                     {
@@ -2471,20 +2494,47 @@ public class JournalPersistenceManager
             private void release()
                     throws IOException
                 {
-                waitForCheckpointCompletion();
-                waitForCompactionCompletion();
-                if (m_journal != null)
+                Throwable failure = null;
+                try
                     {
-                    writeCheckpoint("shutdown");
+                    quiesceBackgroundWork();
+                    if (m_journal != null)
+                        {
+                        writeCheckpoint("shutdown");
+                        }
+                    }
+                catch (Throwable e)
+                    {
+                    failure = e;
                     }
                 f_lockExtentWrite.lock();
                 try
                     {
                     closeInternal();
                     }
+                catch (Throwable e)
+                    {
+                    if (failure == null)
+                        {
+                        failure = e;
+                        }
+                    else
+                        {
+                        failure.addSuppressed(e);
+                        }
+                    }
                 finally
                     {
                     f_lockExtentWrite.unlock();
+                    }
+
+                if (failure instanceof IOException)
+                    {
+                    throw (IOException) failure;
+                    }
+                if (failure != null)
+                    {
+                    throw ensurePersistenceException(failure);
                     }
                 }
 
@@ -2496,8 +2546,7 @@ public class JournalPersistenceManager
             private void truncate()
                     throws IOException
                 {
-                waitForCheckpointCompletion();
-                waitForCompactionCompletion();
+                quiesceBackgroundWork();
                 f_lockExtentWrite.lock();
                 try
                     {
@@ -2723,11 +2772,11 @@ public class JournalPersistenceManager
             private int prepareSnapshot()
                     throws IOException
                 {
+                // drain before taking the write lock: snapshot capture needs a read lock
+                quiesceBackgroundWork();
                 f_lockExtentWrite.lock();
                 try
                     {
-                    waitForCheckpointCompletion();
-
                     if (m_journal == null || m_tree == null)
                         {
                         throw new IllegalStateException("extent is not open");
@@ -2741,6 +2790,7 @@ public class JournalPersistenceManager
                 finally
                     {
                     f_lockExtentWrite.unlock();
+                    m_fBackgroundWorkSuspended = false;
                     }
                 }
 
@@ -2765,15 +2815,25 @@ public class JournalPersistenceManager
             private void writeCheckpoint(String sReason)
                     throws IOException
                 {
-                waitForCheckpointCompletion();
-                CheckpointSnapshot snapshot = captureCheckpointSnapshot(sReason);
+                synchronized (f_checkpointLock)
+                    {
+                    waitForCheckpointCompletion();
+                    m_fCheckpointInProgress = true;
+                    }
+
+                CheckpointSnapshot snapshot = null;
                 try
                     {
+                    snapshot = captureCheckpointSnapshot(sReason);
                     writeCheckpoint(snapshot);
                     }
                 finally
                     {
-                    snapshot.release();
+                    if (snapshot != null)
+                        {
+                        snapshot.release();
+                        }
+                    clearCheckpointInProgress();
                     }
                 }
 
@@ -2787,10 +2847,18 @@ public class JournalPersistenceManager
             private void writeCheckpoint(CheckpointSnapshot snapshot)
                     throws IOException
                 {
-                synchronized (f_checkpointLock)
+                f_lockCheckpointWrite.lock();
+                try
                     {
                     doWriteCheckpoint(snapshot);
-                    onCheckpointSuccess(snapshot);
+                    synchronized (f_checkpointLock)
+                        {
+                        onCheckpointSuccess(snapshot);
+                        }
+                    }
+                finally
+                    {
+                    f_lockCheckpointWrite.unlock();
                     }
                 }
 
@@ -2979,6 +3047,7 @@ public class JournalPersistenceManager
                     {
                     if (!isPeriodicCheckpointDue(m_cbWrittenSinceCheckpoint.get(), m_cWritesSinceCheckpoint.get())
                         || m_fCheckpointInProgress
+                        || m_fBackgroundWorkSuspended
                         || m_journal == null
                         || m_tree == null)
                         {
@@ -2990,25 +3059,36 @@ public class JournalPersistenceManager
                     m_fCheckpointInProgress = true;
                     }
 
-                CheckpointSnapshot snapshot;
+                CheckpointSnapshot snapshot = null;
+                boolean            fSubmitted = false;
                 try
                     {
                     snapshot = captureCheckpointSnapshot("periodic");
+                    CheckpointSnapshot captured = snapshot;
+                    Daemons.commonPool().execute(() -> runAsyncCheckpoint(captured));
+                    fSubmitted = true;
                     }
-                catch (IOException e)
+                catch (IOException | RuntimeException e)
                     {
                     // checkpoint is an optimization; recovery replay covers the gap
                     Logger.warn(() -> "Failed to capture journal checkpoint snapshot for extent \""
                             + m_dirExtent.getAbsolutePath() + "\"; recovery replay will cover the gap.", e);
-                    clearCheckpointInProgress();
-                    return;
                     }
-
-                Daemons.commonPool().execute(() -> runAsyncCheckpoint(snapshot));
+                finally
+                    {
+                    if (!fSubmitted)
+                        {
+                        if (snapshot != null)
+                            {
+                            snapshot.release();
+                            }
+                        clearCheckpointInProgress();
+                        }
+                    }
                 }
 
             /**
-             * Clear the in-progress periodic-checkpoint flag and wake any
+             * Clear the in-progress checkpoint flag and wake any
              * waiters blocked on checkpoint completion.
              */
             private void clearCheckpointInProgress()
@@ -3108,55 +3188,31 @@ public class JournalPersistenceManager
                 try
                     {
                     long ldtStartTotal = System.nanoTime();
-                    long cNanosBuild   = 0L;
 
-                    long ldtStartWrite = System.nanoTime();
-                    CheckpointFile.write(snapshot.getFileCheckpoint(),
-                            snapshot.getFileNo(),
-                            snapshot.getCheckpointOffset(),
-                            snapshot.getKeys(),
-                            snapshot.getTickets(),
-                            snapshot.getEntryCount());
-                    long cNanosWrite = System.nanoTime() - ldtStartWrite;
-
-                    synchronized (f_checkpointLock)
+                    if (m_journal != null && m_tree != null)
                         {
-                        if (m_journal != null && m_tree != null)
+                        writeCheckpoint(snapshot);
+                        synchronized (f_checkpointLock)
                             {
-                            onCheckpointSuccess(snapshot);
                             recordAdaptiveCheckpointDuration(snapshot.getReason(), System.nanoTime() - ldtStartTotal);
-                            fSuccess = true;
                             }
-                        }
-                    clearCheckpointInProgress();
-
-                    if (fSuccess)
-                        {
-                        recordCheckpointMetrics(snapshot.getReason(),
-                                System.nanoTime() - ldtStartTotal,
-                                cNanosBuild,
-                                cNanosWrite,
-                                snapshot.getEntryCount(),
-                                snapshot.getFileNo(),
-                                snapshot.getCheckpointOffset(),
-                                snapshot.getDirtyBytes());
+                        fSuccess = true;
                         }
                     }
                 catch (IOException e)
                     {
                     Logger.warn(() -> "Failed to write async journal checkpoint for extent \""
                             + m_dirExtent.getAbsolutePath() + "\"; recovery replay will cover the gap.", e);
-                    clearCheckpointInProgress();
                     }
                 catch (RuntimeException e)
                     {
                     Logger.warn(() -> "Failed to finalize async journal checkpoint for extent \""
                             + m_dirExtent.getAbsolutePath() + "\".", e);
-                    clearCheckpointInProgress();
                     }
                 finally
                     {
                     snapshot.release();
+                    clearCheckpointInProgress();
                     if (fSuccess)
                         {
                         maybeCheckpoint();
@@ -3361,7 +3417,7 @@ public class JournalPersistenceManager
                 {
                 synchronized (f_compactionLock)
                     {
-                    if (m_journal == null || m_tree == null || m_compactor == null)
+                    if (m_fBackgroundWorkSuspended || m_journal == null || m_tree == null || m_compactor == null)
                         {
                         return;
                         }
@@ -3420,7 +3476,8 @@ public class JournalPersistenceManager
                     boolean fRequested = m_fCompactionRequested;
                     m_fCompactionRequested = false;
 
-                    fReschedule = fRequested || cCompacted >= DEFAULT_COMPACTION_MAX_FILES_PER_RUN;
+                    fReschedule = !m_fBackgroundWorkSuspended
+                            && (fRequested || cCompacted >= DEFAULT_COMPACTION_MAX_FILES_PER_RUN);
                     if (!fReschedule)
                         {
                         m_fCompactionInProgress = false;
@@ -3439,6 +3496,7 @@ public class JournalPersistenceManager
              */
             private void waitForCompactionCompletion()
                 {
+                boolean fInterrupted = false;
                 synchronized (f_compactionLock)
                     {
                     while (m_fCompactionInProgress)
@@ -3449,11 +3507,29 @@ public class JournalPersistenceManager
                             }
                         catch (InterruptedException e)
                             {
-                            Thread.currentThread().interrupt();
-                            throw ensurePersistenceException(e);
+                            fInterrupted = true;
                             }
                         }
                     }
+                if (fInterrupted)
+                    {
+                    Thread.currentThread().interrupt();
+                    }
+                }
+
+            /**
+             * Stop new background work before draining existing tasks. Do not
+             * hold the extent write lock here: snapshot capture and compaction
+             * may need that lock before they can finish.
+             */
+            private void quiesceBackgroundWork()
+                {
+                synchronized (f_checkpointLock)
+                    {
+                    m_fBackgroundWorkSuspended = true;
+                    }
+                waitForCheckpointCompletion();
+                waitForCompactionCompletion();
                 }
 
             /**
@@ -3461,6 +3537,7 @@ public class JournalPersistenceManager
              */
             private void waitForCheckpointCompletion()
                 {
+                boolean fInterrupted = false;
                 synchronized (f_checkpointLock)
                     {
                     while (m_fCheckpointInProgress)
@@ -3471,10 +3548,13 @@ public class JournalPersistenceManager
                             }
                         catch (InterruptedException e)
                             {
-                            Thread.currentThread().interrupt();
-                            throw ensurePersistenceException(e);
+                            fInterrupted = true;
                             }
                         }
+                    }
+                if (fInterrupted)
+                    {
+                    Thread.currentThread().interrupt();
                     }
                 }
 
@@ -3571,9 +3651,15 @@ public class JournalPersistenceManager
             private File m_dirExtent;
 
             /**
-             * Lock guarding periodic checkpoint writes.
+             * Monitor guarding checkpoint scheduling and completion.
              */
             private final Object f_checkpointLock = new Object();
+
+            /**
+             * Serialize physical checkpoint writers without blocking foreground
+             * mutations on the scheduling monitor during checkpoint file I/O.
+             */
+            private final Lock f_lockCheckpointWrite = new ReentrantLock();
 
             /**
              * Lock guarding background compaction scheduling.
@@ -3631,9 +3717,15 @@ public class JournalPersistenceManager
             private long m_ofCheckpoint;
 
             /**
-             * Flag indicating that a periodic checkpoint is currently in flight.
+             * Flag indicating that a checkpoint is currently in flight.
              */
             private boolean m_fCheckpointInProgress;
+
+            /**
+             * Prevent follow-up checkpoint/compaction work during lifecycle
+             * operations. Volatile because the schedulers use different locks.
+             */
+            private volatile boolean m_fBackgroundWorkSuspended;
 
             /**
              * Flag indicating that background compaction is currently in flight.
@@ -3728,6 +3820,8 @@ public class JournalPersistenceManager
                 m_cCheckpointWriteTrigger = m_journalConfig.getAdaptiveCheckpointInitialWrites();
                 m_cAdaptiveCheckpointWarmupRemaining = m_journalConfig.getAdaptiveCheckpointWarmupCount();
                 resetAdaptiveCheckpointSamples();
+
+                m_fBackgroundWorkSuspended = false;
 
                 JournalRecovery.RecoveryTimings timings = recoveryResult.getTimings();
                 if (PersistenceRecoveryMetrics.isEnabled())

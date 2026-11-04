@@ -10,6 +10,7 @@ import com.oracle.coherence.persistence.PersistentStore;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.journal2.PartitionJournal;
 import com.tangosol.io.journal2.PartitionJournalConfig;
 
 import com.tangosol.persistence.AbstractPersistenceManager;
@@ -22,6 +23,7 @@ import com.tangosol.io.FileHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -35,12 +37,15 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 
 import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 /**
  * Unit tests for {@link JournalPersistenceManager.JournalPersistentStore}.
@@ -428,6 +433,208 @@ public class JournalPersistentStoreTest
         finally
             {
             FileHelper.deleteDir(fileDir);
+            }
+        }
+
+    /**
+     * A failed shutdown checkpoint must not retain any extent's file handles.
+     *
+     * @throws Exception on test failure
+     */
+    @Test
+    public void testCloseReleasesHandlesAfterCheckpointFailure()
+            throws Exception
+        {
+        assertCloseReleasesHandlesAfterFailure(false);
+        }
+
+    /**
+     * A failed extent-list write must not prevent closing the extent journals.
+     *
+     * @throws Exception on test failure
+     */
+    @Test
+    public void testCloseReleasesHandlesAfterMetadataFailure()
+            throws Exception
+        {
+        assertCloseReleasesHandlesAfterFailure(true);
+        }
+
+    /**
+     * Async checkpoint file writes must obey the same I/O lock as synchronous
+     * writers without preventing foreground mutations while that lock is busy.
+     *
+     * @throws Exception on test failure
+     */
+    @Test
+    public void testAsyncCheckpointSerializesFileWrite()
+            throws Exception
+        {
+        m_store.ensureExtent(1L);
+        m_store.store(1L, toKey(1), new Binary(new byte[] {42}), null);
+        Object state    = getExtentState((JournalPersistenceManager.JournalPersistentStore) m_store, 1L);
+        Object snapshot = invokeMethod(state, "captureCheckpointSnapshot", new Class<?>[] {String.class}, "periodic");
+        Lock   lock     = (Lock) getFieldValue(state, "f_lockCheckpointWrite");
+        File   file     = new File((File) getFieldValue(state, "m_dirExtent"), "checkpoint.coh");
+        PartitionJournalConfig config = (PartitionJournalConfig) getFieldValue(m_manager, "m_journalConfig");
+        long cbThreshold = config.getCheckpointBytesThreshold();
+        AtomicReference<Throwable> error = new AtomicReference<>();
+        Thread thread = new Thread(() ->
+            {
+            try
+                {
+                invokeMethod(state, "runAsyncCheckpoint", new Class<?>[] {snapshot.getClass()}, snapshot);
+                }
+            catch (Throwable t)
+                {
+                error.set(t);
+                }
+            }, "JournalPersistentStoreTest-checkpoint-writer");
+        thread.setDaemon(true);
+        lock.lock();
+        try
+            {
+            synchronized (getFieldValue(state, "f_checkpointLock"))
+                {
+                setBooleanField(state, "m_fCheckpointInProgress", true);
+                }
+            thread.start();
+            Eventually.assertDeferred(thread::getState, is(Thread.State.WAITING), within(5, TimeUnit.SECONDS));
+            assertFalse("checkpoint must not be written outside the I/O lock", file.exists());
+            config.setCheckpointBytesThreshold(1L);
+            m_store.store(1L, toKey(2), new Binary(new byte[] {43}), null);
+            }
+        finally
+            {
+            config.setCheckpointBytesThreshold(cbThreshold);
+            lock.unlock();
+            thread.join(TimeUnit.SECONDS.toMillis(5));
+            }
+        assertFalse("checkpoint writer should finish", thread.isAlive());
+        assertNull("checkpoint writer should succeed", error.get());
+        assertTrue("checkpoint should now exist", file.isFile());
+        assertFalse(getBooleanFieldValue(state, "m_fCheckpointInProgress"));
+        }
+
+    /**
+     * Close must suppress late follow-up work and drain existing tasks even
+     * when interrupted, preserving the interrupt status after cleanup.
+     *
+     * @throws Exception on test failure
+     */
+    @Test
+    public void testCloseQuiescesBackgroundWorkWhenInterrupted()
+            throws Exception
+        {
+        m_store.ensureExtent(1L);
+        m_store.store(1L, toKey(1), new Binary(new byte[] {42}), null);
+        Object state = getExtentState((JournalPersistenceManager.JournalPersistentStore) m_store, 1L);
+        Object checkpointLock = getFieldValue(state, "f_checkpointLock");
+        Object compactionLock = getFieldValue(state, "f_compactionLock");
+        PartitionJournalConfig config = (PartitionJournalConfig) getFieldValue(m_manager, "m_journalConfig");
+        AtomicReference<Throwable> error = new AtomicReference<>();
+        AtomicReference<Boolean> interrupted = new AtomicReference<>();
+        synchronized (checkpointLock)
+            {
+            setBooleanField(state, "m_fCheckpointInProgress", true);
+            }
+        synchronized (compactionLock)
+            {
+            setBooleanField(state, "m_fCompactionInProgress", true);
+            }
+        Thread thread = new Thread(() ->
+            {
+            try
+                {
+                m_manager.close(TEST_STORE_ID);
+                interrupted.set(Thread.currentThread().isInterrupted());
+                }
+            catch (Throwable t)
+                {
+                error.set(t);
+                }
+            }, "JournalPersistentStoreTest-interrupted-close");
+        thread.setDaemon(true);
+        thread.start();
+        try
+            {
+            Eventually.assertDeferred(() -> getBooleanFieldValue(state, "m_fBackgroundWorkSuspended"),
+                    is(true), within(5, TimeUnit.SECONDS));
+            thread.interrupt();
+            thread.join(100L);
+            assertTrue("interruption must not skip the checkpoint drain", thread.isAlive());
+            synchronized (checkpointLock)
+                {
+                setBooleanField(state, "m_fCheckpointInProgress", false);
+                checkpointLock.notifyAll();
+                }
+            config.setCheckpointBytesThreshold(1L);
+            invokeMethod(state, "maybeCheckpoint", new Class<?>[0]);
+            invokeMethod(state, "requestCompaction", new Class<?>[0]);
+            assertFalse("close must reject follow-up checkpoints",
+                    getBooleanFieldValue(state, "m_fCheckpointInProgress"));
+            assertFalse("close must reject follow-up compaction",
+                    getBooleanFieldValue(state, "m_fCompactionRequested"));
+            assertNotNull("journal must stay open until compaction drains", getFieldValue(state, "m_journal"));
+            }
+        finally
+            {
+            synchronized (checkpointLock)
+                {
+                setBooleanField(state, "m_fCheckpointInProgress", false);
+                checkpointLock.notifyAll();
+                }
+            synchronized (compactionLock)
+                {
+                setBooleanField(state, "m_fCompactionInProgress", false);
+                compactionLock.notifyAll();
+                }
+            thread.join(TimeUnit.SECONDS.toMillis(5));
+            }
+        assertFalse("close should complete", thread.isAlive());
+        assertNull("close should succeed", error.get());
+        assertEquals("close should restore the interrupt status", Boolean.TRUE, interrupted.get());
+        assertNull("journal should be closed", getFieldValue(state, "m_journal"));
+        m_store = (AbstractPersistentStore) m_manager.open(TEST_STORE_ID, null);
+        assertNotNull(m_store.load(1L, toKey(1)));
+        }
+
+    /**
+     * Snapshot-capture failure must release the checkpoint reservation.
+     *
+     * @throws Exception on test failure
+     */
+    @Test
+    public void testCheckpointCaptureFailureClearsReservation()
+            throws Exception
+        {
+        m_store.ensureExtent(1L);
+        m_store.store(1L, toKey(1), new Binary(new byte[] {42}), null);
+        Object state = getExtentState((JournalPersistenceManager.JournalPersistentStore) m_store, 1L);
+        PartitionJournalConfig config = (PartitionJournalConfig) getFieldValue(m_manager, "m_journalConfig");
+        config.setCheckpointBytesThreshold(1L);
+        Field journalField = state.getClass().getDeclaredField("m_journal");
+        journalField.setAccessible(true);
+        PartitionJournal journal = (PartitionJournal) journalField.get(state);
+        PartitionJournal failing = spy(journal);
+        doThrow(new IllegalStateException("injected capture failure")).when(failing).getCurrentFileId();
+        try
+            {
+            // fail after reservation, rather than at the scheduler's initial guard
+            journalField.set(state, failing);
+            invokeMethod(state, "maybeCheckpoint", new Class<?>[0]);
+            assertFalse("capture failure must release the reservation",
+                    getBooleanFieldValue(state, "m_fCheckpointInProgress"));
+            }
+        finally
+            {
+            journalField.set(state, journal);
+            Object lock = getFieldValue(state, "f_checkpointLock");
+            synchronized (lock)
+                {
+                setBooleanField(state, "m_fCheckpointInProgress", false);
+                lock.notifyAll();
+                }
             }
         }
 
@@ -1227,6 +1434,79 @@ public class JournalPersistentStoreTest
             set.add(lExtentId);
             }
         return set;
+        }
+
+    /**
+     * Inject a close failure and verify both handles and recovered values.
+     *
+     * @param fMetadata  whether to fail the extent list instead of a checkpoint
+     *
+     * @throws Exception on test failure
+     */
+    private void assertCloseReleasesHandlesAfterFailure(boolean fMetadata)
+            throws Exception
+        {
+        JournalPersistenceManager.JournalPersistentStore store =
+                (JournalPersistenceManager.JournalPersistentStore) m_store;
+        List<RandomAccessFile> handles = new ArrayList<>();
+        File obstacle = null;
+        try
+            {
+            for (long lExtent = 1; lExtent <= 2; ++lExtent)
+                {
+                store.ensureExtent(lExtent);
+                store.store(lExtent, toKey(1), new Binary(new byte[] {42}), null);
+                assertNotNull(store.load(lExtent, toKey(1)));
+                Object journal = getFieldValue(getExtentState(store, lExtent), "m_journal");
+                Map<?, ?> files = (Map<?, ?>) getFieldValue(journal, "m_mapFiles");
+                for (Object info : files.values())
+                    {
+                    for (String sField : new String[] {"m_rafAppend", "m_rafRead"})
+                        {
+                        RandomAccessFile handle = (RandomAccessFile) getFieldValue(info, sField);
+                        if (handle != null)
+                            {
+                            assertTrue("test must retain a live descriptor", handle.getFD().valid());
+                            handles.add(handle);
+                            }
+                        }
+                    }
+                }
+            assertFalse("test must capture actual journal handles", handles.isEmpty());
+            obstacle = fMetadata
+                    ? new File(store.getDataDirectory(), "extents.coh.tmp")
+                    : new File(extentDir(store.getDataDirectory(), 1L), "checkpoint.coh");
+            assertTrue("failed to create I/O obstacle", obstacle.mkdir());
+            assertTrue(new File(obstacle, "do-not-replace").createNewFile());
+
+            m_manager.close(TEST_STORE_ID);
+            for (RandomAccessFile handle : handles)
+                {
+                assertFalse("close failure must not leak a journal descriptor", handle.getFD().valid());
+                }
+            assertEquals("all extent states should be released", 0, getExtentStateCount(store));
+
+            FileHelper.deleteDir(obstacle);
+            obstacle = null;
+            m_store = (AbstractPersistentStore) m_manager.open(TEST_STORE_ID, null);
+            for (long lExtent = 1; lExtent <= 2; ++lExtent)
+                {
+                assertEquals("journal replay must preserve extent " + lExtent,
+                        new Binary(new byte[] {42}), m_store.load(lExtent, toKey(1)));
+                }
+            }
+        finally
+            {
+            // close retained handles even when testing the unfixed implementation
+            for (RandomAccessFile handle : handles)
+                {
+                handle.close();
+                }
+            if (obstacle != null)
+                {
+                FileHelper.deleteDir(obstacle);
+                }
+            }
         }
 
     /**
