@@ -11,10 +11,15 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
+import com.tangosol.internal.util.invoke.RemotableSupport;
+import com.tangosol.internal.util.invoke.lambda.StaticLambdaInfo;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.InvocableMap;
+
+import java.lang.reflect.Field;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -73,27 +78,38 @@ public class LambdaBytecodeDenyListTests
     @Test
     public void testRuntimeLambdaRejected()
         {
-        NamedCache<String, String> cache = getNamedCache();
+        InvocableMap.EntryProcessor<String, String, Runtime> processor = entry -> Runtime.getRuntime();
 
         try
             {
-            cache.invoke("key", (InvocableMap.EntryProcessor<String, String, Object>) entry ->
-                {
-                try
-                    {
-                    Runtime.getRuntime().exec("ls");
-                    }
-                catch (Exception e)
-                    {
-                    throw new RuntimeException(e);
-                    }
-                return null;
-                });
-            fail("Expected Runtime lambda to be rejected");
+            // bytecode policy is independent of the configured lambda wire format
+            RemotableSupport.get(getClass().getClassLoader()).createRemoteConstructor(processor);
+            fail("Expected Runtime bytecode to be rejected");
+            }
+        catch (SecurityException e)
+            {
+            assertTrue(e.getMessage().contains("reason=bytecode-references-gadget"));
+            assertTrue(e.getMessage().contains("java.lang.Runtime"));
+            }
+        }
+
+    @Test
+    public void testRuntimeCapturingClassRejectedThroughExtend() throws Exception
+        {
+        InvocableMap.EntryProcessor<String, String, String> ordinary = InvocableMap.Entry::getValue;
+        StaticLambdaInfo<?> info = new StaticLambdaInfo(ordinary.getClass(), ordinary);
+        Field field = StaticLambdaInfo.class.getDeclaredField("m_sCapturingClass");
+        field.setAccessible(true);
+        field.set(info, "java/lang/Runtime");
+
+        try
+            {
+            getNamedCache().invoke("key", (InvocableMap.EntryProcessor<String, String, Object>) entry -> info);
+            fail("Expected a deny-listed static capturing class to be rejected");
             }
         catch (RuntimeException e)
             {
-            assertTrue(containsSecurityException(e));
+            assertTrue(containsRejection(e, "class-name-on-denylist", "java.lang.Runtime"));
             }
         }
 
@@ -109,11 +125,12 @@ public class LambdaBytecodeDenyListTests
         assertEquals("value", sValue);
         }
 
-    private static boolean containsSecurityException(Throwable t)
+    private static boolean containsRejection(Throwable t, String reason, String denied)
         {
         while (t != null)
             {
-            if (t instanceof SecurityException)
+            String message = t.getMessage();
+            if (message != null && message.contains("reason=" + reason) && message.contains("denied=" + denied))
                 {
                 return true;
                 }
