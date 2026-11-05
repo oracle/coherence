@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -932,7 +932,9 @@ public abstract class MBeanHelper
 
         try
             {
-            String sHost = sAddr == null ? null : InetAddressHelper.getLocalAddress(sAddr).getHostAddress(); // translate CIDR format
+            java.net.InetAddress address = sAddr == null ? null : InetAddressHelper.getLocalAddress(sAddr); // translate CIDR format
+            String sHost = address == null ? null : address.getHostAddress();
+            boolean fWildcard = address == null || address.isAnyLocalAddress();
 
             // get the System Properties to copy to the JMX Connector
             // NOTE: atn and ssl default to false unless any atn/access/reg are setup in which case they default to true
@@ -968,10 +970,7 @@ public abstract class MBeanHelper
                     }
                 }
 
-            if (mapEnv == null)
-                {
-                mapEnv = new HashMap();
-                }
+            mapEnv = mapEnv == null ? new HashMap() : new HashMap(mapEnv);
 
             mapEnv.put("jmx.remote.x.daemon", "true"); // compensation for COH-14091
 
@@ -1011,11 +1010,9 @@ public abstract class MBeanHelper
                     throw ensureRuntimeException(e, sMsg);
                     }
                 }
-            else if (!InetAddressHelper.isAnyLocalAddress(sHost))
+            else
                 {
-                // RMI's socket factory API is only capable of creating servers which listen on wildcard
-                // we use a custom factory to force ourselves onto a different IP if needed
-                // Unfortunately we can't help on SSL
+                // use the multiplexed member port and honor the configured bind address
                 RMISocketFactory factory = new RMISocketFactory()
                     {
                     public ServerSocket createServerSocket(int nPort)
@@ -1034,13 +1031,19 @@ public abstract class MBeanHelper
                         return RMISocketFactory.getDefaultSocketFactory().createSocket(sRemoteHost, nPort);
                         }
                     };
-                mapEnv.put("jmx.remote.rmi.server.socket.factory", factory);
+                if (mapEnv.get("jmx.remote.rmi.server.socket.factory") == null)
+                    {
+                    mapEnv.put("jmx.remote.rmi.server.socket.factory", factory);
+                    }
 
                 try
                     {
                     // if not set then non-wildcard binding works but nothing can connect as the RMI stub may contain
                     // the wrong address. We restore the original value in the finally block at the end of this method
-                    System.setProperty("java.rmi.server.hostname", sHost);
+                    if (!fWildcard && sPriorRmiHostname == null)
+                        {
+                        System.setProperty("java.rmi.server.hostname", sHost);
+                        }
                     }
                 catch (Throwable e)
                     {

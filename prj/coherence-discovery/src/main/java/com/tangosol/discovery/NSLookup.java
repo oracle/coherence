@@ -241,7 +241,6 @@ public class NSLookup
         {
         String sName   = NS_STRING_PREFIX + GRPC_PROXY_URL;
         String sResult = lookup(sCluster, sName, socketAddr, DEFAULT_TIMEOUT);
-        // do not use streams as this class needs to be buildable on Java 7
         // format is "[URL1, URL2, URL3, ...]"
         String [] asResult  = sResult == null ? null : sResult.split("[\\[,\\] ]+");
 
@@ -294,7 +293,6 @@ public class NSLookup
         List<SocketAddress> list    = new ArrayList<>();
         String              sResult = lookup(sCluster, NS_STRING_PREFIX + sName, socketAddr, DEFAULT_TIMEOUT);
 
-        // do not use streams as this class needs to be buildable on Java 7
         // format is "[URL1, URL2, URL3, ...]"
         String [] asResult  = sResult == null ? null : sResult.split("[\\[,\\] ]+");
         if (asResult != null)
@@ -335,7 +333,6 @@ public class NSLookup
         Collection<URL> colUrl = new ArrayList<>();
         String          sURL   = lookup(sCluster, sName, socketAddr, DEFAULT_TIMEOUT);
 
-        // do not use streams as this class needs to be buildable on Java 7
         // format is "[URL1, URL2, URL3, ...]"
         String [] asURL  = sURL == null ? null : sURL.split("[\\[,\\] ]+");
 
@@ -928,15 +925,19 @@ public class NSLookup
         }
 
     /**
-     * Validate a JMX service URL returned by NameService.
+     * Validate a JMX service URL returned by NameService without deserializing
+     * encoded RMI references. Encoded URLs must use a supported, bounded JDK
+     * RMIServer stub form; application-defined factories and graphs are rejected.
      *
      * @param url  the URL
      *
      * @return the validated URL
      *
      * @throws IOException if the URL is not supported
+     *
+     * @since 27.01
      */
-    protected static JMXServiceURL validateJMXServiceURL(JMXServiceURL url)
+    public static JMXServiceURL validateJMXServiceURL(JMXServiceURL url)
             throws IOException
         {
         String sProtocol = url.getProtocol();
@@ -960,6 +961,11 @@ public class NSLookup
         String sPath = url.getURLPath();
         if (sPath == null || sPath.isEmpty())
             {
+            return url;
+            }
+        if (sPath.startsWith("/stub/"))
+            {
+            RmiStubValidator.validate(sPath.substring("/stub/".length()));
             return url;
             }
         if (!sPath.startsWith("/jndi/"))
@@ -1342,8 +1348,7 @@ public class NSLookup
     // ----- inner classes -------------------------------------------
 
     /**
-     * This utility must support running on JDK 7 platform. Hence using our own 
-     * BiConsumer API rather than the JDK 8 API.
+     * Callback used by the discovery APIs.
      */
     public interface BiConsumer<T, U> 
         {

@@ -8,15 +8,20 @@ package com.tangosol.net.internal;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
 
-import org.junit.Test;
+import com.tangosol.discovery.NSLookup;
+
+import java.io.InputStream;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Properties;
 
 import javax.management.remote.JMXServiceURL;
+
+import org.junit.Test;
 
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
@@ -138,6 +143,30 @@ public class NameServiceValuePolicyTest
                 NameServiceValuePolicy.validateJmxServiceURL(urlDns));
         assertThrowsIllegalArgument(() ->
                 NameServiceValuePolicy.validateJmxServiceURL(urlMalformedRmi));
+        }
+
+    @Test
+    public void shouldValidateReservedJmxBindAndRawStringLookups()
+            throws Exception
+        {
+        Properties fixtures = new Properties();
+        try (InputStream in = getClass().getResourceAsStream("/jmx-stub-fixtures.properties"))
+            {
+            fixtures.load(in);
+            }
+        String value = fixtures.getProperty("25-proxy-ssl");
+        for (String name : new String[] {NSLookup.JMX_CONNECTOR_URL,
+                NSLookup.NS_STRING_PREFIX + NSLookup.JMX_CONNECTOR_URL})
+            {
+            NameServiceValuePolicy.validateBindResource(name, value, true);
+            NameServiceValuePolicy.validateLookupResult(name, value);
+            assertThrowsIllegalArgument(() -> NameServiceValuePolicy.validateBindResource(name,
+                    "service:jmx:rmi:///stub/abcd", true));
+            assertThrowsIllegalArgument(() -> NameServiceValuePolicy.validateLookupResult(name,
+                    "service:jmx:rmi:///stub/abcd"));
+            assertThrowsIllegalArgument(() -> NameServiceValuePolicy.validateLookupResult(name, 1));
+            assertThrowsIllegalArgument(() -> NameServiceValuePolicy.validateLookupResult(name, "invalid"));
+            }
         }
 
     private static void assertThrowsIllegalArgument(Runnable runnable)
