@@ -17,6 +17,61 @@ import static org.hamcrest.number.OrderingComparison.lessThan;
 public class VersionHelperTest
     {
     @Test
+    public void shouldPrefixCalendarInternalVersions()
+        {
+        for (String sVersion : new String[] {"26.10", "26.10.1", "27.01", "27.07.2", "28.01"})
+            {
+            assertThat(VersionHelper.toInternalVersion(sVersion, "15.0.0"), is("15.0.0." + sVersion));
+            }
+
+        assertThat(VersionHelper.toInternalVersion("22.06.8", "14.1.1"), is("14.1.1.22.06.8"));
+        }
+
+    @Test
+    public void shouldLeaveCompleteInternalVersionsUnprefixed()
+        {
+        for (String sVersion : new String[] {"12.2.1.4.31", "14.1.1.2206.18", "26.1.0.0.0", "26.1.0.0.1",
+                "27.1.0.0.0", "28.1.0.0.0", "15.0.0.26.10", "15.0.0.26.10.1"})
+            {
+            assertThat(VersionHelper.toInternalVersion(sVersion, "15.0.0"), is(sVersion));
+            }
+
+        assertThat(VersionHelper.parseVersion(VersionHelper.toInternalVersion("26.1.0.0.0", "15.0.0")),
+                is(VersionHelper.encodeVersion(26, 1, 0, 0, 0)));
+        }
+
+    @Test
+    public void shouldPreserveInternalVersionBuildDescriptions()
+        {
+        String sDescription = " (dev-phf build.1.2.3)";
+
+        assertThat(VersionHelper.toInternalVersion("27.01" + sDescription, "15.0.0"),
+                is("15.0.0.27.01" + sDescription));
+        assertThat(VersionHelper.toInternalVersion("26.10.1" + sDescription, "15.0.0"),
+                is("15.0.0.26.10.1" + sDescription));
+        assertThat(VersionHelper.toInternalVersion("27.1.0.0.0" + sDescription, "15.0.0"),
+                is("27.1.0.0.0" + sDescription));
+        }
+
+    @Test
+    public void shouldAllowInternalVersionsWithoutConfiguredPrefix()
+        {
+        for (String sVersion : new String[] {"26.10", "26.10.1", "27.01", "26.1.0.0.0", "27.1.0.0.0"})
+            {
+            assertThat(VersionHelper.toInternalVersion(sVersion, null), is(sVersion));
+            assertThat(VersionHelper.toInternalVersion(sVersion, ""), is(sVersion));
+            }
+        }
+
+    @Test
+    public void shouldLeaveUnavailableInternalVersionsUnprefixed()
+        {
+        assertThat(VersionHelper.toInternalVersion(null, "15.0.0"), is((String) null));
+        assertThat(VersionHelper.toInternalVersion("", "15.0.0"), is(""));
+        assertThat(VersionHelper.toInternalVersion("n/a", "15.0.0"), is("n/a"));
+        }
+
+    @Test
     public void shouldCompareCalendarVersionsAcrossYearsWithinTheirPrefix()
         {
         int nRequired = VersionHelper.parseVersion("15.0.0.26.07");

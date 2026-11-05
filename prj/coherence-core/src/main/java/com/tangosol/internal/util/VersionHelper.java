@@ -110,6 +110,32 @@ public class VersionHelper
         }
 
     /**
+     * Return the internal version, applying the configured prefix only to a
+     * calendar version in {@code YY.MM[.PATCH]} form. A complete numeric release
+     * version already supplies its own prefix. Any build description is retained.
+     *
+     * @param sVersion        the public version, optionally followed by a space
+     *                        and a build description
+     * @param sVersionPrefix  the optional calendar compatibility prefix
+     *
+     * @return the version to advertise internally
+     */
+    public static String toInternalVersion(String sVersion, String sVersionPrefix)
+        {
+        if (sVersion == null || sVersionPrefix == null || sVersionPrefix.isEmpty())
+            {
+            return sVersion;
+            }
+
+        int    ofSuffix     = sVersion.indexOf(' ');
+        String sVersionOnly = ofSuffix < 0 ? sVersion : sVersion.substring(0, ofSuffix);
+
+        return sVersionOnly.matches("\\d+\\.\\d+(\\.\\d+)?")
+                ? sVersionPrefix + "." + sVersion
+                : sVersion;
+        }
+
+    /**
      * Parse the specified version string and generate an internal integer
      * representation.
      *
