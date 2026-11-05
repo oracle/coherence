@@ -27,13 +27,12 @@ import com.oracle.bedrock.util.Capture;
 
 import com.tangosol.discovery.NSLookup;
 
-import com.tangosol.net.management.MBeanConnector;
-
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
@@ -65,8 +64,6 @@ public class NSLookupTests
         s_sHostName = platform.getLoopbackAddress().getHostAddress();
         final AvailablePortIterator ports = platform.getAvailablePorts();
         s_nClusterPort = new Capture<>(ports).next();
-        final Capture<Integer> nRMIPort = new Capture<>(ports);
-        final Capture<Integer> nRMIRegistryPort = new Capture<>(ports);
         s_nProxyPort = new Capture<>(ports).next();
         s_addrNameService = new InetSocketAddress(s_sHostName, s_nClusterPort);
 
@@ -75,18 +72,14 @@ public class NSLookupTests
         clusterBuilder.include(1,
                                CoherenceCacheServer.class,
                                DisplayName.of("NSLookup"),
-                               ClusterName.of("NSLookup"),
+                               ClusterName.of(CLUSTER_NAME),
                                OperationalOverride.of("common/tangosol-coherence-override.xml"),
                                SystemProperty.of("coherence.wka", s_sHostName),
                                SystemProperty.of("test.multicast.port", s_nClusterPort),
                                SystemProperty.of("coherence.extend.port", s_nProxyPort),
                                SystemProperty.of("coherence.proxy.enabled", "true"),
+                               SystemProperty.of("coherence.localhost", s_sHostName),
                                SystemProperty.of("coherence.management", "dynamic"),
-                               SystemProperty.of("com.sun.management.jmxremote.authenticate", "false"),
-                               SystemProperty.of("com.sun.management.jmxremote.ssl", "false"),
-                               SystemProperty.of(MBeanConnector.RMI_HOST_PROPERTY, s_sHostName),
-                               SystemProperty.of(MBeanConnector.RMI_CONNECTION_PORT_PROPERTY, nRMIPort),
-                               SystemProperty.of(MBeanConnector.RMI_REGISTRY_PORT_PROPERTY, nRMIRegistryPort),
                                Logging.atMax(),
                                IPv4Preferred.yes(),
                                s_testLogs);
@@ -120,14 +113,16 @@ public class NSLookupTests
 
         JMXServiceURL         jmxServiceURL = deferredJmxURL.get();
 
-        assertThat(jmxServiceURL.getURLPath().startsWith("/jndi/rmi://"), is(true));
+        assertThat(jmxServiceURL.getURLPath().startsWith("/stub/"), is(true));
 
-        JMXConnector          jmxConnector  = JMXConnectorFactory.connect(jmxServiceURL, null);
-        MBeanServerConnection conn          = jmxConnector.getMBeanServerConnection();
-        Set<ObjectName>       setCluster    = conn.queryNames(new ObjectName("Coherence:type=Cluster,*"), null);
+        try (JMXConnector jmxConnector = JMXConnectorFactory.connect(jmxServiceURL, null))
+            {
+            MBeanServerConnection conn = jmxConnector.getMBeanServerConnection();
+            Set<ObjectName> setCluster = conn.queryNames(new ObjectName("Coherence:type=Cluster,*"), null);
 
-        assertThat(setCluster, is(notNullValue()));
-        assertThat(setCluster.size(), is(1));
+            assertThat(setCluster, is(notNullValue()));
+            assertThat(setCluster.size(), is(1));
+            }
         }
 
     /**
@@ -136,13 +131,15 @@ public class NSLookupTests
     @Test
     public void testLookupProxy() throws Exception
         {
-        Collection<SocketAddress> col = NSLookup.lookupExtendProxy("NSLookup", s_addrNameService, "Proxy");
+        Collection<SocketAddress> col = NSLookup.lookupExtendProxy(CLUSTER_NAME, s_addrNameService, "Proxy");
 
         assertThat(col.size(), is(1));
         assertThat("confirm known proxy address and port returned by NSLookup.lookupExtendProxy", col.iterator().next(), is(new InetSocketAddress(s_sHostName, s_nProxyPort)));
         }
 
     // ----- data members ---------------------------------------------------
+    private static final String CLUSTER_NAME = "NSLookup-" + UUID.randomUUID();
+
     public static CoherenceCluster s_testCluster;
     public static String           s_sHostName;
     public static int              s_nClusterPort;

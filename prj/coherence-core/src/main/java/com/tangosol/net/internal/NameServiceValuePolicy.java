@@ -8,10 +8,14 @@ package com.tangosol.net.internal;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.discovery.NSLookup;
+
 import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.CompatibilityWarnings;
 
 import com.tangosol.net.NameService;
+
+import java.io.IOException;
 
 import java.lang.reflect.Array;
 
@@ -68,6 +72,7 @@ public final class NameServiceValuePolicy
             }
 
         validatePassiveValue("bind " + sName, oValue);
+        validateJmxResource(sName, oValue);
         }
 
     /**
@@ -80,6 +85,7 @@ public final class NameServiceValuePolicy
     public static void validateLookupResult(String sName, Object oResult)
         {
         validatePassiveValue("lookup " + sName, oResult);
+        validateJmxResource(sName, oResult);
         }
 
     /**
@@ -118,6 +124,17 @@ public final class NameServiceValuePolicy
         if (sPath == null || sPath.isEmpty())
             {
             return url;
+            }
+        if (sPath.startsWith("/stub/"))
+            {
+            try
+                {
+                return NSLookup.validateJMXServiceURL(url);
+                }
+            catch (IOException e)
+                {
+                throw new IllegalArgumentException("unsupported encoded JMX service URL", e);
+                }
             }
         if (!sPath.startsWith("/jndi/"))
             {
@@ -190,6 +207,31 @@ public final class NameServiceValuePolicy
         }
 
     // ----- helper methods -------------------------------------------------
+
+    /**
+     * Check the reserved JMX lookup before a raw or string lookup can return it.
+     * The URL is metadata: validation must not construct its serialized objects.
+     */
+    private static void validateJmxResource(String sName, Object oValue)
+        {
+        if (oValue == null || (!NSLookup.JMX_CONNECTOR_URL.equals(sName)
+                && !(NSLookup.NS_STRING_PREFIX + NSLookup.JMX_CONNECTOR_URL).equals(sName)))
+            {
+            return;
+            }
+        if (!(oValue instanceof String))
+            {
+            throw new IllegalArgumentException("unsupported NameService JMX lookup value type");
+            }
+        try
+            {
+            validateJmxServiceURL(new JMXServiceURL((String) oValue));
+            }
+        catch (IOException e)
+            {
+            throw new IllegalArgumentException("invalid NameService JMX service URL", e);
+            }
+        }
 
     /**
      * Validate a passive NameService value.
@@ -305,7 +347,7 @@ public final class NameServiceValuePolicy
         String sResult = fHardened ? "reject" : "would_reject";
         String sSecurityMode = fHardened ? "hardened" : "compatibility";
         String sIntro  = fHardened
-                ? "Dynamic RMI stub JMX service URLs are not allowed for management publish when security hardening is enabled"
+                ? "Unsupported encoded RMI JMX service URL rejected for management publish when security hardening is enabled"
                 : "Allowed compatibility management publish JMX service URL that security hardening would reject";
 
         return sIntro
@@ -316,8 +358,7 @@ public final class NameServiceValuePolicy
                 + ", security-mode=" + sSecurityMode
                 + ", result=" + sResult
                 + ", value=" + summarizeJmxUrl(url)
-                + ". Configure " + PROP_MANAGEMENT_REMOTE_REGISTRYPORT
-                + " to publish a static /jndi/rmi://.../server JMX URL instead.";
+                + ". Use a supported JDK RMIServer stub with the standard SSL socket factory or a /jndi/rmi:// directory URL.";
         }
 
     /**
@@ -402,9 +443,4 @@ public final class NameServiceValuePolicy
      * Maximum array, collection, or map size.
      */
     private static final int MAX_ELEMENTS = 1024;
-
-    /**
-     * Management remote registry port property.
-     */
-    private static final String PROP_MANAGEMENT_REMOTE_REGISTRYPORT = "coherence.management.remote.registryport";
     }

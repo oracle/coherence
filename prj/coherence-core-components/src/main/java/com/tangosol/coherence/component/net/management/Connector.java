@@ -437,15 +437,16 @@ public class Connector
         }
     
     /**
-     * Transition this node to become a management node, start an MBeanConnector
-    * and register the JMX service URL with the NameService. This method is
-    * called only if the management type is "dynamic". 
+     * Transition this node to become a management node and publish a JMX
+    * connector's service URL. Start an owned connector when no
+    * existing URL is supplied. This method is called only for dynamic management.
      */
     protected void assumeManagement()
         {
         // import Component.Net.Management.Gateway.Remote as com.tangosol.coherence.component.net.management.gateway.Remote;
         // import Component.Util.SafeCluster;
         // import com.tangosol.net.InetAddressHelper;
+        // import com.tangosol.net.internal.NameServiceValuePolicy;
         // import java.net.InetAddress;
         // import java.util.Collections;
         // import javax.management.remote.JMXConnectorServer;
@@ -457,38 +458,50 @@ public class Connector
         remoteGateway.transitionToManaging();
         
         JMXServiceURL jmxUrl = getLocalGateway().getServiceUrl();
-        
+
         if (jmxUrl == null)
             {
             // start the JMX connector
             JMXConnectorServer jmxServer = jmxStartConnector();
+            setConnectorServer(jmxServer);
             if (jmxServer != null)
                 {
-                setConnectorServer(jmxServer);
-        
                 jmxUrl = jmxServer.getAddress();
                 }
             }
         
         if (jmxUrl != null)
             {
-            synchronized (this)
+            try
                 {
-                setJmxServiceUrl(jmxUrl);
-                
+                com.tangosol.net.internal.NameServiceValuePolicy.validateJmxServiceURL(jmxUrl);
+                }
+            catch (IllegalArgumentException e)
+                {
+                _trace("JMX discovery is unavailable: " + e.getMessage(), 2);
+                jmxUrl = null;
+                }
+            }
+
+        synchronized (this)
+            {
+            setJmxServiceUrl(jmxUrl);
+
+            if (jmxUrl == null)
+                {
+                setJmxListenAddresses(Collections.emptyList());
+                }
+            else
+                {
                 InetAddress addrDisc = cluster.getDependencies().getLocalDiscoveryAddress();
                 setJmxListenAddresses(addrDisc.isAnyLocalAddress()
                         ? InetAddressHelper.getLocalBindableAddresses()
                         : Collections.singleton(addrDisc));
                 }
-        
-            // publish it to all Management service members
-            jmxPublishConnector(null);
             }
-        else
-            {
-            setJmxListenAddresses(Collections.emptyList());
-            }
+
+        // also publish absence so a new senior clears the departed senior's URL
+        jmxPublishConnector(null);
         }
     
     /**
@@ -1284,11 +1297,10 @@ public class Connector
         Cluster     cluster    = getCluster().getCluster();
         InetAddress addrDisc   = cluster.getDependencies().getLocalDiscoveryAddress();
         InetAddress addrMember = cluster.getLocalMember().getAddress();
-        InetAddress addrRMI    = addrDisc.isAnyLocalAddress()
-            ? InetAddresses.isLocalAddress(addrMember)
-                ? addrDisc   // non-NAT wildcard (the default) is allowable
-                : addrMember // must be NAT, RMI doesn't allow the connection unless we give it the NAT address
-            : addrDisc; // non-default value; use it    
+        // advertise the member's reachable address when discovery binds to a wildcard
+        InetAddress addrRMI = addrDisc.isAnyLocalAddress()
+            ? addrMember // for NAT, RMI requires the member's NAT address to allow connections
+            : addrDisc; // non-default value; use it
         
         String  sAddr    = Config.getProperty(MBeanConnector.RMI_HOST_PROPERTY, addrRMI.getHostAddress());
         HashMap mapEnv   = new HashMap();
@@ -1316,7 +1328,7 @@ public class Connector
             {
             try
                 {
-                // start JMX connector with dynamic service url unless a registry port is explicitly configured
+                // use an encoded stub unless a registry port is explicitly configured
                 JMXConnectorServer connector = MBeanHelper.startRmiConnector(sAddr,
                     Config.getProperty(MBeanConnector.RMI_REGISTRY_PORT_PROPERTY) == null ? 0 : MBeanConnector.getRegistryPort(),
                     nPort, getLocalGateway().getServer(), mapEnv);
@@ -1413,6 +1425,7 @@ public class Connector
                     jmxServer.stop();
                     }
                 catch (Throwable ignored) {}
+                setConnectorServer(null);
                 }
         
             // force a new handshake upon the service restart
