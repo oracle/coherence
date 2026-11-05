@@ -38,6 +38,7 @@ import com.tangosol.internal.net.logging.LegacyXmlLoggingHelper;
 import com.tangosol.internal.net.management.DefaultGatewayDependencies;
 import com.tangosol.internal.net.management.LegacyXmlGatewayHelper;
 import com.tangosol.internal.util.ObjectFormatter;
+import com.tangosol.internal.util.VersionHelper;
 import com.tangosol.internal.util.listener.VersionAwareListeners;
 import com.tangosol.license.LicensedObject;
 import com.tangosol.net.AsyncNamedCache;
@@ -451,8 +452,6 @@ public class Coherence
                 sDesc          = xmlCfg.getSafeElement("build-description").getString();
                 sVersion       = xmlCfg.getSafeElement("version").getString();
                 sVersionPrefix = xmlCfg.getSafeElement("version-prefix").getString();
-                sVersionPrefix = sVersionPrefix == null || sVersionPrefix.isEmpty()
-                        ? "" : sVersionPrefix + ".";
                 }
             }
         catch (Throwable e)
@@ -488,7 +487,8 @@ public class Coherence
         VERSION          = sVersion;
 
         // <major>.<minor>.<service>.(YY.MM | <patchset>.<patch>)
-        VERSION_INTERNAL = sVersionPrefix + sVersion;
+        // prepend sVersionPrefix only for YY.MM[.PATCH] calendar versions
+        VERSION_INTERNAL = VersionHelper.toInternalVersion(sVersion, sVersionPrefix);
 
         VERSION_INT = ServiceMemberSet.parseVersion(sVersion);
         }
