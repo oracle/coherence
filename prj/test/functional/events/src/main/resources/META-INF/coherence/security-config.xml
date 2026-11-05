@@ -18,6 +18,7 @@
     <class name="events.ExtendClientMemberEventTests$MemberClient" source="manual"/>
     <class name="events.ExtendClientMemberEventTests$MemberEventResult" source="manual"/>
     <class name="events.ExtendClientMemberEventTests$RunUntilExtendClient" source="manual"/>
+    <class name="events.ServerEventsTests" source="manual"/>
     <class name="events.ServerEventsTests$CustomProcessor" source="manual" executable="true"/>
     <class name="events.TransactionEventTests$EvictingProcesser" source="manual" executable="true"/>
     <class name="events.TransactionEventTests$RippleProcessor" source="manual" executable="true"/>
