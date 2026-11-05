@@ -8,6 +8,7 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="queues.AbstractDequeTests" source="manual"/>
     <class name="queues.AbstractQueueTests" source="manual"/>
   </allowed-classes>
 </security-config>
