@@ -69,7 +69,7 @@ can override a profile default only where that feature permits it.
 |Application serialization allowlist and named remote executables
 |Missing classifications can produce `would_reject` diagnostics.
 |Required allowlist and executable classifications are enforced. Dynamic
-installs have the separate exception described under <<Remote Executable Objects>>.
+installs have the separate exception described under <<Remote Executable Objects,Remote Executable Objects>>.
 
 |Serializer container limits
 |Default-unbounded; shadow thresholds can warn. Explicit finite limits apply.
@@ -186,7 +186,7 @@ explicit `deny` also rejects dynamic code in compatibility.
 
 Applications missing allowlist metadata can receive `security-config-missing`.
 An explicit dynamic-code `deny` can produce `dynamic-remote-denied-by-mode`.
-Use <<Error Message Reference>> and <<Deployment Diagnostics>> to identify the
+Use <<Error Message Reference,Error Message Reference>> and <<Deployment Diagnostics,Deployment Diagnostics>> to identify the
 owner of a failure before changing policy.
 
 == Dynamic Management and Remote JMX
@@ -505,7 +505,7 @@ binds to loopback by default and fails closed without a usable
 `JMXAuthenticator`; the remote-management authenticator can be its fallback.
 When exposing it remotely, configure the supported authenticated secure
 provider and firewall policy deliberately. Dynamic RMI discovery behavior is
-described under <<Dynamic Management and Remote JMX>>; accepting a validated
+described under <<Dynamic Management and Remote JMX,Dynamic Management and Remote JMX>>; accepting a validated
 stub does not authenticate its endpoint or turn on TLS.
 
 === Metrics and Health
@@ -584,7 +584,7 @@ hardened and `warn-allow` in compatibility; explicit `reject` applies in both.
 An earlier dynamic install allowance does not guarantee replay under a changed
 class policy. Rehearse recovery with the deployed artifacts, then classify
 and regenerate affected definitions before relying on a profile change.
-See <<Topic Subscriber Filter / Extractor Install>> for the retained details.
+See <<Topic Subscriber Filter / Extractor Install,Topic Subscriber Filter / Extractor Install>> for the retained details.
 
 Narrow Java object-stream bridges intersect their product-owned expected-type
 filter, central policy and any JVM filter. An application allowlist does not
@@ -681,8 +681,8 @@ replay under the selected policy. Installation success does not prove recovery.
 byte/time limits and trusted file roots; do not broaden all controls at once.
 |===
 
-Use <<Error Message Reference>> for serialization/executable reason strings and
-<<Telemetry>> for counter labels. A compatibility run with no warnings is only
+Use <<Error Message Reference,Error Message Reference>> for serialization/executable reason strings and
+<<Telemetry,Telemetry>> for counter labels. A compatibility run with no warnings is only
 useful for the routes and payloads it actually exercised; include expected
 denials and recovery before treating it as migration evidence.
 
@@ -977,7 +977,7 @@ You can also author the same classification by hand in
 
 Runtime merge semantics are the same as generated allowlist entries: Coherence
 unions every visible classpath source into one view. See
-<<Generated `security-config.xml`>> for the full merge story.
+<<Generated `security-config.xml`,Generated `security-config.xml`>> for the full merge story.
 
 === InvocationService
 
@@ -1297,7 +1297,7 @@ receivers before sending lambdas that target the new interface.
   functional interface are rejected with `lambda-target-not-allowed` before
   bytecode is materialized. Migrate by annotating every custom serializable
   functional interface used as a remote lambda target and rebuilding the
-  artifact that owns it. See <<Functional-Interface Lambda Targets>>.
+  artifact that owns it. See <<Functional-Interface Lambda Targets,Functional-Interface Lambda Targets>>.
 * *Concrete executable classes* (entry processors, aggregators, invocables,
   filters, value extractors, comparators, triggers, server-side event
   interceptors, `coherence-concurrent` tasks) are classified by the build
@@ -1305,7 +1305,7 @@ receivers before sending lambdas that target the new interface.
   described above. Classify executable classes now, regenerate
   `security-config.xml`, and use
   `coh.executable.policy_check{result=would_reject}` shadow telemetry to
-  drive the migration; see <<Telemetry>>.
+  drive the migration; see <<Telemetry,Telemetry>>.
 
 In both cases the build pipeline is the same. Rebuild every artifact that
 owns an executable class or functional interface; the
@@ -1332,7 +1332,7 @@ silently grant it execution privileges.
 |Selects the released runtime/license mode. It does not enable the
 compatibility-sensitive SER-01 hardening gates. Blank, unknown, `legacy`, and
 `legacy-compatibility` values fail fast.
-|<<Runtime Modes>>
+|<<Runtime Modes,Runtime Modes>>
 
 |`coherence.security.mode`
 |enum: `compatibility`, `hardened`
@@ -1341,7 +1341,7 @@ compatibility-sensitive SER-01 hardening gates. Blank, unknown, `legacy`, and
 `compatibility` preserves compatibility behavior and shadow telemetry where
 available; unset or `hardened` enables the compatibility-sensitive hardening gates.
 The removed pre-release `coherence.security.hardened` property is not an alias.
-|<<Runtime Modes>>
+|<<Runtime Modes,Runtime Modes>>
 
 |`coherence.remote.dynamic.unauthenticated`
 |enum: `allow`, `deny`
@@ -1355,7 +1355,7 @@ honoured. Blank values are treated as unset; invalid values log an error and
 fall back to the default. Explicit `deny` remains supported in both modes.
 Does not bypass named executable classification, functional-interface target allowlisting, the MIP
 deny-list, or Graal HostAccess hardening.
-|<<Lambda Serialization>>, <<MethodInvocationProcessor / ScriptProcessor>>
+|<<Lambda Serialization,Lambda Serialization>>, <<MethodInvocationProcessor / ScriptProcessor,MethodInvocationProcessor / ScriptProcessor>>
 
 |`coherence.invocation.enabled`
 |boolean
@@ -1364,7 +1364,7 @@ deny-list, or Graal HostAccess hardening.
 When unset, operational config `<invocation-service-proxy><enabled>` is used.
 This property does not bypass `@Remote.Executable` enforcement when the proxy
 is enabled.
-|<<InvocationService>>
+|<<InvocationService,InvocationService>>
 
 |`coherence.concurrent.extend.enabled`
 |boolean
@@ -1375,7 +1375,7 @@ the security-mode-aware default. An explicit cache-config autostart override
 without the shipped system-property marker wins when the property is absent.
 This property does not bypass `@Remote.Executable` enforcement when the proxy
 is enabled.
-|<<Coherence Concurrent Executor>>
+|<<Coherence Concurrent Executor,Coherence Concurrent Executor>>
 
 |`coherence.topics.persisted.policy-drift`
 |enum: `reject`, `warn-allow`
@@ -1386,7 +1386,7 @@ is enabled.
 is resolved through Coherence `Config`, so the
 `COHERENCE_TOPICS_PERSISTED_POLICY_DRIFT` environment variable alias is also
 honoured.
-|<<Topic Subscriber Filter / Extractor Install>>
+|<<Topic Subscriber Filter / Extractor Install,Topic Subscriber Filter / Extractor Install>>
 
 |`coherence.serialization.allowed`
 |class-fqn-list
@@ -1394,7 +1394,7 @@ honoured.
 |Adds exact class names or package wildcards, such as `com.acme.*`, to the
 runtime serialization allowlist. It supplements generated security config and
 does not bypass deny-listed gadget classes.
-|<<Generated `security-config.xml`>>
+|<<Generated `security-config.xml`,Generated `security-config.xml`>>
 
 |`coherence.lambda.bytecode.allow`
 |class-fqn-list
@@ -1402,14 +1402,14 @@ does not bypass deny-listed gadget classes.
 |Incident-response override for specific class references in the lambda
 bytecode deny-list. Structural bytecode rules such as native methods still
 apply.
-|<<Error Message Reference>>
+|<<Error Message Reference,Error Message Reference>>
 
 |`coherence.security-config.skip`
 |boolean
 |`false`
 |Maven plugin switch that skips `security-config.xml` generation for the
 current build.
-|<<Maven>>
+|<<Maven,Maven>>
 
 |`coherence.lambdas`
 |enum: `dynamic`, `static`
@@ -1417,7 +1417,7 @@ current build.
 |Lambda serialization mode that has shipped in prior Coherence releases. Set
 to `static` when migrating production applications away from DYNAMIC lambda
 bytecode at the cost of lockstep client/server code-version coordination.
-|<<Lambda Serialization>>
+|<<Lambda Serialization,Lambda Serialization>>
 |===
 
 == Error Message Reference
