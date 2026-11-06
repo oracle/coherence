@@ -205,7 +205,7 @@ The scanner writes `META-INF/coherence/security-config.xml` under the compiled o
 `target/classes/META-INF/coherence/security-config.xml` for Maven main classes.
 If an example's security-relevant classes are test fixtures, configure the Maven plugin or Gradle `securityConfig`
 extension to scan test classes as well.
-For the full runtime behavior and migration details, see `docs/core/04_serialization_hardening.adoc`.
+For the full runtime behavior and migration details, see `docs/core/04_security_hardening.adoc`.
 
 === Document Structure
 
