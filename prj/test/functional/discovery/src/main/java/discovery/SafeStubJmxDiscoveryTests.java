@@ -22,13 +22,15 @@ import com.tangosol.net.Member;
 import com.tangosol.net.management.MBeanServerFinder;
 import com.tangosol.net.management.Registry;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
 
 import java.lang.management.ManagementFactory;
@@ -41,7 +43,6 @@ import java.net.URI;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 
 import java.nio.file.attribute.AclEntry;
 import java.nio.file.attribute.AclEntryPermission;
@@ -63,7 +64,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -271,8 +275,8 @@ public class SafeStubJmxDiscoveryTests
                 {
                 out.writeObject(new CallbackPayload());
                 }
-            Files.writeString(senior.directory.resolve("publish-url"),
-                    "service:jmx:rmi:///stub/" + Base64.getEncoder().encodeToString(bytes.toByteArray()));
+            senior.request("publish", "service:jmx:rmi:///stub/"
+                    + Base64.getEncoder().encodeToString(bytes.toByteArray()));
             await("wire publication rejected", () -> Files.readString(follower.log).contains("reason=rmi-stub-url"));
             assertEquals(original, follower.lookup());
             assertEquals("0", follower.state().getProperty("callbacks"));
@@ -296,9 +300,8 @@ public class SafeStubJmxDiscoveryTests
                 {
                 assertEquals(original.toString(), NSLookup.lookup(name, address, 5000));
                 }
-            Files.writeString(member.directory.resolve("override-url"), "service:jmx:rmi:///stub/abcd");
-            await("unsupported URL installed behind the discovery boundary", () ->
-                    "service:jmx:rmi:///stub/abcd".equals(member.state().getProperty("jmxUrl")));
+            Properties state = member.request("override", "service:jmx:rmi:///stub/abcd");
+            assertEquals("service:jmx:rmi:///stub/abcd", state.getProperty("jmxUrl"));
             for (String name : List.of(NSLookup.JMX_CONNECTOR_URL,
                     NSLookup.NS_STRING_PREFIX + NSLookup.JMX_CONNECTOR_URL))
                 {
@@ -307,6 +310,20 @@ public class SafeStubJmxDiscoveryTests
                 }
             assertEquals(1, member.nodeCount());
             assertEquals("0", member.state().getProperty("callbacks"));
+            }
+        }
+
+    @Test
+    public void shouldReportMemberControlFailure()
+            throws Exception
+        {
+        try (TestCluster cluster = new TestCluster())
+            {
+            TestMember member = cluster.start();
+            AssertionError error = assertThrows(AssertionError.class, () -> member.request("unknown-command"));
+            assertTrue(error.toString(), error.getCause() instanceof EOFException);
+            assertTrue(error.getMessage().contains(member.log.toString()));
+            assertTrue(Files.readString(member.log).contains("Unknown member command: unknown-command"));
             }
         }
 
@@ -599,8 +616,8 @@ public class SafeStubJmxDiscoveryTests
         TestMember(TestCluster cluster, int nMember, Map<String, String> options)
                 throws Exception
             {
-            directory    = cluster.directory.resolve("member-" + nMember);
-            log          = directory.resolve("member.log");
+            Path directory = cluster.directory.resolve("member-" + nMember);
+            log = directory.resolve("member.log");
             Files.createDirectories(directory);
 
             List<String> command = new ArrayList<>(List.of(
@@ -616,21 +633,61 @@ public class SafeStubJmxDiscoveryTests
                     "-Dcoherence.management.http=none"));
             options.forEach((key, value) -> command.add("-D" + key + '=' + value));
             command.add(MemberMain.class.getName());
-            command.add(directory.toString());
-            ProcessBuilder builder = new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(log.toFile());
+            ProcessBuilder builder = new ProcessBuilder(command).redirectError(log.toFile());
             builder.environment().keySet().removeAll(List.of("JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS"));
-            process = builder.start();
+            process  = builder.start();
+            commands = new DataOutputStream(process.getOutputStream());
+            replies  = new DataInputStream(process.getInputStream());
             }
 
         Properties state()
                 throws Exception
             {
-            Properties state = new Properties();
-            try (InputStream in = Files.newInputStream(directory.resolve("state.properties")))
+            return request("state");
+            }
+
+        synchronized Properties request(String command, String... arguments)
+                throws Exception
+            {
+            assertTrue("Member exited; see " + log, process.isAlive());
+            FutureTask<Properties> response = new FutureTask<>(() ->
                 {
-                state.load(in);
+                int length = replies.readInt();
+                if (length <= 0 || length > 65536)
+                    {
+                    throw new IOException("Invalid member state length: " + length);
+                    }
+                byte[] bytes = new byte[length];
+                replies.readFully(bytes);
+                Properties state = new Properties();
+                state.load(new ByteArrayInputStream(bytes));
+                return state;
+                });
+            Thread.ofVirtual().start(response);
+            try
+                {
+                commands.writeUTF(command);
+                for (String argument : arguments)
+                    {
+                    commands.writeUTF(argument);
+                    }
+                commands.flush();
+                return response.get(90, TimeUnit.SECONDS);
                 }
-            return state;
+            catch (IOException | ExecutionException | TimeoutException e)
+                {
+                process.destroyForcibly();
+                response.cancel(true);
+                throw new AssertionError("Member command '" + command + "' failed; see " + log,
+                        e instanceof ExecutionException ? e.getCause() : e);
+                }
+            catch (InterruptedException e)
+                {
+                process.destroyForcibly();
+                response.cancel(true);
+                Thread.currentThread().interrupt();
+                throw e;
+                }
             }
 
         int nodeCount()
@@ -655,15 +712,16 @@ public class SafeStubJmxDiscoveryTests
         void stopCoherence()
                 throws Exception
             {
-            Files.createFile(directory.resolve("stop-coherence"));
-            await("Coherence shutdown; see " + log, () -> !Boolean.parseBoolean(state().getProperty("running")));
+            Properties state = request("stop");
+            assertFalse(Boolean.parseBoolean(state.getProperty("running")));
             stopped = true;
             }
 
-        final Path    directory;
-        final Path    log;
-        final Process process;
-        boolean       stopped;
+        final Path             log;
+        final Process          process;
+        final DataOutputStream commands;
+        final DataInputStream  replies;
+        boolean                stopped;
         }
 
     private static final String FIXTURE_PASSWORD = "coh34079-test-only";
@@ -809,9 +867,26 @@ public class SafeStubJmxDiscoveryTests
     public static class MemberMain
         {
         public static void main(String[] args)
+            {
+            DataInputStream  commands = new DataInputStream(System.in);
+            DataOutputStream replies  = new DataOutputStream(System.out);
+            // reserve stdout for control replies and send member output to the log
+            System.setOut(System.err);
+            try
+                {
+                run(commands, replies);
+                System.exit(0);
+                }
+            catch (Throwable e)
+                {
+                e.printStackTrace();
+                System.exit(1);
+                }
+            }
+
+        private static void run(DataInputStream commands, DataOutputStream replies)
                 throws Exception
             {
-            Path        directory = Path.of(args[0]);
             Coherence   coherence = Coherence.clusterMember().start().join();
             Cluster     cluster   = CacheFactory.getCluster();
             MBeanServer server    = ManagementFactory.getPlatformMBeanServer();
@@ -820,28 +895,40 @@ public class SafeStubJmxDiscoveryTests
             boolean     fRunning  = true;
             for (;;)
                 {
-                if (fRunning && Files.exists(directory.resolve("stop-coherence")))
+                String command;
+                try
+                    {
+                    command = commands.readUTF();
+                    }
+                catch (EOFException e)
                     {
                     coherence.close();
                     CacheFactory.shutdown();
-                    fRunning = false;
+                    return;
                     }
-                Path override = directory.resolve("override-url");
-                if (fRunning && Files.exists(override))
+
+                switch (command)
                     {
-                    connector.setJmxServiceUrl(new JMXServiceURL(Files.readString(override)));
-                    Files.delete(override);
-                    }
-                Path publish = directory.resolve("publish-url");
-                if (fRunning && Files.exists(publish))
-                    {
-                    Connector.Publish task = new Connector.Publish();
-                    task.setJMXServiceURL(new JMXServiceURL(Files.readString(publish)));
-                    task.setListenAddresses(List.of());
-                    Set<Member> targets = new HashSet<>(connector.getService().getInfo().getServiceMembers());
-                    targets.remove(cluster.getLocalMember());
-                    connector.getService().execute(task, targets, null);
-                    Files.delete(publish);
+                    case "state":
+                        break;
+                    case "stop":
+                        coherence.close();
+                        CacheFactory.shutdown();
+                        fRunning = false;
+                        break;
+                    case "override":
+                        connector.setJmxServiceUrl(new JMXServiceURL(commands.readUTF()));
+                        break;
+                    case "publish":
+                        Connector.Publish task = new Connector.Publish();
+                        task.setJMXServiceURL(new JMXServiceURL(commands.readUTF()));
+                        task.setListenAddresses(List.of());
+                        Set<Member> targets = new HashSet<>(connector.getService().getInfo().getServiceMembers());
+                        targets.remove(cluster.getLocalMember());
+                        connector.getService().execute(task, targets, null);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unknown member command: " + command);
                     }
                 Properties state = new Properties();
                 state.setProperty("callbacks", Integer.toString(callbacks.get()));
@@ -857,14 +944,11 @@ public class SafeStubJmxDiscoveryTests
                             .getAcceptor().getProcessor().getServerSocket().getLocalPort();
                     state.setProperty("port", Integer.toString(MultiplexedSocketProvider.getBasePort(nPort)));
                     }
-                Path temporary = directory.resolve("state.tmp");
-                try (OutputStream out = Files.newOutputStream(temporary))
-                    {
-                    state.store(out, "dynamic management state");
-                    }
-                Files.move(temporary, directory.resolve("state.properties"),
-                        StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-                Thread.sleep(100);
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                state.store(bytes, "dynamic management state");
+                replies.writeInt(bytes.size());
+                replies.write(bytes.toByteArray());
+                replies.flush();
                 }
             }
         }
