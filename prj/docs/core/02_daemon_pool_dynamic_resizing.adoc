@@ -19,7 +19,7 @@ Coherence clusters, not an internal design document.
 This guide covers the *legacy platform-thread daemon pool*, which is the
 default. Coherence also offers a *Virtual Daemon Pool* that runs worker
 tasks on virtual threads instead, with a different concurrency model
-and configuration surface. See xref:03_virtual_daemon_pool.adoc[] for
+and configuration surface. See xref:docs/core/03_virtual_daemon_pool.adoc[Virtual Threads for Service Workers] for
 when to choose the virtual pool and how to enable it per service. The
 two pool types are mutually exclusive on a given service: the
 configuration elements described in this guide apply only when the

@@ -37,8 +37,8 @@ connections or proxy instances. A workload limited by storage or downstream
 execution may see no benefit from additional pipelines.
 
 The proxy worker pool adapts separately to the work it receives. See
-xref:02_daemon_pool_dynamic_resizing.adoc[] for platform-worker sizing and
-xref:03_virtual_daemon_pool.adoc[] for the virtual pool. Pipeline count does
+xref:docs/core/02_daemon_pool_dynamic_resizing.adoc[Dynamic Worker Pool Resizing] for platform-worker sizing and
+xref:docs/core/03_virtual_daemon_pool.adoc[Virtual Threads for Service Workers] for the virtual pool. Pipeline count does
 not set either pool's concurrency limit.
 
 == Configure Pipeline Count

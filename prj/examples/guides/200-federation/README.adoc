@@ -80,7 +80,7 @@ We will start the clusters in this example using the following ports.
 2. `ClusterB`: cluster port 127.0.0.1:7575, federation listener 127.0.0.1:40001
 
 NOTE: If you wish to know more about Coherence Federation, please see the
-{commercial-docs-base-url}/administer/federating-caches-clusters.html[Coherence Documentation].
+{commercial-docs-base-url}/administer/federating-caches-across-clusters.html[Coherence Documentation].
 
 // Do not change this part.
 [#what-you-need]
@@ -479,6 +479,6 @@ to insert, update and remove data in Federated clusters.
 [#see-also]
 === See Also
 
-* {commercial-docs-base-url}/administer/federating-caches-clusters.html[Federation Documentation]
+* {commercial-docs-base-url}/administer/federating-caches-across-clusters.html[Federation Documentation]
 * {commercial-docs-base-url}/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641[Using Coherence Query Language]
 * https://docs.coherence.community/coherence-operator/docs/latest/examples/100_federation/README[Detailed Federation example using the Coherence Operator on Oracle's Cloud Infrastructure (OCI)]

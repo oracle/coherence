@@ -251,7 +251,7 @@ by setting `persistence-type` to `journal`.
 
 | `migration-source-directory`
 | Optional. Points to a BDB snapshot directory to import when journal
-  persistence starts for the first time. See <<Migrating from Berkeley DB>>.
+  persistence starts for the first time. See <<Migrating from Berkeley DB,Migrating from Berkeley DB>>.
 |===
 
 All directory properties accept `system-property` attributes for externalized
