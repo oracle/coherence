@@ -456,7 +456,7 @@ A load balancer introduces an additional endpoint mapping. In hardened mode, an
 inbound connection's asserted endpoint must still match a configured peer
 endpoint; a load balancer's virtual address alone does not establish that match.
 Validate that mapping in both directions when designing the deployment. See the
-{commercial-docs-base-url}/administer/federating-caches-clusters.html[Federation Documentation]
+{commercial-docs-base-url}/administer/federating-caches-across-clusters.html[Federation Documentation]
 for deployment options.
 
 [#mutliple-services]
