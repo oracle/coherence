@@ -21,7 +21,7 @@ to enable VDP for one or more services in a Coherence cluster.
 The traditional Coherence daemon pool runs each service's worker tasks on
 a fixed-size pool of platform (operating-system) threads. Pool size is
 controlled by `<thread-count-min>` and `<thread-count-max>`, and the
-dynamic resizing logic described in xref:02_daemon_pool_dynamic_resizing.adoc[]
+dynamic resizing logic described in xref:docs/core/02_daemon_pool_dynamic_resizing.adoc[Dynamic Worker Pool Resizing]
 adapts the pool within those bounds. This works well for most workloads
 but has two structural limitations:
 
@@ -120,7 +120,7 @@ otherwise.
 VDP is an architectural choice, not a tunable. Switching a service's
 pool type changes its concurrency model and should be tested before it
 goes to production. There is no global override that flips all services
-at once — see <<no_global_override>> for the rationale.
+at once — see <<no_global_override,Why There Is No Global VDP Switch>> for the rationale.
 
 == Enabling Virtual Threads for a Service
 
@@ -326,7 +326,7 @@ operationally dangerous. A service that was configured for VDP with
 `<task-limit>10000</task-limit>` and no `<thread-count-max>` would, on
 forced rollback, inherit the legacy default sizing. With the
 platform-thread maximum derived from JVM heap and stack settings (see
-xref:02_daemon_pool_dynamic_resizing.adoc[]), a service under load
+xref:docs/core/02_daemon_pool_dynamic_resizing.adoc[Dynamic Worker Pool Resizing]), a service under load
 could spawn hundreds or thousands of platform threads, exhausting
 native memory and crashing the cluster. The "rollback to safety" lever
 ends up being more dangerous than the situation it was meant to

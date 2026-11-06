@@ -8,7 +8,7 @@ engine:
     libraries:
       - "asciidoctor-diagram"
     attributes:
-      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2"
+      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/standalone/coherence/15.1.1"
       source-highlighter: "highlight.js"
       highlightjs-theme: "idea"
       plantumlconfig: "_plantuml-config.txt"
@@ -16,7 +16,7 @@ engine:
       javadoc-root: "https://docs.coherence.community/coherence/docs/latest/api/"
       version-coherence-maven: "${revision}"
       version-coherence: "${project.version.official}"
-      version-commercial-docs: "14.1.2"
+      version-commercial-docs: "15.1.1"
       version-helidon: "${helidon.version}"
       github-source-root: "github.com/oracle/coherence/tree/master/prj"
 assets:
@@ -61,7 +61,7 @@ backend:
               glyph:
                 type: "icon"
                 value: "import_contacts"
-              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2"
+              href: "https://docs.oracle.com/en/middleware/standalone/coherence/15.1.1"
             - title: "About"
               pathprefix: "/docs/about"
               glyph:
@@ -70,14 +70,18 @@ backend:
               items:
                 - includes:
                     - "docs/about/*.adoc"
-#            - title: "Core Improvements"
-#              pathprefix: "/core"
-#              glyph:
-#                type: "icon"
-#                value: "fa-cubes"
-#              items:
-#                - includes:
-#                    - "docs/core/*.adoc"
+            - title: "Core Improvements"
+              pathprefix: "/docs/core"
+              glyph:
+                type: "icon"
+                value: "fa-cubes"
+              items:
+                - includes:
+                    - "docs/core/01_overview.adoc"
+                    - "docs/core/01_unified_persistence.adoc"
+                    - "docs/core/02_daemon_pool_dynamic_resizing.adoc"
+                    - "docs/core/03_virtual_daemon_pool.adoc"
+                    - "docs/core/04_serialization_hardening.adoc"
             - title: "Container Images"
               pathprefix: "/coherence-docker"
               glyph:

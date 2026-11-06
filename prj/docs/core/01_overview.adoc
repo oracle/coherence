@@ -1,0 +1,23 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Core Improvements
+:description: Core improvements in Oracle Coherence CE 26.07
+:keywords: coherence, core, persistence, worker pools, serialization
+
+== Core Improvements
+
+Coherence CE 26.07 includes the following improvements to persistence, service
+workers, and serialization:
+
+* xref:docs/core/01_unified_persistence.adoc[Unified Persistence] describes the
+  journal persistence engine, configuration, and migration from Berkeley DB.
+* xref:docs/core/02_daemon_pool_dynamic_resizing.adoc[Dynamic Worker Pool Resizing]
+  explains how service worker pools adapt to load and how to configure their limits.
+* xref:docs/core/03_virtual_daemon_pool.adoc[Virtual Threads for Service Workers]
+  describes the virtual worker pool and its configuration and operating requirements.
+* xref:docs/core/04_serialization_hardening.adoc[Serialization Hardening] covers
+  serialization filters and controls for deserialized executable objects.
