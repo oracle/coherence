@@ -77,7 +77,12 @@ backend:
 #                value: "fa-cubes"
 #              items:
 #                - includes:
-#                    - "docs/core/*.adoc"
+#                    - "docs/core/01_unified_persistence.adoc"
+#                    - "docs/core/02_daemon_pool_dynamic_resizing.adoc"
+#                    - "docs/core/03_virtual_daemon_pool.adoc"
+#                    - "docs/core/04_security_hardening.adoc"
+#                    - "docs/core/05_continuous_aggregation.adoc"
+#                    - "docs/core/06_extend_proxy_performance.adoc"
             - title: "Container Images"
               pathprefix: "/coherence-docker"
               glyph:
