@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -79,6 +79,34 @@ public interface ConfigurableCacheMap
     * @param cUnits  the number of units that the cache prunes to
     */
     public void setLowUnits(int cUnits);
+
+    /**
+     * Return the configured low-watermark ratio, or a negative value when the
+     * low watermark is absolute or this implementation does not support ratios.
+     *
+     * @return the configured fraction of high units, or a negative value
+     * @since 27.01
+     */
+    public default double getLowUnitsRatio()
+        {
+        return -1.0;
+        }
+
+    /**
+     * Configure the low watermark as a fraction of high units. The fraction
+     * remains in effect when high units change. Calling {@link #setLowUnits(int)}
+     * selects absolute configuration instead. Implementations that prune
+     * incrementally need not support this operation.
+     *
+     * @param dflRatio  a finite fraction strictly between zero and one
+     * @throws IllegalArgumentException if the ratio is invalid
+     * @throws UnsupportedOperationException if ratios are not supported
+     * @since 27.01
+     */
+    public default void setLowUnitsRatio(double dflRatio)
+        {
+        throw new UnsupportedOperationException("Low-watermark ratios are not supported");
+        }
 
     /**
     * Determine the factor by which the Units, LowUnits and HighUnits
