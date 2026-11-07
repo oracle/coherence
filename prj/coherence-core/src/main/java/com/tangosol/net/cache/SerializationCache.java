@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -270,7 +270,7 @@ public class SerializationCache
         long cUnits = OldCache.toInternalUnits(cMax, getUnitFactor());
 
         m_cMaxUnits   = cUnits;
-        m_cPruneUnits = cUnits == Long.MAX_VALUE ? cUnits : (long) (OldCache.DEFAULT_PRUNE * cUnits);
+        m_cPruneUnits = calculatePruneUnits(cUnits);
 
         checkSize();
         }
@@ -288,12 +288,49 @@ public class SerializationCache
     */
     public void setLowUnits(int cUnits)
         {
+        m_dflLowUnitsRatio = -1.0;
         m_cPruneUnits = OldCache.toInternalUnits(cUnits, getUnitFactor());
         }
 
     /**
     * {@inheritDoc}
     */
+    @Override
+    public double getLowUnitsRatio()
+        {
+        return m_dflLowUnitsRatio;
+        }
+
+    @Override
+    public void setLowUnitsRatio(double dflRatio)
+        {
+        if (!Double.isFinite(dflRatio) || dflRatio <= 0.0 || dflRatio >= 1.0)
+            {
+            throw new IllegalArgumentException("Low-units ratio must be finite and strictly between zero and one");
+            }
+
+        m_dflPruneLevel    = dflRatio;
+        m_dflLowUnitsRatio = dflRatio;
+        m_cPruneUnits     = calculatePruneUnits(m_cMaxUnits);
+        }
+
+    /**
+     * Calculate a pruning threshold, rounding ratios down in configured units.
+     *
+     * @param cMax  the internal high watermark
+     * @return the internal low watermark
+     */
+    protected long calculatePruneUnits(long cMax)
+        {
+        if (cMax == Long.MAX_VALUE)
+            {
+            return cMax;
+            }
+        return m_dflLowUnitsRatio > 0.0
+                ? (long) (cMax / (double) getUnitFactor() * m_dflLowUnitsRatio) * getUnitFactor()
+                : (long) (m_dflPruneLevel * cMax);
+        }
+
     public int getUnitFactor()
         {
         return m_nUnitFactor;
@@ -1148,6 +1185,16 @@ public class SerializationCache
     * The number of units to prune the cache down to.
     */
     protected long m_cPruneUnits;
+
+    /**
+     * The pruning ratio captured when this cache is constructed.
+     */
+    protected double m_dflPruneLevel = LocalCache.getDefaultPruneLevel();
+
+    /**
+     * The active low-watermark ratio, or a negative value for absolute units.
+     */
+    protected double m_dflLowUnitsRatio = m_dflPruneLevel;
 
     /**
     * Touch counter (for LRU).

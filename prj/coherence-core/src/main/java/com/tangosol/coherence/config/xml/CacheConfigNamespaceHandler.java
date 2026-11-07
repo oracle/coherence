@@ -82,6 +82,7 @@ import com.tangosol.coherence.config.xml.processor.InvocationServiceProxyProcess
 import com.tangosol.coherence.config.xml.processor.KeystoreProcessor;
 import com.tangosol.coherence.config.xml.processor.LeaseGranularityProcessor;
 import com.tangosol.coherence.config.xml.processor.LocalAddressProcessor;
+import com.tangosol.coherence.config.xml.processor.LowUnitsProcessor;
 import com.tangosol.coherence.config.xml.processor.MapListenerProcessor;
 import com.tangosol.coherence.config.xml.processor.MemberListenerProcessor;
 import com.tangosol.coherence.config.xml.processor.MemorySizeProcessor;
@@ -331,6 +332,8 @@ public class CacheConfigNamespaceHandler
         registerProcessor("limit-buffer-size", new MemorySizeProcessor());
         registerProcessor("local-scheme", new CustomizableBuilderProcessor<>(LocalScheme.class));
         registerProcessor("caffeine-scheme", new CustomizableBuilderProcessor<>(CaffeineScheme.class));
+
+        registerProcessor("low-units", new LowUnitsProcessor());
 
         registerProcessor("max-message-size", new MemorySizeProcessor());
         registerProcessor("message-codec", new SpecificInstanceProcessor<>(Codec.class));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,10 @@
 
 package com.tangosol.net.cache;
 
+
+import com.oracle.coherence.common.base.Logger;
+
+import com.tangosol.coherence.config.Config;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.BitHelper;
@@ -128,6 +132,7 @@ public class OldCache
     public OldCache(int cUnits, int cExpiryMillis)
         {
         this(cUnits, cExpiryMillis, DEFAULT_PRUNE);
+        setLowUnitsRatio(getDefaultPruneLevel());
         }
 
     /**
@@ -1081,7 +1086,7 @@ public class OldCache
         long cUnits = toInternalUnits(cMax, getUnitFactor());
 
         m_cMaxUnits   = cUnits;
-        m_cPruneUnits = cUnits == Long.MAX_VALUE ? cUnits : (long) (m_dflPruneLevel * cUnits);
+        m_cPruneUnits = calculatePruneUnits(cUnits);
 
         if (m_cCurUnits > cUnits)
             {
@@ -1102,6 +1107,7 @@ public class OldCache
     */
     public synchronized void setLowUnits(int cMin)
         {
+        m_dflLowUnitsRatio = -1.0;
         long cUnits = toInternalUnits(cMin, getUnitFactor());
         long cMax   = m_cMaxUnits;
         if (cUnits >= cMax)
@@ -1115,6 +1121,42 @@ public class OldCache
             }
 
         m_cPruneUnits = cUnits;
+        }
+
+    @Override
+    public double getLowUnitsRatio()
+        {
+        return m_dflLowUnitsRatio;
+        }
+
+    @Override
+    public synchronized void setLowUnitsRatio(double dflRatio)
+        {
+        if (!Double.isFinite(dflRatio) || dflRatio <= 0.0 || dflRatio >= 1.0)
+            {
+            throw new IllegalArgumentException("Low-units ratio must be finite and strictly between zero and one");
+            }
+
+        m_dflPruneLevel    = dflRatio;
+        m_dflLowUnitsRatio = dflRatio;
+        m_cPruneUnits     = calculatePruneUnits(m_cMaxUnits);
+        }
+
+    /**
+     * Calculate a pruning threshold, rounding ratios down in configured units.
+     *
+     * @param cMax  the internal high watermark
+     * @return the internal low watermark
+     */
+    protected long calculatePruneUnits(long cMax)
+        {
+        if (cMax == Long.MAX_VALUE)
+            {
+            return cMax;
+            }
+        return m_dflLowUnitsRatio > 0.0
+                ? (long) (cMax / (double) getUnitFactor() * m_dflLowUnitsRatio) * getUnitFactor()
+                : (long) (m_dflPruneLevel * cMax);
         }
 
     /**
@@ -2816,6 +2858,25 @@ public class OldCache
     public static final double DEFAULT_PRUNE            = 0.80;
 
     /**
+     * Return the default pruning ratio for newly configured caches. Invalid
+     * property values are ignored with a warning.
+     *
+     * @return the configured ratio, or {@link #DEFAULT_PRUNE}
+     * @since 27.01
+     */
+    public static double getDefaultPruneLevel()
+        {
+        double dflRatio = Config.getDouble("coherence.local.cache.default.prune", DEFAULT_PRUNE);
+        if (!Double.isFinite(dflRatio) || dflRatio <= 0.0 || dflRatio >= 1.0)
+            {
+            Logger.warn("Ignoring coherence.local.cache.default.prune=" + dflRatio
+                    + "; the ratio must be finite and strictly between zero and one");
+            return DEFAULT_PRUNE;
+            }
+        return dflRatio;
+        }
+
+    /**
     * By default, the cache prunes based on a hybrid LRU+LFU algorithm.
     */
     public static final int    EVICTION_POLICY_HYBRID   = 0;
@@ -2908,6 +2969,11 @@ public class OldCache
     * value); this value is in the range 0.0 to 1.0.
     */
     protected double m_dflPruneLevel;
+
+    /**
+    * Explicit low-units ratio, or a negative value for absolute mode.
+    */
+    protected double m_dflLowUnitsRatio = -1.0;
 
     /**
     * The number of units to prune the cache down to.

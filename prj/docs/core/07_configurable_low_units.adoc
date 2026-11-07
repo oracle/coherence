@@ -1,0 +1,180 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2026, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Configure Cache Low Watermarks as Percentages
+:toc: left
+:toclevels: 3
+:sectnums:
+
+You can configure a cache's low watermark as a percentage of its high watermark.
+This lets you change cache capacity without calculating a corresponding absolute
+`low-units` value. You can also choose a default percentage for caches in a JVM.
+
+These settings require a build of the Coherence CE 14.1.2.0 release line
+that includes this enhancement. The examples use Java 17 or later.
+
+== Choose a Low Watermark
+
+The `high-units` value controls when capacity pruning starts. The `low-units`
+value supplies the pruning target. Units represent entries with the `FIXED`
+calculator, or memory costs with `BINARY` or a custom calculator.
+
+For example, `high-units` of `1000` and `low-units` of `90%` select a target of
+`900` units. If you later change high units to `2000`, the percentage selects
+`1800` low units. Eviction policy, entry weights, and eviction approvers can
+affect how closely a pruning operation reaches its target.
+
+A higher percentage retains more data after each prune and leaves less room
+before the next prune. A lower percentage asks each prune to reclaim more space.
+Choose a value appropriate for your workload and monitor eviction and hit rates.
+
+== Set a Default for a JVM
+
+Set the following system property before configuring caches:
+
+[source,text]
+----
+-Dcoherence.local.cache.default.prune=0.90
+----
+
+The property is a fraction, so `0.90` means 90%. It must be finite and strictly
+between `0` and `1`. An omitted property retains the existing default of `0.80`,
+or 80%. Invalid values, including `0`, `1`, `NaN`, `Infinity`, and `90%`, produce
+a warning and use 80% instead.
+
+The default applies when `low-units` is omitted or is the numeric value `0`.
+An explicit positive unit count, memory size, or percentage overrides it.
+Configure the property on each JVM where the desired caches reside, including
+storage members or clients with local front caches. Changing the property does
+not retune cache instances that have already been configured.
+
+== Set a Percentage for a Cache
+
+Save this complete configuration as `low-units-cache-config.xml`. The cache uses
+entry counts, a high watermark of 1000, and a low watermark of 90%.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<cache-config xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>products</cache-name>
+      <scheme-name>products-local</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+  <caching-schemes>
+    <local-scheme>
+      <scheme-name>products-local</scheme-name>
+      <eviction-policy>LRU</eviction-policy>
+      <high-units>1000</high-units>
+      <low-units>90%</low-units>
+      <unit-calculator>FIXED</unit-calculator>
+    </local-scheme>
+  </caching-schemes>
+</cache-config>
+----
+
+Use the configuration through a session. This Java fragment requires Coherence
+on the class path and the configuration file on the application class path:
+
+[source,java]
+----
+var configuration = CoherenceConfiguration.builder()
+        .withSession(SessionConfiguration.builder()
+                .withConfigUri("low-units-cache-config.xml").build())
+        .build();
+try (var coherence = Coherence.clusterMember(configuration)) {
+    coherence.start().join();
+    NamedCache<Integer, String> products = coherence.getSession().getCache("products");
+    products.put(1, "Product one");
+}
+----
+
+The fragment uses `Coherence`, `CoherenceConfiguration`, `SessionConfiguration`,
+and `NamedCache` from `com.tangosol.net`. Reuse the session and cache handle for
+application operations, and close the Coherence instance when the application
+finishes.
+
+Percentages can contain decimal digits, for example `90.5%`. They must be
+strictly greater than `0%` and less than `100%`. Numeric `0` means the default;
+`0%` is invalid. Use the `%` suffix to select a percentage. A bare decimal such
+as `0.90` is not percentage syntax for `low-units`.
+
+Existing parameter macros, system-property substitution, and `scheme-ref`
+inheritance also work with percentages. For example, this fragment selects a
+parameter value or defaults to 90%:
+
+[source,xml]
+----
+<low-units>{low-watermark 90%}</low-units>
+----
+
+== Use Memory Sizes and Partitioned Backing Maps
+
+The following `local-scheme` fragment belongs inside a distributed cache's
+`backing-map-scheme`. It selects a 90 MiB pruning target for a 100 MiB high
+watermark. `BINARY` makes the units represent binary memory costs.
+
+[source,xml]
+----
+<local-scheme>
+  <high-units>100M</high-units>
+  <low-units>90%</low-units>
+  <unit-calculator>BINARY</unit-calculator>
+</local-scheme>
+----
+
+Percentages continue to apply when the high watermark changes. For partitioned
+backing maps, Coherence maintains the cache's aggregate low watermark and assigns
+per-partition thresholds through its existing fair-share allocation policy.
+Capacity remains local to each storage member; these settings do not impose a
+single cluster-wide size limit.
+
+Percentage calculations round down in configured units. Existing `unit-factor`
+and automatic scaling for large memory sizes still apply. With a very small
+high watermark, rounding can produce a low watermark of zero. A high watermark
+of zero continues to mean unlimited capacity.
+
+== Configure an Implementation Directly
+
+When an application owns a `LocalCache` directly, it can select a ratio through
+the cache API. This is useful for application-managed local caches:
+
+[source,java]
+----
+var cache = new com.tangosol.net.cache.LocalCache(1000, 0);
+cache.setLowUnitsRatio(0.90);
+cache.setHighUnits(2000);
+assert cache.getLowUnits() == 1800;
+----
+
+`ConfigurableCacheMap.getLowUnitsRatio()` reports the active fraction. It returns
+a negative value for absolute configuration or implementations without ratio
+support. `setLowUnits(int)` selects absolute configuration instead. Existing
+absolute-setting behavior is preserved. Implementations that do not support
+ratios throw `UnsupportedOperationException` from `setLowUnitsRatio(double)`.
+
+The existing three-argument `OldCache` constructor still uses its supplied
+pruning level and retains its historical bounds handling. The public
+`LocalCache.DEFAULT_PRUNE` constant remains `0.80`;
+`LocalCache.getDefaultPruneLevel()` returns the configured JVM default.
+
+== Supported Cache Types
+
+The percentage syntax applies to `local-scheme`. The JVM default also applies
+to serialization-cache paths that use the local-cache default.
+
+Elastic Data Journal caches configured by `ramjournal-scheme` and
+`flashjournal-scheme` are available in commercial Coherence and are not supported
+in Coherence CE.
+
+Caffeine uses incremental eviction and ignores low watermarks. This enhancement
+does not change `caffeine-scheme` or Unified Persistence Journal storage.
+Existing absolute `low-units` values such as `750` or `75M` remain supported.
+Percentage values are not accepted for `high-units`.

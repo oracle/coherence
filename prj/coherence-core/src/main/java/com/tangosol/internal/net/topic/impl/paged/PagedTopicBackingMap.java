@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -79,6 +79,18 @@ public abstract class PagedTopicBackingMap
     public void setLowUnits(int cUnits)
         {
         getConfigurableCacheMap().setLowUnits(cUnits);
+        }
+
+    @Override
+    public double getLowUnitsRatio()
+        {
+        return getConfigurableCacheMap().getLowUnitsRatio();
+        }
+
+    @Override
+    public void setLowUnitsRatio(double dflRatio)
+        {
+        getConfigurableCacheMap().setLowUnitsRatio(dflRatio);
         }
 
     @Override

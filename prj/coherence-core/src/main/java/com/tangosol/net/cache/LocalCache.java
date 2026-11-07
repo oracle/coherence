@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -84,6 +84,19 @@ public class LocalCache
         this(cUnits, cExpiryMillis);
 
         setCacheLoader(loader);
+        }
+
+
+    /**
+    * Return the default pruning ratio for newly configured caches. Invalid
+    * property values are ignored with a warning.
+    *
+    * @return the configured ratio, or {@link #DEFAULT_PRUNE}
+    * @since 27.01
+    */
+    public static double getDefaultPruneLevel()
+        {
+        return OldCache.getDefaultPruneLevel();
         }
 
 

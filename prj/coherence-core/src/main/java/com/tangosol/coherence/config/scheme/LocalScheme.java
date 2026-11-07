@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
@@ -16,6 +16,7 @@ import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.builder.EvictionPolicyBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.UnitCalculatorBuilder;
+import com.tangosol.coherence.config.unit.LowUnits;
 import com.tangosol.coherence.config.unit.Seconds;
 import com.tangosol.coherence.config.unit.Units;
 
@@ -79,9 +80,10 @@ public class LocalScheme
         {
         validate(resolver);
 
+        Units lowUnits           = getLowUnits(resolver);
         Units highUnits          = getHighUnits(resolver);
         long  cHighUnits         = highUnits.getUnitCount();
-        long  cLowUnits          = getLowUnits(resolver).getUnitCount();
+        long  cLowUnits          = lowUnits.getUnitCount();
         int   nUnitFactor        = getUnitFactor(resolver);
         int   cExpiryDelayMillis = (int) getExpiryDelay(resolver).as(Magnitude.MILLI);
 
@@ -101,7 +103,7 @@ public class LocalScheme
 
         if (cLowUnits <= 0)
             {
-            cLowUnits = (long) (cHighUnits * LocalCache.DEFAULT_PRUNE);
+            cLowUnits = (long) (cHighUnits * LocalCache.getDefaultPruneLevel());
             }
 
         if (cExpiryDelayMillis < 0)
@@ -151,7 +153,18 @@ public class LocalScheme
                                            ? LocalCache.INSTANCE_BINARY : null;
         UnitCalculatorBuilder bldrUnitCalculator = getUnitCalculatorBuilder();
 
-        cache.setLowUnits((int) cLowUnits);
+        if (lowUnits instanceof LowUnits units && units.getRatio() > 0.0)
+            {
+            cache.setLowUnitsRatio(units.getRatio());
+            }
+        else if (lowUnits.getUnitCount() <= 0)
+            {
+            cache.setLowUnitsRatio(LocalCache.getDefaultPruneLevel());
+            }
+        else
+            {
+            cache.setLowUnits((int) cLowUnits);
+            }
         cache.setUnitFactor(nUnitFactor);
         cache.setUnitCalculator(bldrUnitCalculator == null
                                 ? defaultCalculator : bldrUnitCalculator.realize(resolver, loader, null));
@@ -320,9 +333,9 @@ public class LocalScheme
      * of measurement, unless it is overridden by an alternate unit-calculator.
      * When pruning occurs entries continue to be evicted according to the
      * eviction policy until this size. Legal values are positive integers or
-     * zero. Zero implies the default. The default value is 75% of the high-units
-     * setting (that is, for a high-units setting of 1000 the default low-units
-     * is 750).
+     * zero. Zero implies the default. The default is controlled by
+     * {@code coherence.local.cache.default.prune}, with a fallback of 80% of
+     * high units. XML configuration also accepts percentages such as {@code 90%}.
      *
      * @param resolver  the ParameterResolver
      *
