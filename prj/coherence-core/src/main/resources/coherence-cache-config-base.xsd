@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -15,7 +15,7 @@
             Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
-            http://oss.oracle.com/licenses/upl.
+            https://oss.oracle.com/licenses/upl.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -345,7 +345,26 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="low-units" type="coherence-integer-memorySize-type">
+    <xsd:simpleType name="low-units-base-type">
+        <xsd:union memberTypes="coherence-integer-memorySize-base-type">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:pattern value="0*([1-9][0-9]?(\.[0-9]+)?|0\.[0-9]*[1-9][0-9]*)%" />
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:union>
+    </xsd:simpleType>
+
+    <xsd:complexType name="low-units-type">
+        <xsd:simpleContent>
+            <xsd:extension base="low-units-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+                <xsd:anyAttribute namespace="##other" processContents="lax" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="low-units" type="low-units-type">
         <xsd:annotation>
             <xsd:documentation>
                 The low-units element contains the amount of cache
@@ -358,7 +377,11 @@
                 Valid values are positive integers and zero. Values may include a
                 standard byte oriented magnitude suffix such as (B, KB, MB, GB, TB).
 
-                Used in: local-scheme
+                Percentages such as 90% or 90.5% are fractions of high-units
+                and must be strictly between 0% and 100%. Omitted or zero values
+                use coherence.local.cache.default.prune, which defaults to 0.80.
+
+                Used in: local-scheme, ramjournal-scheme, flashjournal-scheme
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

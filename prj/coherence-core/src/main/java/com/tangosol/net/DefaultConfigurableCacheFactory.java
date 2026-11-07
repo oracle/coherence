@@ -2242,7 +2242,10 @@ public class DefaultConfigurableCacheFactory
     protected Map instantiateLocalCache(CacheInfo info, XmlElement xmlLocal, BackingMapManagerContext context, ClassLoader loader)
         {
         int cHighUnits         = (int) parseMemorySize(xmlLocal.getSafeElement("high-units").getString("0"));
-        int cLowUnits          = (int) parseMemorySize(xmlLocal.getSafeElement("low-units" ).getString("0"));
+        String sLowUnits       = xmlLocal.getSafeElement("low-units").getString("0");
+        com.tangosol.coherence.config.unit.LowUnits lowUnits =
+                new com.tangosol.coherence.config.unit.LowUnits(sLowUnits);
+        int cLowUnits          = (int) lowUnits.getUnitCount();
         int cExpiryDelayMillis = (int) parseTime(xmlLocal.getSafeElement("expiry-delay").getString("0"), UNIT_S);
 
         // check and default all of the Cache options
@@ -2252,7 +2255,7 @@ public class DefaultConfigurableCacheFactory
             }
         if (cLowUnits <= 0)
             {
-            cLowUnits = (int) (cHighUnits * LocalCache.DEFAULT_PRUNE);
+            cLowUnits = (int) (cHighUnits * LocalCache.getDefaultPruneLevel());
             }
         if (cExpiryDelayMillis < 0)
             {
@@ -2272,7 +2275,18 @@ public class DefaultConfigurableCacheFactory
             cache = (LocalCache) instantiateSubclass(sSubclass, LocalCache.class, loader,
                 aoParam, xmlLocal.getElement("init-params"));
             }
-        cache.setLowUnits(cLowUnits);
+        if (lowUnits.getRatio() > 0.0)
+            {
+            cache.setLowUnitsRatio(lowUnits.getRatio());
+            }
+        else if (lowUnits.getUnitCount() <= 0)
+            {
+            cache.setLowUnitsRatio(LocalCache.getDefaultPruneLevel());
+            }
+        else
+            {
+            cache.setLowUnits(cLowUnits);
+            }
 
         XmlElement xmlEviction = xmlLocal.getElement("eviction-policy");
         if (xmlEviction != null)
