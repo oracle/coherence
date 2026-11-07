@@ -5,85 +5,173 @@
     https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Introduction
-:description: Oracle Coherence CE Documentation - Introduction
-:keywords: coherence, java, documentation, introduction
+:description: What Oracle Coherence CE does, where it fits, and how to get started
+:keywords: coherence, distributed data, caching, microservices, computation, analytics, vector search
 
 // DO NOT remove this header - it might look like a duplicate of the header above, but
-// both they serve a purpose, and the docs will look wrong if it is removed.
+// both headers serve a purpose, and the docs will look wrong if it is removed.
 == Introduction
 
-First and foremost, Coherence provides a fundamental service that is responsible for all facets of clustering and is a
-common denominator / building block for all other Coherence services.
-This service, referred to as 'service 0' internally, ensures the mesh of members is maintained and responsive,
-taking action to collaboratively evict, shun, or in some cases voluntarily depart the cluster when deemed necessary.
-As members join and leave the cluster, other Coherence services are notified thus allowing those services to react accordingly.
+Oracle Coherence Community Edition (CE) is an open source, distributed data
+platform for applications that need fast access to shared state and dependable
+processing at scale. It brings data and application logic together: store data
+across a cluster, run operations on the members that own it, and add capacity as
+your workload grows.
 
-NOTE: This part of the Coherence product has been in production for 20+ years, and has been the subject of some extensive and
-imaginative testing.
-While it has been discussed here it certainly is not something that customers, generally, interact with directly but is
-valuable to be aware of.
+You can start by using Coherence to reduce database load and speed up data access.
+The same platform also supports applications that manage their primary working
+state in Coherence, distribute business processing, react to events, or search
+application data by meaning. Distributed maps, queries, computation, messaging,
+and persistence give you several ways to build around the same data.
 
-Coherence services build on top of the clustering service, with the key implementations to be aware of being
-PartitionedService, InvocationService, and ProxyService.
+This introduction describes the platform in the context of CE 26.10. The
+xref:docs/core/01_overview.adoc[Core Improvements] guides describe the features
+and changes specific to that release.
 
-In the majority of cases customers will deal with caches;
-a cache will be represented by an implementation of `NamedCache<K,V>`.
-Cache is an unfortunate name, as many customers use Coherence as a system-of-record rather than a lossy store of data.
-A cache is hosted by a service, generally the PartitionedService, and is the entry point to storing, retrieving,
-aggregating, querying, and streaming data.
+== What Coherence makes possible
 
-There are a number of features that caches provide:
+=== Fast access to shared application data
 
-* Fundamental *key-based access*: get/put getAll/putAll
-* Client-side and storage-side events
- ** *MapListeners* to asynchronously notify clients of changes to data
- ** *EventInterceptors* (either sync or async) to be notified storage level events, including mutations, partition transfer, failover, etc
-* *NearCaches* - locally cached data based on previous requests with local content invalidated upon changes in storage tier
-* *ViewCaches* - locally stored view of remote data that can be a subset based on a predicate and is kept in sync real time
-* *Queries* - distributed, parallel query evaluation to return matching key, values or entries with potential to optimize performance with indices
-* *Aggregations* - a map/reduce style aggregation where data is aggregated in parallel on all storage nodes and results streamed back to the client for aggregation of those results to produce a final result
-* *Data local processing* - an ability to send a function to the relevant storage node to execute processing logic for the appropriate entries with exclusive access
-* *Partition local transactions* - an ability to perform scalable transactions by associating data (thus being on the same partition) and manipulating other entries on the same partition potentially across caches
-* *Non-blocking / async NamedCache API*
-* *Polyglot clients* - access the same NamedCache API from https://github.com/oracle/coherence-cpp-extend-client[C++], https://github.com/oracle/coherence-go-client[Go], Java, https://github.com/oracle/coherence-js-client[JavaScript], https://github.com/oracle/coherence-dotnet-extend-client[.NET], or https://github.com/oracle/coherence-py-client[Python]
-* *Portable Object Format* - optimized serialization format, with the ability to navigate the serialized form for optimized queries, aggregations, or data processing
-* *Integration with Databases* - Database & third party data integration with CacheStores including both synchronous or asynchronous writes
-* *CohQL* - ansi-style query language with a console for adhoc queries
-* *Topics* - distributed topics implementation offering pub/sub messaging with the storage capacity the cluster and parallelizable subscribers
-* *Repository API* - a framework implementing the Repository pattern from Domain-Driven Design, abstracting persistent storage implementation from application code, with advanced features like support for pagination, projections, streaming, and updating in-place
-* *coherence-concurrent* - Coherence-backed implementations of types from the `java.util.concurrent` package enabling distributed process coordination through the grid
-** *Atomics* - for implementing e.g. atomic counters shared between cluster, with an optional asynchronous API
-** *Executors* - for submitting tasks to be executed in the cluster
-** *Locks* - for implementing lock-based concurrency control across multiple cluster members
-** *Queues* - for implementing blocking queue / dequeue behavior across multiple cluster members
-** *Semaphores* - for implementing synchronization of execution across multiple cluster members
-* *Microservices integration* - broad and close integration with https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/integrate/coherence-microprofile-config.htm[Helidon], https://micronaut-projects.github.io/micronaut-coherence/latest/guide/[Micronaut], and https://spring.coherence.community/4.3.0/#/about/01_overview[Spring] for developing microservices applications using Coherence as a data source or cache
+Keep frequently used customer, product, account, or reference data available to
+many application instances without making every request return to a database.
+Coherence distributes the data across storage members and routes requests to the
+members that own the relevant entries.
 
-There are also a number of non-functional features that Coherence provides:
+Applications can use a shared distributed map, a near cache that keeps recently
+accessed data close to a client, or a filtered view that stays current as the
+underlying data changes. Cache stores integrate Coherence with databases and
+other systems, including read-through and write-through or write-behind patterns.
+Choose the pattern according to which system owns the data and how updates must
+be coordinated.
 
-* *Rock solid clustering* - highly tuned and robust clustering stack that allows Coherence to scale to thousands of members in a cluster with thousands of partitions and terabytes of data being accessed, mutated, queried and aggregated concurrently
-* *Safety first* - resilient data management that ensures backup copies are on distinct machines, racks, or sites and the ability to maintain multiple backups
-* *24/7 Availability* - zero down time with rolling redeploy of cluster members to upgrade application or product versions
- ** Backwards and forwards compatibility of product upgrades, including major versions
-* *Persistent Caches* - with the ability to use local file system persistence (thus avoid extra network hops) and leverage Coherence consensus protocols to perform distributed disk recovery when appropriate
-* *Distributed State Snapshot* - ability to perform distributed point-in-time snapshot of cluster state, and recover snapshot in this or a different cluster (leverages persistence feature)
-* *Lossy redundancy* - ability to reduce the redundancy guarantee by making backups and/or persistence asynchronous from a client perspective
-* *Single Mangement View* - provides insight into the cluster  with a single JMX server that provides a view of all members of the cluster
-* *Management over REST* - all JMX data and operations can be performed over REST, including cluster wide thread dumps and heapdumps
-* *Non-cluster Access* - access to the cluster from the outside via proxies, for distant (high latency) clients and for non-Java languages such as https://github.com/oracle/coherence-cpp-extend-client[C++], https://github.com/oracle/coherence-go-client[Go], https://github.com/oracle/coherence-js-client[JavaScript], https://github.com/oracle/coherence-dotnet-extend-client[.NET], or https://github.com/oracle/coherence-py-client[Python]
-* *Kubernetes friendly* - seamlessly and safely deploy applications to k8s with our own https://github.com/oracle/coherence-operator[operator]
+=== Business processing where the data lives
 
+A service often needs to inspect and update a record together, or apply the same
+calculation across many records. Coherence can run that logic on storage
+members, reducing the amount of data an application has to retrieve and send back.
+Entry processors provide exclusive access while processing an entry; distributed
+aggregators combine work performed across the cluster.
 
-== Coherence Community Edition Disabled and Excluded Functionality
+Data affinity places related records in the same partition. This supports
+operations across those records, including partition-local transactions, while
+keeping their processing together. It is useful for work such as updating an
+order with its associated entries or calculating a result for one customer's data.
 
-Coherence Community Edition does not include the following Oracle Coherence commercial edition functionality
+Java developers access these capabilities through familiar map concepts and APIs
+such as `NamedMap`, `NamedCache`, and the Repository API. The bootstrap API and
+configured sessions provide the application's entry point to these resources.
 
-* Management of Coherence via the Oracle WebLogic Management Framework
-* WebLogic Server Multi-tenancy support
+=== Answers that follow changing data
+
+Use distributed queries, indexes, streams, and aggregators to find records and
+calculate summaries without first copying the complete data set into an application.
+For dashboards and other recurring questions, CE 26.10 adds
+xref:docs/core/05_continuous_aggregation.adoc[Continuous Aggregation]. It maintains
+partial results as entries change, then combines those results when requested.
+Frequently queried totals, counts, and grouped summaries can avoid repeatedly
+scanning the same data; the guide explains the supported aggregators and the
+trade-off between query savings and maintenance work.
+
+Map listeners and interceptors let applications respond to data changes. Topics
+provide publish/subscribe messaging, and the distributed executor and concurrency
+APIs support background work and coordination across processes.
+
+=== Search and AI over application data
+
+Coherence's vector search capabilities let applications find similar items and
+combine similarity queries with filters on business attributes. This makes it
+possible to search embeddings alongside the application records they describe.
+The xref:examples/guides/300-vector-store/README.adoc[Vector Store guide]
+introduces the available search and indexing options.
+
+Optional modules extend the platform with distributed full-text search through
+Apache Lucene and a retrieval-augmented generation (RAG) framework. The RAG
+framework provides document ingestion, chunking, vector storage, and integration
+with embedding and language-model providers. These modules let applications build
+retrieval workflows around data managed by the cluster.
+
+== How the cluster supports your application
+
+Coherence partitions data across storage members and can maintain backup copies
+on other members. When a member leaves or fails, the cluster promotes available
+backups and redistributes ownership. Adding members lets the cluster rebalance
+data and processing across the available capacity.
+
+This model separates the application's view of a named map from the placement
+of individual entries. Applications work with their data while Coherence manages
+ownership, routing, and partition movement.
+
+Choose backup counts and placement policies for the failures your deployment
+needs to tolerate. Persistence provides recovery beyond live replicas, and
+snapshots provide a way to capture and recover persisted state.
+xref:docs/core/01_unified_persistence.adoc[Unified Persistence] describes the
+journal persistence engine and its storage and recovery options. Planned
+maintenance can use rolling restarts and supported rolling upgrades; consult the
+release's compatibility and migration guidance before changing versions.
+
+Coherence can serve as a cache in front of another system of record, or manage
+persistent application data itself. That is an application architecture decision:
+define the authoritative data source, update path, durability requirements, and
+recovery process together.
+
+== Connect and operate in your environment
+
+Applications can join a Coherence cluster or connect remotely through proxies.
+Separate application and storage tiers when they need different deployment or
+scaling policies. Java, Go, Python, JavaScript, .NET, and C++ clients provide
+language-specific ways to access the cluster; consult each client's documentation
+for its supported APIs and release compatibility.
+
+Integrations with https://helidon.io/[Helidon],
+https://github.com/coherence-community/coherence-spring[Spring], and
+https://micronaut-projects.github.io/micronaut-coherence/latest/guide/[Micronaut]
+connect Coherence to application frameworks. You can run clusters on physical
+servers, virtual machines, or Kubernetes. The
+https://github.com/oracle/coherence-operator[Coherence Operator] manages Coherence
+deployments on Kubernetes.
+
+Metrics, health checks, tracing, JMX, and REST management provide visibility into
+the cluster. Use them to understand resource use, data distribution, requests,
+and service health as the application grows.
+
+CE 26.10 requires *Java 21 or later* and enables hardened mode by default. Read the
+xref:docs/core/04_security_hardening.adoc[Security Hardening guide] before an
+upgrade to prepare application metadata, review endpoint and remote-execution
+policies, and plan a staged migration where needed.
+
+== Choose a starting point
+
+* xref:examples/guides/050-bootstrap/README.adoc[Bootstrap Coherence] introduces
+  the bootstrap API and sessions for a first Java application.
+* xref:examples/README.adoc[Guides and Tutorials] provides examples for data
+  access, queries, processing, events, topics, and other application patterns.
+* xref:docs/core/01_overview.adoc[Core Improvements] covers Unified Persistence,
+  worker pools, security, Continuous Aggregation, and Extend proxy performance.
+* {commercial-docs-base-url}/index.html[Oracle Coherence documentation] provides
+  the broader configuration, development, administration, and reference material.
+  Check edition availability when using documentation shared with commercial editions.
+
+++++
+<a id="_coherence_community_edition_disabled_and_excluded_functionality"></a>
+++++
+
+[[community-edition]]
+== Community Edition and commercial editions
+
+CE is the open source edition of Oracle Coherence, released under the Universal
+Permissive License (UPL) 1.0. Oracle Coherence commercial editions provide
+additional capabilities and support.
+
+The following commercial functionality is not included in CE:
+
+* Management through the Oracle WebLogic Management Framework and WebLogic Server multi-tenancy
 * Deployment of Grid Archives (GARs)
 * HTTP session management for application servers (Coherence*Web)
-* GoldenGate HotCache
-* Elastic Data
-* Federation and WAN (wide area network) support
-* Transaction Framework
-* CommonJ work manager
+* GoldenGate HotCache and TopLink-based cache loaders and cache stores
+* Elastic Data Journal (RAM/flash journal backing maps)
+* Federation and WAN support
+* The Transaction Framework and CommonJ Work Manager
+
+These exclusions are distinct from the CE features described above. In
+particular, CE's partition-local transactions and Unified Persistence Journal
+are separate from the commercial Transaction Framework and Elastic Data Journal.
