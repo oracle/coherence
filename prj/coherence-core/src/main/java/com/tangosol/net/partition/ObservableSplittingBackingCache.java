@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -200,6 +200,10 @@ public class ObservableSplittingBackingCache
                     {
                     ConfigurableCacheMap mapPart = (ConfigurableCacheMap) map;
                     mapPart.setHighUnits(mapPart.getHighUnits());
+                    if (m_dflLowUnitsRatio > 0.0)
+                        {
+                        configureLowUnits(mapPart, getLowUnitFairShare());
+                        }
                     }
                 }
             else
@@ -212,6 +216,12 @@ public class ObservableSplittingBackingCache
 
                 m_cHighUnits = cMax;
                 m_cHighUnitFairShare = calcUnitFairShare(getCalibratedHighUnits());
+                if (m_dflLowUnitsRatio > 0.0)
+                    {
+                    m_cLowUnits = (int) (cMax * m_dflLowUnitsRatio);
+                    m_cLowUnitsCalibrated = -1;
+                    m_cLowUnitFairShare = calcUnitFairShare(getCalibratedLowUnits());
+                    }
 
                 // either disseminate the addition or removal of units to all child
                 // maps; this method will also set the low units
@@ -232,6 +242,45 @@ public class ObservableSplittingBackingCache
     * {@inheritDoc}
     */
     public void setLowUnits(int cUnits)
+        {
+        if (cUnits >= 0)
+            {
+            m_dflLowUnitsRatio = -1.0;
+            }
+        setLowUnitsInternal(cUnits);
+        }
+
+    @Override
+    public double getLowUnitsRatio()
+        {
+        return m_dflLowUnitsRatio;
+        }
+
+    @Override
+    public void setLowUnitsRatio(double dflRatio)
+        {
+        if (!Double.isFinite(dflRatio) || dflRatio <= 0.0 || dflRatio >= 1.0)
+            {
+            throw new IllegalArgumentException("Low-units ratio must be finite and strictly between zero and one");
+            }
+        m_dflLowUnitsRatio = dflRatio;
+        int cUnits = (int) (Math.max(0, getHighUnits()) * dflRatio);
+        if (cUnits == m_cLowUnits)
+            {
+            adjustUnits(0);
+            }
+        else
+            {
+            setLowUnitsInternal(cUnits);
+            }
+        }
+
+    /**
+     * Update the absolute threshold without changing the configured ratio mode.
+     *
+     * @param cUnits  the low watermark
+     */
+    protected void setLowUnitsInternal(int cUnits)
         {
         if (cUnits != m_cLowUnits && cUnits >= 0)
             {
@@ -584,14 +633,14 @@ public class ObservableSplittingBackingCache
             // low units must be set after setting the high units
             if (fSetLowUnits)
                 {
-                mapPart.setLowUnits(cFairLow);
+                configureLowUnits(mapPart, cFairLow);
                 }
             }
 
         mapRequestor.setHighUnits(cUnits);
         if (fSetLowUnits)
             {
-            mapRequestor.setLowUnits(cFairLow);
+            configureLowUnits(mapRequestor, cFairLow);
             }
         }
 
@@ -629,6 +678,10 @@ public class ObservableSplittingBackingCache
                     if (cUnitsDebit > 0)
                         {
                         mapPart.setHighUnits(cFairHigh);
+                        if (m_dflLowUnitsRatio > 0.0)
+                            {
+                            configureLowUnits(mapPart, getLowUnitFairShare());
+                            }
                         }
                     }
                 cUnitsClaimed += cUnitsDebit;
@@ -638,6 +691,10 @@ public class ObservableSplittingBackingCache
         if (cUnitsClaimed > 0)
             {
             mapRequestor.setHighUnits(cUnitsMax + cUnitsClaimed);
+            if (m_dflLowUnitsRatio > 0.0)
+                {
+                configureLowUnits(mapRequestor, getLowUnitFairShare());
+                }
             }
         }
 
@@ -702,11 +759,30 @@ public class ObservableSplittingBackingCache
             // set those as well
             if (cFairLow >= 0)
                 {
-                mapPart.setLowUnits(cFairLow);
+                configureLowUnits(mapPart, cFairLow);
                 }
             }
         }
 
+
+    /**
+     * Configure a partition's fallback ratio before assigning its fair share.
+     *
+     * @param cache   the partition cache
+     * @param cUnits  its fair-share low watermark
+     */
+    protected void configureLowUnits(ConfigurableCacheMap cache, int cUnits)
+        {
+        if (m_dflLowUnitsRatio > 0.0)
+            {
+            cache.setLowUnitsRatio(m_dflLowUnitsRatio);
+            if (cUnits == 0 && cache.getHighUnits() == 0)
+                {
+                return;
+                }
+            }
+        cache.setLowUnits(cUnits);
+        }
 
     // ----- internal -------------------------------------------------------
 
@@ -732,6 +808,10 @@ public class ObservableSplittingBackingCache
             setUnitFactor    (ccm.getUnitFactor());
             setHighUnits     (ccm.getHighUnits());
             setLowUnits      (ccm.getLowUnits());
+            if (ccm.getLowUnitsRatio() > 0.0)
+                {
+                setLowUnitsRatio(ccm.getLowUnitsRatio());
+                }
             }
         else
             {
@@ -1130,6 +1210,11 @@ public class ObservableSplittingBackingCache
     * units of the underlying caches.
     */
     protected int m_cLowUnits = -1;
+
+    /**
+     * The aggregate low-watermark ratio, or a negative value for absolute units.
+     */
+    protected double m_dflLowUnitsRatio = -1.0;
 
     /**
     * The high units adjusted based on the {@link #getPartitionUnitFactor partition unit factor}.
