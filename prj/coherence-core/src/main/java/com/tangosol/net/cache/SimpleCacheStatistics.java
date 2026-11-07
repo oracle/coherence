@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -12,10 +12,19 @@ import com.tangosol.util.Base;
 
 import java.io.Serializable;
 
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+
 
 /**
 * Implementation of the CacheStatistics interface intended for use by a cache
 * to maintain its statistics.
+* <p>
+* Registration methods atomically update individual counters, so concurrent
+* registrations do not lose updates. Reads of multiple counters, including
+* derived statistics, are not an atomic snapshot. Totals are exact once all
+* registrations complete, provided statistics are not reset concurrently.
+* A reset clears each counter independently; registrations racing with a reset
+* can be counted before or after that counter is cleared.
 *
 * @since Coherence 2.2
 * @author cp  2003.06.02
@@ -183,14 +192,14 @@ public class SimpleCacheStatistics
     */
     public void resetHitStatistics()
         {
-        m_cCacheHits         = 0L;
-        m_cCacheMisses       = 0L;
-        m_cHitsMillis        = 0L;
-        m_cMissesMillis      = 0L;
-        m_cPutsMillis        = 0L;
-        m_cCachePuts         = 0L;
-        m_cCachePrunes       = 0L;
-        m_cCachePrunesMillis = 0L;
+        HITS.set(this, 0L);
+        MISSES.set(this, 0L);
+        HIT_MILLIS.set(this, 0L);
+        MISS_MILLIS.set(this, 0L);
+        PUT_MILLIS.set(this, 0L);
+        PUTS.set(this, 0L);
+        PRUNES.set(this, 0L);
+        PRUNE_MILLIS.set(this, 0L);
         }
 
 
@@ -251,7 +260,7 @@ public class SimpleCacheStatistics
     */
     public void registerHit()
         {
-        ++m_cCacheHits;
+        HITS.incrementAndGet(this);
         }
 
     /**
@@ -261,11 +270,11 @@ public class SimpleCacheStatistics
     */
     public void registerHit(long lStartMillis)
         {
-        m_cCacheHits++;
+        HITS.incrementAndGet(this);
         long lStopMillis = getSafeTimeMillis();
         if (lStopMillis > lStartMillis)
             {
-            m_cHitsMillis += (lStopMillis - lStartMillis);
+            HIT_MILLIS.addAndGet(this, (lStopMillis - lStartMillis));
             }
         }
 
@@ -277,13 +286,13 @@ public class SimpleCacheStatistics
     */
     public void registerHits(int cHits, long lStartMillis)
         {
-        m_cCacheHits += cHits;
+        HITS.addAndGet(this, cHits);
         if (lStartMillis > 0)
             {
             long lStopMillis = getSafeTimeMillis();
             if (lStopMillis > lStartMillis)
                 {
-                m_cHitsMillis += (lStopMillis - lStartMillis);
+                HIT_MILLIS.addAndGet(this, (lStopMillis - lStartMillis));
                 }
             }
         }
@@ -293,7 +302,7 @@ public class SimpleCacheStatistics
     */
     public void registerMiss()
         {
-        ++m_cCacheMisses;
+        MISSES.incrementAndGet(this);
         }
 
     /**
@@ -303,11 +312,11 @@ public class SimpleCacheStatistics
     */
     public void registerMiss(long lStartMillis)
         {
-        m_cCacheMisses++;
+        MISSES.incrementAndGet(this);
         long lStopMillis = getSafeTimeMillis();
         if (lStopMillis > lStartMillis)
             {
-            m_cMissesMillis += (lStopMillis - lStartMillis);
+            MISS_MILLIS.addAndGet(this, (lStopMillis - lStartMillis));
             }
         }
 
@@ -319,13 +328,13 @@ public class SimpleCacheStatistics
     */
     public void registerMisses(int cMisses, long lStartMillis)
         {
-        m_cCacheMisses += cMisses;
+        MISSES.addAndGet(this, cMisses);
         if (lStartMillis > 0)
             {
             long lStopMillis = getSafeTimeMillis();
             if (lStopMillis > lStartMillis)
                 {
-                m_cMissesMillis += (lStopMillis - lStartMillis);
+                MISS_MILLIS.addAndGet(this, (lStopMillis - lStartMillis));
                 }
             }
         }
@@ -337,13 +346,13 @@ public class SimpleCacheStatistics
     */
     public void registerPut(long lStartMillis)
         {
-        m_cCachePuts++;
+        PUTS.incrementAndGet(this);
         if (lStartMillis > 0)
             {
             long lStopMillis = getSafeTimeMillis();
             if (lStopMillis > lStartMillis)
                 {
-                m_cPutsMillis += (lStopMillis - lStartMillis);
+                PUT_MILLIS.addAndGet(this, (lStopMillis - lStartMillis));
                 }
             }
         }
@@ -356,13 +365,13 @@ public class SimpleCacheStatistics
     */
     public void registerPuts(int cPuts, long lStartMillis)
         {
-        m_cCachePuts += cPuts;
+        PUTS.addAndGet(this, cPuts);
         if (lStartMillis > 0)
             {
             long lStopMillis = getSafeTimeMillis();
             if (lStopMillis > lStartMillis)
                 {
-                m_cPutsMillis += (lStopMillis - lStartMillis);
+                PUT_MILLIS.addAndGet(this, (lStopMillis - lStartMillis));
                 }
             }
         }
@@ -374,7 +383,7 @@ public class SimpleCacheStatistics
     */
     public void registerCachePrune(long lStartMillis)
         {
-        m_cCachePrunes++;
+        PRUNES.incrementAndGet(this);
         registerIncrementalCachePrune(lStartMillis);
         }
 
@@ -393,17 +402,72 @@ public class SimpleCacheStatistics
             long lStopMillis = getSafeTimeMillis();
             if (lStopMillis > lStartMillis)
                 {
-                m_cCachePrunesMillis += (lStopMillis - lStartMillis);
+                PRUNE_MILLIS.addAndGet(this, (lStopMillis - lStartMillis));
                 }
             }
         }
 
 
+    // ----- constants ------------------------------------------------------
+
+    /**
+    * Preserve the serial form used before atomic counter updates were added.
+    */
+    private static final long serialVersionUID = 4235773659525587475L;
+
+    /**
+    * Atomic updater for {@link #m_cCacheHits}.
+    */
+    private static final AtomicLongFieldUpdater<SimpleCacheStatistics> HITS =
+            AtomicLongFieldUpdater.newUpdater(SimpleCacheStatistics.class, "m_cCacheHits");
+
+    /**
+    * Atomic updater for {@link #m_cCacheMisses}.
+    */
+    private static final AtomicLongFieldUpdater<SimpleCacheStatistics> MISSES =
+            AtomicLongFieldUpdater.newUpdater(SimpleCacheStatistics.class, "m_cCacheMisses");
+
+    /**
+    * Atomic updater for {@link #m_cHitsMillis}.
+    */
+    private static final AtomicLongFieldUpdater<SimpleCacheStatistics> HIT_MILLIS =
+            AtomicLongFieldUpdater.newUpdater(SimpleCacheStatistics.class, "m_cHitsMillis");
+
+    /**
+    * Atomic updater for {@link #m_cMissesMillis}.
+    */
+    private static final AtomicLongFieldUpdater<SimpleCacheStatistics> MISS_MILLIS =
+            AtomicLongFieldUpdater.newUpdater(SimpleCacheStatistics.class, "m_cMissesMillis");
+
+    /**
+    * Atomic updater for {@link #m_cCachePuts}.
+    */
+    private static final AtomicLongFieldUpdater<SimpleCacheStatistics> PUTS =
+            AtomicLongFieldUpdater.newUpdater(SimpleCacheStatistics.class, "m_cCachePuts");
+
+    /**
+    * Atomic updater for {@link #m_cPutsMillis}.
+    */
+    private static final AtomicLongFieldUpdater<SimpleCacheStatistics> PUT_MILLIS =
+            AtomicLongFieldUpdater.newUpdater(SimpleCacheStatistics.class, "m_cPutsMillis");
+
+    /**
+    * Atomic updater for {@link #m_cCachePrunes}.
+    */
+    private static final AtomicLongFieldUpdater<SimpleCacheStatistics> PRUNES =
+            AtomicLongFieldUpdater.newUpdater(SimpleCacheStatistics.class, "m_cCachePrunes");
+
+    /**
+    * Atomic updater for {@link #m_cCachePrunesMillis}.
+    */
+    private static final AtomicLongFieldUpdater<SimpleCacheStatistics> PRUNE_MILLIS =
+            AtomicLongFieldUpdater.newUpdater(SimpleCacheStatistics.class, "m_cCachePrunesMillis");
+
+
     // ----- data members ---------------------------------------------------
 
     /**
-    * The rough (ie unsynchronized) number of calls that could be answered
-    * from the front or the back and were answered by data in the front map.
+    * The number of cache hits since the last statistics reset.
     */
     protected volatile long m_cCacheHits;
 
@@ -414,8 +478,7 @@ public class SimpleCacheStatistics
     protected volatile long m_cHitsMillis;
 
     /**
-    * The rough (ie unsynchronized) number of calls that could be answered
-    * from the front or the back and were answered by data in the back map.
+    * The number of cache misses since the last statistics reset.
     */
     protected volatile long m_cCacheMisses;
 
