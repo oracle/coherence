@@ -11,6 +11,6 @@
     "upper-case": "^2.0.2"
   },
   "devDependencies": {
-    "esbuild": "0.23.1"
+    "esbuild": "0.25.0"
   }
 }
