@@ -46,7 +46,8 @@ public class Connection
      * A LongArray of newly created Channel objects that have not yet accepted
      * by the peer, indexed by Channel identifier.
      */
-    private com.tangosol.util.LongArray __m_ChannelPendingArray;
+    // must be thread safe: the manager creates channels while a pipeline accepts others
+    private com.tangosol.util.LongArray __m_ChannelPendingArray = new com.tangosol.util.SafeLongArray();
     
     /**
      * Property CloseNotify
@@ -245,7 +246,6 @@ public class Connection
         try
             {
             setChannelArray(new com.tangosol.util.SparseArray());
-            setChannelPendingArray(new com.tangosol.util.SparseArray());
             }
         catch (java.lang.Exception e)
             {
@@ -1565,7 +1565,8 @@ public class Connection
      */
     protected void setChannelPendingArray(com.tangosol.util.LongArray list)
         {
-        __m_ChannelPendingArray = list;
+        __m_ChannelPendingArray = list instanceof com.tangosol.util.SafeLongArray
+                ? list : new com.tangosol.util.SafeLongArray(list);
         }
     
     // Accessor for the property "CloseNotify"
