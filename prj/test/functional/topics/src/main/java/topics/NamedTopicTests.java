@@ -31,12 +31,14 @@ import com.oracle.coherence.common.base.Classes;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
 import org.junit.After;
@@ -54,6 +56,13 @@ import java.util.Collection;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
+import static com.oracle.bedrock.testsupport.deferred.Eventually.assertDeferred;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 
 /**
  * @author jk 2015.05.28
@@ -170,7 +179,44 @@ public class NamedTopicTests
        // Thread.sleep(60000);
         }
 
+    @Test
+    public void shouldReconnectOnReceiveAfterIdleReconnectAttempt() throws Exception
+        {
+        assertReceiveAfterIdleReconnectAttempt(false);
+        }
+
+    @Test
+    public void shouldReconnectOnBatchReceiveAfterIdleReconnectAttempt() throws Exception
+        {
+        assertReceiveAfterIdleReconnectAttempt(true);
+        }
+
     // ----- helper methods -------------------------------------------------
+
+    private void assertReceiveAfterIdleReconnectAttempt(boolean fBatch) throws Exception
+        {
+        NamedTopic<String> topic = ensureTopic(m_sSerializer);
+
+        try (NamedTopicSubscriber<String> subscriber = (NamedTopicSubscriber<String>) topic.createSubscriber(Subscriber.inGroup("idle"));
+             Publisher<String>            publisher  = topic.createPublisher())
+            {
+            publisher.publish("value").get(1, TimeUnit.MINUTES);
+
+            int cReconnect = subscriber.getAutoReconnectTaskCount();
+            subscriber.disconnect();
+
+            // wait until the one-shot reconnect task has observed the empty receive queue
+            assertDeferred(subscriber::getAutoReconnectTaskCount, greaterThan(cReconnect));
+            assertThat(subscriber.isDisconnected(), is(true));
+
+            Subscriber.Element<String> element = fBatch
+                    ? subscriber.receive(1).get(30, TimeUnit.SECONDS).get(0)
+                    : subscriber.receive().get(30, TimeUnit.SECONDS);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is("value"));
+            assertThat(subscriber.isConnected(), is(true));
+            }
+        }
 
     @Override
     protected Session getSession()
@@ -214,7 +260,7 @@ public class NamedTopicTests
     @ClassRule
     public static CoherenceClusterResource cluster =
             new CoherenceClusterResource()
-                    .with(ClusterName.of("TopicTests"),
+                    .with(ClusterName.of(Config.getProperty("coherence.cluster", "TopicTests")),
                             Logging.at(9),
                             CacheConfig.of(CACHE_CONFIG_FILE),
                             LocalHost.only(),
