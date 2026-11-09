@@ -1,11 +1,15 @@
  /*
- * Copyright (c) 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
-package com.oracle.coherence.lucene;
+package lucene;
+
+import com.oracle.coherence.lucene.LuceneIndex;
+import com.oracle.coherence.lucene.LuceneQueryParser;
+import com.oracle.coherence.lucene.LuceneSearch;
 
 import com.oracle.coherence.ai.DocumentChunk;
 import com.oracle.coherence.ai.QueryResult;
@@ -41,7 +45,8 @@ public class LuceneSearchIT
     @BeforeAll
     static void setupClass()
         {
-        System.setProperty("coherence.cluster", "FullTextSearchIT");
+        System.setProperty("coherence.cluster",
+                System.getProperty("coherence.cluster", "LuceneSearchIT-" + System.nanoTime()));
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.serializer", "pof");
 
