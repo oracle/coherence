@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.testing.bedrock;
@@ -14,11 +14,13 @@ import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.MetaClass;
 import com.oracle.bedrock.runtime.Platform;
 import com.oracle.bedrock.runtime.Profile;
+import com.oracle.bedrock.runtime.java.options.SystemProperties;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 
 /**
- * Enable configuring Coherence production mode for all Java applications launched by Bedrock.
+ * Default Java applications launched by Bedrock to Coherence production mode,
+ * preserving an explicitly configured member mode.
  *
  * @author jf  2021.03.26
  */
@@ -43,7 +45,11 @@ public class ProductionmodeProfile
             MetaClass metaClass,
             OptionsByType optionsByType)
         {
-        optionsByType.add(SystemProperty.of("coherence.mode", "prod"));
+        SystemProperties properties = optionsByType.get(SystemProperties.class);
+        if (properties == null || properties.get("coherence.mode") == null)
+            {
+            optionsByType.add(SystemProperty.of("coherence.mode", "prod"));
+            }
         }
 
     @Override
