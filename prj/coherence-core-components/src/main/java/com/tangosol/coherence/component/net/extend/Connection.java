@@ -522,24 +522,39 @@ public class Connection
      */
     public void close(boolean fNotify, Throwable e, boolean fWait)
         {
-        // import Component.Util.Daemon.QueueProcessor.Service.Peer as com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer;
-        
         if (isOpen() && getPendingCloses() < MAX_PENDING)
             {
             setPendingCloses(getPendingCloses() + 1);
+            dispatchClose(fNotify, e, fWait);
+            }
+        }
 
-            com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer manager = (com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer) getConnectionManager();
-            if (manager.isServiceThread(this))
-                {
-                closeInternal(fNotify, e, 0L);
-                }
-            else
-                {
-                _assert(!isActiveThread(),
-                        "cannot close a connection while executing within the connection");
-        
-                manager.closeConnection(this, fNotify, e, fWait);
-                }
+    /**
+     * Dispatch an admitted close to the owning service thread. A deferred close
+     * has already been admitted and must not consume another request allowance.
+     *
+     * @param fNotify  if true, notify the peer that the Connection is closing
+     * @param e        the optional reason for closing
+     * @param fWait    if true, wait for the manager to process the close
+     */
+    private void dispatchClose(boolean fNotify, Throwable e, boolean fWait)
+        {
+        if (!isOpen())
+            {
+            return;
+            }
+
+        com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer manager = (com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer) getConnectionManager();
+        if (manager.isServiceThread(this))
+            {
+            closeInternal(fNotify, e, 0L);
+            }
+        else
+            {
+            _assert(!isActiveThread(),
+                    "cannot close a connection while executing within the connection");
+
+            manager.closeConnection(this, fNotify, e, fWait);
             }
         }
     
@@ -807,7 +822,8 @@ public class Connection
                     {
                     gateOpen();
                     fClose = false;
-                    close(isCloseNotify(), getCloseThrowable());
+                    // complete the deferred close without applying the new-request limit
+                    dispatchClose(isCloseNotify(), getCloseThrowable(), /*fWait*/ true);
                     }
                 }
             finally
