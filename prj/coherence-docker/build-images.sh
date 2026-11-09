@@ -97,12 +97,6 @@ then
   PORT_HEALTH=6676
 fi
 
-# Ensure there is a builder image set
-if [ "${BUILDER_IMAGE}" == "" ]
-then
-  BUILDER_IMAGE="ghcr.io/oracle/oraclelinux:8"
-fi
-
 # we must use docker format to use health checks
 export BUILDAH_FORMAT=docker
 
@@ -282,9 +276,9 @@ setup_jdk() {
 #   to our new image
     buildah rm "builder-${1}" || true
 
-#   Attempt to pull the builder image
+#   use the final image's base unless a builder override was supplied
     exitCode=0
-    for i in $(seq 1 5); do buildah from --arch "${1}" --os "${2}" --name "builder-${1}" "${BUILDER_IMAGE}" \
+    for i in $(seq 1 5); do buildah from --arch "${1}" --os "${2}" --name "builder-${1}" "${BUILDER_IMAGE:-${3}}" \
       && exitCode=0 && break || exitCode=$? \
       && echo "The command 'buildah from...' failed. Attempt ${i} of 5" \
       && sleep 10; done;
