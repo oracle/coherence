@@ -565,6 +565,24 @@ public class JournalPersistenceManagerTest
             assertTrue("lock holder did not stop after a simulated crash",
                     process.waitFor(30, TimeUnit.SECONDS));
 
+            // process termination can precede file-lock release on Windows
+            long ldtLockEnd = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            boolean fOwnerReleased = false;
+            while (System.nanoTime() < ldtLockEnd)
+                {
+                try (FileChannel channel = FileChannel.open(fileLock.toPath(), StandardOpenOption.WRITE);
+                     FileLock lock = channel.tryLock())
+                    {
+                    if (lock != null)
+                        {
+                        fOwnerReleased = true;
+                        break;
+                        }
+                    }
+                Thread.sleep(1);
+                }
+            assertTrue("terminated process did not release its promotion owner lock", fOwnerReleased);
+
             manager = new JournalPersistenceManager(fileData, null, null);
             assertFalse("abandoned process promotion was retained", dirWork.exists());
             }
