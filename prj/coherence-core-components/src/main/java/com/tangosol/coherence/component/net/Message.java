@@ -32,9 +32,9 @@ import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_0_27;
 import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_2206_18;
 import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_2_0_8;
 import static com.tangosol.internal.util.VersionHelper.VERSION_15_1_1_0_4;
-import static com.tangosol.internal.util.VersionHelper.VERSION_15_1_2_0_0;
-import static com.tangosol.internal.util.VersionHelper.VERSION_26_01;
-import static com.tangosol.internal.util.VersionHelper.VERSION_26_01_INTERNAL;
+import static com.tangosol.internal.util.VersionHelper.VERSION_26_07;
+import static com.tangosol.internal.util.VersionHelper.VERSION_26_07_LEGACY_CE_PREFIX;
+import static com.tangosol.internal.util.VersionHelper.VERSION_26_1_0_0_0;
 
 /**
  * The Message contains all of the information necessary to describe a message
@@ -931,9 +931,9 @@ public class Message
      */
     public static boolean isSeniorMetadataProofV1Compatible(int nVersion)
         {
-        return VersionHelper.isPatchCompatible(VERSION_26_01_INTERNAL, nVersion)
-            || VersionHelper.isVersionCompatible(VERSION_26_01, nVersion)
-            || VersionHelper.isVersionCompatible(VERSION_15_1_2_0_0, nVersion)
+        return VersionHelper.isVersionCompatible(VERSION_26_1_0_0_0, nVersion)
+            || VersionHelper.isCalendarVersionCompatible(VERSION_26_07_LEGACY_CE_PREFIX, nVersion)
+            || VersionHelper.isVersionCompatible(VERSION_26_07, nVersion)
             || VersionHelper.isPatchCompatible(VERSION_15_1_1_0_4, nVersion)
             || VersionHelper.isPatchCompatible(VERSION_14_1_2_0_8, nVersion)
             || VersionHelper.isPatchCompatible(VERSION_14_1_1_2206_18, nVersion)

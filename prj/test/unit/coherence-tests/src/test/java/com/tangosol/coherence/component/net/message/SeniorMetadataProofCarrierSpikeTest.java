@@ -46,9 +46,7 @@ public class SeniorMetadataProofCarrierSpikeTest
     @Test
     public void shouldEvaluateSeniorMetadataProofV1CompatibilityPredicate()
         {
-        assertTrue(Message.isSeniorMetadataProofV1Compatible(VersionHelper.encodeVersion(15, 0, 0, 2601, 0)));
-        assertTrue(Message.isSeniorMetadataProofV1Compatible(VersionHelper.encodeVersion(26, 1, 0)));
-        assertTrue(Message.isSeniorMetadataProofV1Compatible(VersionHelper.encodeVersion(15, 1, 2, 0, 0)));
+        assertTrue(Message.isSeniorMetadataProofV1Compatible(VersionHelper.encodeVersion(26, 1, 0, 0, 0)));
         assertTrue(Message.isSeniorMetadataProofV1Compatible(VersionHelper.encodeVersion(15, 1, 1, 0, 4)));
         assertTrue(Message.isSeniorMetadataProofV1Compatible(VersionHelper.encodeVersion(14, 1, 2, 0, 8)));
         assertTrue(Message.isSeniorMetadataProofV1Compatible(VersionHelper.encodeVersion(14, 1, 1, 2206, 18)));
@@ -60,6 +58,27 @@ public class SeniorMetadataProofCarrierSpikeTest
         assertFalse(Message.isSeniorMetadataProofV1Compatible(VersionHelper.encodeVersion(14, 1, 1, 2206, 17)));
         assertFalse(Message.isSeniorMetadataProofV1Compatible(VersionHelper.encodeVersion(14, 1, 1, 0, 26)));
         assertFalse(Message.isSeniorMetadataProofV1Compatible(VersionHelper.encodeVersion(12, 2, 1, 4, 30)));
+        }
+
+    @Test
+    public void shouldAcceptSupportedCeReleaseVersions()
+        {
+        for (String sVersion : new String[] {"26.07", "26.10", "27.01", "27.07", "28.01",
+                "15.0.0.26.07", "15.0.0.26.10", "15.0.0.27.01", "15.0.0.27.07", "15.0.0.28.01",
+                "15.0.0.2607.0", "15.0.0.2701.0", "26.1.0.0.0", "26.1.0.0.1"})
+            {
+            assertTrue(sVersion, Message.isSeniorMetadataProofV1Compatible(VersionHelper.parseVersion(sVersion)));
+            }
+        }
+
+    @Test
+    public void shouldRejectUnsupportedCeAndCommercialVersions()
+        {
+        for (String sVersion : new String[] {"26.04", "15.0.0.26.04", "25.03", "25.10", "15.0.0.25.10.31", "15.0.1.27.01",
+                "15.1.1.0.3", "14.1.2.0.7", "14.1.1.2206.17", "14.1.1.0.26", "12.2.1.4.30"})
+            {
+            assertFalse(sVersion, Message.isSeniorMetadataProofV1Compatible(VersionHelper.parseVersion(sVersion)));
+            }
         }
 
     @Test
@@ -811,14 +830,14 @@ public class SeniorMetadataProofCarrierSpikeTest
         @Override
         public boolean isVersionCompatible(Member member, IntPredicate predicate)
             {
-            return m_fSenderCompatible && predicate.test(VersionHelper.encodeVersion(15, 0, 0, 2601, 0));
+            return m_fSenderCompatible && predicate.test(VersionHelper.encodeVersion(26, 1, 0, 0, 0));
             }
 
         @Override
         public boolean isVersionCompatible(MemberSet setMembers, IntPredicate predicate)
             {
             return m_fRecipientsCompatible && !m_fHasIncompatibleRecipient
-                    && predicate.test(VersionHelper.encodeVersion(15, 0, 0, 2601, 0));
+                    && predicate.test(VersionHelper.encodeVersion(26, 1, 0, 0, 0));
             }
 
         public void setRecipientsCompatible(boolean fCompatible)

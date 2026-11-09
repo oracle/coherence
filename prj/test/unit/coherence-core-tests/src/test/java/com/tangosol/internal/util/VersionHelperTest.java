@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,35 @@ import static org.hamcrest.number.OrderingComparison.lessThan;
 
 public class VersionHelperTest
     {
+    @Test
+    public void shouldCompareCalendarVersionsAcrossYearsWithinTheirPrefix()
+        {
+        int nRequired = VersionHelper.parseVersion("15.0.0.26.07");
+        for (String sVersion : new String[] {"15.0.0.26.07", "15.0.0.26.10", "15.0.0.27.01",
+                "15.0.0.27.07", "15.0.0.28.01"})
+            {
+            assertThat(sVersion, VersionHelper.isCalendarVersionCompatible(nRequired,
+                    VersionHelper.parseVersion(sVersion)), is(true));
+            }
+
+        assertThat(VersionHelper.isCalendarVersionCompatible(VersionHelper.parseVersion("15.0.0.26.10.1"),
+                VersionHelper.parseVersion("15.0.0.26.10.0")), is(false));
+        assertThat(VersionHelper.isCalendarVersionCompatible(VersionHelper.parseVersion("15.0.0.26.10.1"),
+                VersionHelper.parseVersion("15.0.0.26.10.2")), is(true));
+        }
+
+    @Test
+    public void shouldRejectEarlierCalendarVersionsAndDifferentPrefixes()
+        {
+        int nRequired = VersionHelper.parseVersion("15.0.0.26.07");
+        for (String sVersion : new String[] {"15.0.0.26.04", "15.0.0.25.10.31", "15.0.0.24.03", "14.1.2.27.01",
+                "15.0.1.27.01", "15.1.1.0.3", "15.1.1.0.4", "26.1.0.0.0"})
+            {
+            assertThat(sVersion, VersionHelper.isCalendarVersionCompatible(nRequired,
+                    VersionHelper.parseVersion(sVersion)), is(false));
+            }
+        }
+
     @Test
     public void shouldEncodeVersionPatch()
         {
