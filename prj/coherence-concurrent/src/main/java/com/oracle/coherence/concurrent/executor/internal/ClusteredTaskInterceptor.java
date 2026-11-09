@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -28,12 +28,15 @@ import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.events.Event;
-import com.tangosol.net.events.EventInterceptor;
+import com.tangosol.net.events.EventDispatcher;
+import com.tangosol.net.events.EventDispatcherAwareInterceptor;
 
+import com.tangosol.net.events.partition.PartitionedServiceDispatcher;
 import com.tangosol.net.events.partition.TransactionEvent;
 import com.tangosol.net.events.partition.TransferEvent;
 
 import com.tangosol.net.events.partition.cache.EntryEvent;
+import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 
 import com.tangosol.net.partition.PartitionSet;
 
@@ -72,7 +75,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ClusteredTaskInterceptor
-        implements EventInterceptor
+        implements EventDispatcherAwareInterceptor
     {
     // ----- constructors ---------------------------------------------------
 
@@ -83,25 +86,53 @@ public class ClusteredTaskInterceptor
      */
     public ClusteredTaskInterceptor(String sServiceName)
         {
-        f_cacheService       = (DistributedCacheService) CacheFactory.getCluster().getService(sServiceName);
+        f_sServiceName       = sServiceName;
         f_cOrchestratedTasks = new AtomicInteger(0);
         f_fPendingTasks      = new AtomicBoolean(false);
         f_executorService    = Executors.newSingleThreadExecutor(new DaemonThreadFactory("TaskInterceptorThread-"));
 
-        int cParts = f_cacheService.getPartitionCount();
-
-        f_sequences = new AtomicLongArray(cParts);
-
-        for (int i = 0; i < cParts; i++)
-            {
-            f_sequences.set(i, 0);
-            }
-
-        f_atomicPartsPending.set(new PartitionSet(cParts));
         f_mapPendingTasks = new ConcurrentHashMap<>();
 
-        Hook.addShutdownHook(f_cacheService.getBackingMapManager().getCacheFactory().getResourceRegistry(),
-                             f_executorService::shutdown);
+        // defer service-dependent initialization to introduceEventDispatcher(), which supplies
+        // the associated service; construction can run on the service thread during recovery,
+        // where restart-capable service lookups can deadlock that thread
+        }
+
+    // ----- EventDispatcherAwareInterceptor interface ----------------------
+
+    @Override
+    public void introduceEventDispatcher(String sIdentifier, EventDispatcher dispatcher)
+        {
+        DistributedCacheService service;
+        if (dispatcher instanceof PartitionedServiceDispatcher)
+            {
+            service = (DistributedCacheService) ((PartitionedServiceDispatcher) dispatcher).getService();
+            }
+        else if (dispatcher instanceof PartitionedCacheDispatcher)
+            {
+            service = (DistributedCacheService) ((PartitionedCacheDispatcher) dispatcher).getCacheService();
+            }
+        else
+            {
+            // it is safe to skip initialization here because concurrent's distributed-scheme
+            // requires DistributedCache; SafeCluster.ensureSafeService throws
+            // IllegalArgumentException if that service already exists with a different type
+            return;
+            }
+
+        if (m_sequences == null)
+            {
+            // use the dispatcher's service without a restart-capable cluster lookup
+            int cParts = service.getPartitionCount();
+
+            Hook.addShutdownHook(service.getBackingMapManager().getCacheFactory().getResourceRegistry(),
+                                 f_executorService::shutdown);
+
+            f_atomicPartsPending.set(new PartitionSet(cParts));
+            m_sequences = new AtomicLongArray(cParts);
+            }
+
+        dispatcher.addEventInterceptor(sIdentifier, this);
         }
 
     // ----- ClusteredTaskInterceptor methods -------------------------------
@@ -175,13 +206,13 @@ public class ClusteredTaskInterceptor
     // ----- accessors ------------------------------------------------------
 
     /**
-     * Return the associated {@link CacheService}.
+     * Resolve the associated {@link CacheService} for deferred task work.
      *
      * @return the associated {@link CacheService}
      */
     public CacheService getCacheService()
         {
-        return f_cacheService;
+        return (CacheService) CacheFactory.getCluster().getService(f_sServiceName);
         }
 
     /**
@@ -194,7 +225,7 @@ public class ClusteredTaskInterceptor
     @SuppressWarnings("unused")
     public long getSequence(int nPartitionId)
         {
-        return f_sequences.get(nPartitionId);
+        return m_sequences.get(nPartitionId);
         }
 
     /**
@@ -206,7 +237,7 @@ public class ClusteredTaskInterceptor
      */
     public long getNextSequence(int nPartitionId)
         {
-        return f_sequences.incrementAndGet(nPartitionId);
+        return m_sequences.incrementAndGet(nPartitionId);
         }
 
     /**
@@ -219,7 +250,7 @@ public class ClusteredTaskInterceptor
     @SuppressWarnings("unused")
     public long resetSequence(int nPartitionId)
         {
-        return f_sequences.getAndSet(nPartitionId, 0);
+        return m_sequences.getAndSet(nPartitionId, 0);
         }
 
     /**
@@ -715,7 +746,7 @@ public class ClusteredTaskInterceptor
     /**
      * An array that keeps track of the task sequences for each partition.
      */
-    protected final AtomicLongArray f_sequences;
+    protected volatile AtomicLongArray m_sequences;
 
     /**
      * The maximum batch size.
@@ -745,9 +776,9 @@ public class ClusteredTaskInterceptor
     protected final ExecutorService f_executorService;
 
     /**
-     * The cache service this interceptor is associated with.
+     * The name of the service this interceptor is associated with.
      */
-    protected final DistributedCacheService f_cacheService;
+    protected final String f_sServiceName;
 
     /**
      * A map of pending {@link Task}s for each partition that contains sequence to task key mapping.

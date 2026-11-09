@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,11 +20,18 @@ import com.oracle.coherence.concurrent.RemoteSemaphore;
 import com.oracle.coherence.concurrent.Semaphores;
 import com.oracle.coherence.concurrent.atomic.Atomics;
 
+import com.tangosol.coherence.component.util.SafeCluster;
+import com.tangosol.coherence.component.util.SafeService;
+
 import com.tangosol.util.Base;
+import com.tangosol.util.DaemonThreadFactory;
 
 import java.io.Serializable;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import java.time.Duration;
 
@@ -34,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThan;
@@ -113,6 +121,48 @@ public abstract class AbstractClusteredRemoteSemaphoreIT
                                  // from members that were shut down
                                  }
                              });
+        }
+
+    @Test
+    public void shouldRecoverSemaphoreAfterServiceRestart()
+            throws Exception
+        {
+        CoherenceClusterMember member = m_coherenceResource.getCluster().get("storage-1");
+        member.invoke(() ->
+            {
+            shouldAcquireAndReleasePermits("before-service-restart");
+
+            SafeService     service = (SafeService) Semaphores.semaphoresMap().getService();
+            SafeCluster     cluster = service.getSafeCluster();
+            ExecutorService executor = Executors.newSingleThreadExecutor(
+                    new DaemonThreadFactory("SemaphoreServiceRestart"));
+            Future<Void> future = executor.submit(() ->
+                {
+                cluster.ensureLocked();
+                try
+                    {
+                    // force cleanup to restart the service while holding the cluster lock
+                    service.getService().stop();
+                    ConcurrentHelper.clearSemaphores();
+                    shouldAcquireAndReleasePermits("after-service-restart");
+                    return null;
+                    }
+                finally
+                    {
+                    cluster.unlock();
+                    }
+                });
+            try
+                {
+                future.get(30, SECONDS);
+                }
+            finally
+                {
+                future.cancel(true);
+                executor.shutdownNow();
+                }
+            return null;
+            });
         }
 
     @Test
