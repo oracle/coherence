@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018, 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2018, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.maven.pof;
 
@@ -18,7 +18,9 @@ import java.lang.reflect.Constructor;
 
 import org.apache.maven.project.MavenProject;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,11 +31,28 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class InstrumentClassesMojoTest
     {
     @Test
-    public void shouldInstrumentClass() throws Exception
+    public void shouldInstrumentClassWithCustomSchema() throws Exception
+        {
+        File directory = m_tempFolder.newFolder("classes");
+        CustomSchemaTestSupport.prepare(directory);
+
+        InstrumentClassesMojo mojo = new InstrumentClassesMojo();
+        mojo.setProject(new MavenProject());
+        mojo.setClassesDirectory(directory);
+        mojo.execute();
+
+        CustomSchemaTestSupport.assertInstrumented(directory);
+        }
+
+    @Test
+    public void shouldInstrumentClass()
+            throws Exception
         {
         MavenProject project     = new MavenProject();
-        File         fileClasses = new File(InstrumentClassesMojoTest.class.getProtectionDomain()
-                                           .getCodeSource().getLocation().toURI());
+        File         fileClasses = m_tempFolder.newFolder("classes");
+        String       resource    = "com/oracle/coherence/maven/pof/ValueOne.class";
+
+        CustomSchemaTestSupport.copyClass(fileClasses, resource);
 
         InstrumentClassesMojo mojo = new InstrumentClassesMojo();
 
@@ -43,8 +62,8 @@ public class InstrumentClassesMojoTest
         mojo.execute();
 
         SimplePofContext ctx = new SimplePofContext();
-        Class<?>         clz = Class.forName("com.oracle.coherence.maven.pof.ValueOne");
-        
+        Class<?>         clz = CustomSchemaTestSupport.load(fileClasses, resource);
+
         ctx.registerUserType(1000, clz, new PortableTypeSerializer(1000, clz));
 
         Constructor<?> constructor = clz.getDeclaredConstructor(String.class, String.class);
@@ -54,4 +73,7 @@ public class InstrumentClassesMojoTest
 
         assertThat(oResult, is(oValue));
         }
+
+    @Rule
+    public TemporaryFolder m_tempFolder = new TemporaryFolder();
     }

@@ -1,0 +1,28 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+package com.oracle.coherence.maven.pof;
+
+import com.tangosol.io.pof.schema.annotation.PortableType;
+
+/**
+ * A fixture whose property order is supplied by custom XML metadata.
+ *
+ * @author Vaso Putica  2026.11.05
+ * @since 22.06
+ */
+@PortableType(id = 40259)
+public class SchemaValue
+    {
+    public SchemaValue(String sFirst, String sSecond)
+        {
+        m_sFirst  = sFirst;
+        m_sSecond = sSecond;
+        }
+
+    private String m_sFirst;
+    private String m_sSecond;
+    }

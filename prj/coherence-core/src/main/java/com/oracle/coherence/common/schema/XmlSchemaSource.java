@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.common.schema;
@@ -17,6 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
@@ -26,6 +27,18 @@ import org.w3c.dom.Element;
 /**
  * A {@link SchemaSource} implementation that reads type and property metadata
  * from an XML file.
+ * <p>
+ * All {@code DOCTYPE} declarations are rejected, including inert declarations
+ * and those providing only internal entities or attribute defaults. External
+ * entities and DTDs are not resolved. Replace DTD-provided entities and defaults
+ * with explicit values and remove the {@code DOCTYPE}. Predefined XML escapes
+ * and numeric character references remain supported.
+ * <p>
+ * The JAXP provider must support the required parser protections. If a
+ * protection cannot be applied, {@link #populateSchema(Schema)} fails before
+ * creating a document builder or reading XML. This policy is independent of
+ * {@code coherence.security.mode} and the compatibility mode of
+ * {@link com.tangosol.run.xml.SaxParser}.
  *
  * @author as  2013.07.11
  */
@@ -96,6 +109,14 @@ public class XmlSchemaSource
 
     // ---- SchemaSource implementation ---------------------------------------
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws RuntimeException if a required parser protection cannot be applied,
+     *                          the XML contains a {@code DOCTYPE}, or XML parsing
+     *                          or metadata import fails; the underlying exception
+     *                          is retained as the cause
+     */
     @Override
     public void populateSchema(Schema schema)
         {
@@ -103,6 +124,13 @@ public class XmlSchemaSource
             {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            dbf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            dbf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            dbf.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            dbf.setXIncludeAware(false);
 
             DocumentBuilder db        = dbf.newDocumentBuilder();
             Document        doc       = db.parse(m_inputXml);
