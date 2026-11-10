@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -10,6 +10,10 @@ import com.tangosol.util.UID;
 import com.tangosol.util.UUID;
 
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.junit.Test;
 
@@ -67,6 +71,54 @@ public class DefaultKeyConverterTest
                      new DefaultKeyConverter(java.util.UUID.class).fromString("17b3fb90-ed89-410f-b971-6b90dd1ae078"));
         }
 
+    /**
+     * Concurrent calls must not share the <tt>SimpleDateFormat</tt> used for date keys.
+     */
+    @SuppressWarnings({"deprecation"})
+    @Test
+    public void testDateKeyConversionIsThreadSafe()
+            throws Exception
+        {
+        DefaultKeyConverter converter = new DefaultKeyConverter(Date.class);
+        Date                date      = new Date(111, 5, 20);
+        int                 cThreads  = 8;
+        ExecutorService     pool      = Executors.newFixedThreadPool(cThreads);
+        CountDownLatch      start     = new CountDownLatch(1);
+        Future<?>[]         aFuture   = new Future<?>[cThreads];
+
+        try
+            {
+            for (int i = 0; i < cThreads; i++)
+                {
+                aFuture[i] = pool.submit(() ->
+                    {
+                    start.await();
+                    for (int n = 0; n < 400; n++)
+                        {
+                        String sKey = converter.toString(date);
+                        if (!"2011-06-20".equals(sKey))
+                            {
+                            throw new AssertionError("formatted " + sKey);
+                            }
+                        if (!date.equals(converter.fromString("2011-06-20")))
+                            {
+                            throw new AssertionError("parsed a different date");
+                            }
+                        }
+                    return null;
+                    });
+                }
+            start.countDown();
+            for (Future<?> future : aFuture)
+                {
+                future.get();
+                }
+            }
+        finally
+            {
+            pool.shutdownNow();
+            }
+        }
 
     /**
      * Test for different key creation strategies (constructor that accepts a single string argument, or for a static
