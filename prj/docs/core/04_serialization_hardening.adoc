@@ -109,6 +109,67 @@ to `deny`, receiving a DYNAMIC lambda can produce
 `dynamic-remote-denied-by-mode`. Both are documented in
 <<Error Message Reference>>.
 
+== Dynamic Management and Remote JMX
+
+The standalone discovery client requires JDK 21 or later, matching the
+Coherence runtime minimum.
+
+Dynamic management registers Coherence MBeans on the elected management
+member and aggregates MBeans from the other members. When an
+`MBeanServerFinder` supplies an existing connector URL, Coherence publishes
+that URL without starting another connector. Otherwise Coherence starts an
+RMI connector for the selected MBeanServer and publishes its standard JDK
+`service:jmx:rmi://host:port/stub/...` address. No JVM remote management agent
+or RMI registry is required for this automatic connector.
+
+An encoded stub contains serialized RMI endpoint metadata. Coherence validates
+that metadata with a bounded byte parser, without Java deserialization,
+payload class loading, DNS resolution or network access. The parser accepts
+only the recognized JDK static or proxy `RMIServer` stub, built-in
+`UnicastRef` or `UnicastRef2` reference, and optional exact built-in
+`SslRMIClientSocketFactory`. It rejects custom factories, other object graphs,
+class annotations, malformed encodings and trailing data. Encoded payloads
+are limited to 4096 bytes and endpoint host names to 1024 characters.
+Unknown future JDK or vendor serialization layouts fail closed and require
+an update to the recognized grammar. A finder can instead supply a supported
+`/jndi/rmi://` directory URL for a custom socket factory.
+
+Validation applies to management publication and reserved NameService JMX
+bindings and raw/string lookups. Hardened mode rejects unsupported incoming
+publications. Compatibility mode retains its warning for such publications,
+but outward discovery and the standalone discovery client always reject
+unsupported encoded forms. A normal JMX client deserializes the validated
+reference when it chooses to connect. That client must use trusted class
+loaders that resolve the recognized names to the JDK platform classes.
+
+The existing `coherence.management.remote.host`, `connectionport`, and
+`connectionport.adjust` settings remain applicable. Non-SSL connections
+retain member-port multiplexing. By default the connector uses the member
+address when discovery binds to a wildcard. An explicit client socket
+factory or `java.rmi.server.hostname` is preserved. The exported hostname
+must be reachable and covered by the certificate when TLS is enabled.
+An explicitly configured nonzero `coherence.management.remote.registryport`
+retains the existing opt-in registry and JNDI URL behavior.
+
+This validation does not authenticate endpoints or enable authentication or
+TLS. Existing automatic-connector defaults remain unchanged: authentication
+and TLS default to false unless password/access files or secure TCMP
+configuration enable the existing security defaults. An explicit nonzero
+registry port retains its existing authentication and TLS defaults.
+`com.sun.management.jmxremote.authenticate` and
+`com.sun.management.jmxremote.ssl` continue to apply. Configure credentials,
+access restrictions and TLS as appropriate for the deployment. Registry
+TLS, when using the explicit registry option, remains separately configured.
+
+Coherence stops its automatic connector when its management service stops.
+On senior failover the successor starts its own endpoint and publishes its
+address. If startup fails or a finder returns an unsupported URL, members
+clear the old address and NameService JMX discovery returns `null`; local
+MBeans and Coherence management continue to operate. Coherence does not stop
+a connector supplied by a finder. Finder addresses are advertised without
+liveness checks. Returning `null` from the finder allows the automatic
+connector fallback.
+
 == Runtime Modes
 
 Coherence runtime mode is selected by the `coherence.mode` system property.

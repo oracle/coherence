@@ -11,20 +11,23 @@ import com.oracle.coherence.testing.util.CoherenceModeHelper;
 import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
+
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.UUID;
 
-import org.junit.Test;
-
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
 import java.net.InetAddress;
 
 import java.util.Collections;
+import java.util.Properties;
 
 import javax.management.remote.JMXServiceURL;
+
+import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -88,6 +91,23 @@ public class ConnectorPublishTrustTest
         }
 
     @Test
+    public void shouldClearTheDepartedSeniorsUrlOnAnAbsentPublish()
+            throws Exception
+        {
+        com.tangosol.coherence.component.net.Member memberSenior = member(1);
+        TestConnector connector = new TestConnector(memberSenior);
+        connector.setJmxServiceUrl(new JMXServiceURL("service:jmx:rmi:///jndi/rmi://127.0.0.1:9000/server"));
+        connector.setJmxListenAddresses(Collections.singleton(InetAddress.getLoopbackAddress()));
+        Connector.Publish publish = readPublish(writePublish(null, Collections.emptySet()));
+        publish.setInvocationSender(memberSenior);
+
+        connector.onPublish(publish);
+
+        assertNull(connector.getJmxServiceUrl());
+        assertTrue(connector.getJmxListenAddresses().isEmpty());
+        }
+
+    @Test
     public void shouldIgnorePublishFromNonSenior()
             throws Exception
         {
@@ -108,6 +128,26 @@ public class ConnectorPublishTrustTest
 
         assertEquals(urlOriginal, connector.getJmxServiceUrl());
         assertEquals(Collections.emptySet(), connector.getJmxListenAddresses());
+        }
+
+    @Test
+    public void shouldReadValidatedEncodedStubPublish()
+            throws Exception
+        {
+        Properties fixtures = new Properties();
+        try (InputStream in = getClass().getResourceAsStream("/jmx-stub-fixtures.properties"))
+            {
+            fixtures.load(in);
+            }
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            for (String name : fixtures.stringPropertyNames())
+                {
+                JMXServiceURL url = new JMXServiceURL(fixtures.getProperty(name));
+                Connector.Publish publish = readPublish(writePublish(url, Collections.emptySet()));
+                assertEquals(name, url, publish.getJMXServiceURL());
+                }
+            }
         }
 
     @Test
@@ -143,7 +183,7 @@ public class ConnectorPublishTrustTest
 
             assertTrue(e.getMessage(), e.getMessage().contains("security-mode=hardened"));
             assertTrue(e.getMessage(), e.getMessage().contains("result=reject"));
-            assertTrue(e.getMessage(), e.getMessage().contains("coherence.management.remote.registryport"));
+            assertTrue(e.getMessage(), e.getMessage().contains("supported JDK RMIServer stub"));
             }
         }
 
