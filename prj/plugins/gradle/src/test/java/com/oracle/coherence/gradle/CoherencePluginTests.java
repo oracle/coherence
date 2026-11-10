@@ -9,6 +9,9 @@ package com.oracle.coherence.gradle;
 import com.oracle.coherence.gradle.support.TestUtils;
 import com.tangosol.io.pof.PortableTypeSerializer;
 import com.tangosol.io.pof.SimplePofContext;
+import com.tangosol.io.pof.reflect.PofValue;
+import com.tangosol.io.pof.reflect.PofValueParser;
+import com.tangosol.io.pof.schema.annotation.internal.PofIndex;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 
@@ -42,6 +45,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -83,10 +89,9 @@ public class CoherencePluginTests
     @AfterEach
     void cleanUp()
         {
-        GradleRunner.create()
+        gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("clean", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("clean", "--info"))
                 .withPluginClasspath()
                 .build();
         }
@@ -99,10 +104,9 @@ public class CoherencePluginTests
         setupGradleBuildFile(m_gradleProjectRootDirectory, "applyBasicCoherenceGradlePluginWithNoSources",
                              f_coherenceBuildTimeProperties.getCoherenceGroupId());
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("portableTypes")
-                .withDebug(true)
+                .withArguments(gradleArguments("portableTypes"))
                 .withPluginClasspath()
                 .build();
 
@@ -121,10 +125,9 @@ public class CoherencePluginTests
         setupGradleBuildFile(m_gradleProjectRootDirectory, "applyBasicCoherenceGradlePluginWithTestsNoSources",
                 f_coherenceBuildTimeProperties.getCoherenceGroupId());
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("portableTypesTest")
-                .withDebug(true)
+                .withArguments(gradleArguments("portableTypesTest"))
                 .withPluginClasspath()
                 .build();
 
@@ -142,9 +145,9 @@ public class CoherencePluginTests
         setupGradleBuildFile(m_gradleProjectRootDirectory, "applyBasicCoherenceGradlePluginWithNoSources",
                 f_coherenceBuildTimeProperties.getCoherenceGroupId());
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("tasks")
+                .withArguments(gradleArguments("tasks"))
                 .withDebug(false)
                 .withPluginClasspath()
                 .build();
@@ -170,10 +173,9 @@ public class CoherencePluginTests
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
                    "/src/main/java/foo", "Foo.java");
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("build", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("build", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -202,10 +204,9 @@ public class CoherencePluginTests
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
                 "/src/main/java", "Foo.java");
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("build", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("build", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -219,10 +220,9 @@ public class CoherencePluginTests
         Class<?> foo = getPofClass(this.m_gradleProjectRootDirectory, "foo.Foo", "build/classes/java/main/");
         assertThatClassIsPofInstrumented(foo);
 
-        BuildResult gradleResult2 = GradleRunner.create()
+        BuildResult gradleResult2 = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("build", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("build", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -251,10 +251,9 @@ public class CoherencePluginTests
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
                 "/src/main/java", "Foo.java");
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("build", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("build", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -273,10 +272,9 @@ public class CoherencePluginTests
         copyFileTo("/Color.txt", m_gradleProjectRootDirectory,
                 "/src/main/java", "Color.java");
 
-        BuildResult gradleResult2 = GradleRunner.create()
+        BuildResult gradleResult2 = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("build", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("build", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -310,10 +308,9 @@ public class CoherencePluginTests
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
                 "/src/main/java/foo", "Foo.java");
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("build", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("build", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -353,10 +350,9 @@ public class CoherencePluginTests
         copyFileTo("/Foo.txt", m_gradleProjectRootDirectory,
                 "/src/main/java/foo", "Foo.java");
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("build", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("build", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -394,10 +390,9 @@ public class CoherencePluginTests
         copyFileTo("/Color.txt", m_gradleProjectRootDirectory,
                    "/src/test/java", "Color.java");
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("test", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("test", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -413,7 +408,7 @@ public class CoherencePluginTests
         }
 
     @Test
-    void applyCoherenceGradlePluginWithClassAndSchemaInCustomResourcesFolder()
+    void applyCoherenceGradlePluginWithClassAndSchemaInCustomResourcesFolder() throws Exception
         {
         setupGradlePropertiesFile(m_gradleProjectRootDirectory);
         setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
@@ -429,13 +424,14 @@ public class CoherencePluginTests
                    "/src2", "Bar.java");
         copyFileTo("/Color.txt", m_gradleProjectRootDirectory,
                    "/src2", "Color.java");
+        copyFileTo("/SchemaValue.txt", m_gradleProjectRootDirectory,
+                   "/src2", "SchemaValue.java");
         copyFileTo("/test-schema.xml", m_gradleProjectRootDirectory,
                    "/resources2/META-INF", "schema.xml");
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("compileJava", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("compileJava", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -459,6 +455,7 @@ public class CoherencePluginTests
 
         Class<?> bar = getPofClass(this.m_gradleProjectRootDirectory, "Bar", expectedMain);
         assertThatClassIsPofInstrumented(bar);
+        assertCustomSchemaInstrumentation(expectedMain);
         }
 
     @Test
@@ -481,10 +478,9 @@ public class CoherencePluginTests
 
         try
             {
-            GradleRunner.create()
+            gradleRunner()
                     .withProjectDir(m_gradleProjectRootDirectory)
-                    .withArguments("compileJava", "--info")
-                    .withDebug(true)
+                    .withArguments(gradleArguments("compileJava", "--info"))
                     .withPluginClasspath()
                     .build();
 
@@ -501,7 +497,7 @@ public class CoherencePluginTests
         }
 
     @Test
-    void applyCoherenceGradlePluginWithClassAndSchema()
+    void applyCoherenceGradlePluginWithClassAndSchema() throws Exception
         {
         setupGradlePropertiesFile(m_gradleProjectRootDirectory);
         setupGradleSettingsFile(m_gradleProjectRootDirectory, "settings", f_coherenceBuildTimeProperties.getCoherenceLocalDependencyRepo());
@@ -517,13 +513,14 @@ public class CoherencePluginTests
                 "/src/main/java", "Bar.java");
         copyFileTo("/Color.txt", m_gradleProjectRootDirectory,
                 "/src/main/java", "Color.java");
+        copyFileTo("/SchemaValue.txt", m_gradleProjectRootDirectory,
+                   "/src/main/java", "SchemaValue.java");
         copyFileTo("/test-schema.xml", m_gradleProjectRootDirectory,
                 "/src/main/resources/META-INF", "schema.xml");
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("compileJava", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("compileJava", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -547,6 +544,7 @@ public class CoherencePluginTests
 
         Class<?> bar = getPofClass(this.m_gradleProjectRootDirectory, "Bar", expectedMain);
         assertThatClassIsPofInstrumented(bar);
+        assertCustomSchemaInstrumentation(expectedMain);
         }
 
     @Test
@@ -567,10 +565,9 @@ public class CoherencePluginTests
         copyFileTo("/Bar.txt", m_gradleProjectRootDirectory,
                    "/src/main/java", "Bar.java");
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("portableTypes", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("portableTypes", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -596,10 +593,9 @@ public class CoherencePluginTests
         copyFileTo("/Person.txt", m_gradleProjectRootDirectory,
                    "/src/main/java", "Person.java");
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("build", "--info")
-                .withDebug(true)
+                .withArguments(gradleArguments("build", "--info"))
                 .withPluginClasspath()
                 .build();
 
@@ -638,10 +634,9 @@ public class CoherencePluginTests
         LOGGER.info("Copy '{}' to '{}'.", projectFolder, m_gradleProjectRootDirectory.getAbsolutePath());
         copyDirectory(projectFolder, m_gradleProjectRootDirectory.getAbsolutePath());
 
-        BuildResult gradleResult = GradleRunner.create()
+        BuildResult gradleResult = gradleRunner()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("clean", "build", "--debug")
-                .withDebug(true)
+                .withArguments(gradleArguments("clean", "build", "--debug"))
                 .withPluginClasspath()
                 .build();
         logOutput(gradleResult);
@@ -675,10 +670,9 @@ public class CoherencePluginTests
     LOGGER.info("Copy '{}' to '{}'.", projectFolder, m_gradleProjectRootDirectory.getAbsolutePath());
     copyDirectory(projectFolder, m_gradleProjectRootDirectory.getAbsolutePath());
 
-    BuildResult gradleResult = GradleRunner.create()
+    BuildResult gradleResult = gradleRunner()
             .withProjectDir(m_gradleProjectRootDirectory)
-            .withArguments("clean", "build", "--debug", "-PpofIndexPackages=coherence.pof.support")
-            .withDebug(true)
+            .withArguments(gradleArguments("clean", "build", "--debug", "-PpofIndexPackages=coherence.pof.support"))
             .withPluginClasspath()
             .build();
     logOutput(gradleResult);
@@ -704,6 +698,48 @@ public class CoherencePluginTests
     }
 
     // ----- helper methods -------------------------------------------------
+
+    private GradleRunner gradleRunner()
+        {
+        return GradleRunner.create().withDebug(true);
+        }
+
+    private List<String> gradleArguments(String... arguments)
+        {
+        List<String> result = new ArrayList<>(Arrays.asList(arguments));
+        String sCluster = System.getProperty("coherence.cluster");
+        if (sCluster != null)
+            {
+            result.add("-Dcoherence.cluster=" + sCluster);
+            }
+        return result;
+        }
+
+    private void assertCustomSchemaInstrumentation(String sClassDirectory) throws Exception
+        {
+        Class<?> clz = getPofClass(m_gradleProjectRootDirectory, "SchemaValue", sClassDirectory);
+        assertThatClassIsPofInstrumented(clz);
+        assertThat(clz.getDeclaredField("m_sSecond").getAnnotation(PofIndex.class).value(), is(0));
+        assertThat(clz.getDeclaredField("m_sFirst").getAnnotation(PofIndex.class).value(), is(1));
+
+        SimplePofContext context = new SimplePofContext();
+        context.registerUserType(40259, clz, new PortableTypeSerializer(40259, clz));
+        Object value = clz.getConstructor(String.class, String.class).newInstance("first & value", "second value");
+        Binary binary = ExternalizableHelper.toBinary(value, context);
+        assertCustomSchemaOrder(binary, context);
+        Object result = ExternalizableHelper.fromBinary(binary, context);
+        assertThat(result.getClass(), is(clz));
+        assertCustomSchemaOrder(ExternalizableHelper.toBinary(result, context), context);
+        }
+
+    private void assertCustomSchemaOrder(Binary binary, SimplePofContext context)
+        {
+        PofValue value = PofValueParser.parse(binary, context).getChild(40259);
+        // the XML reverses the default alphabetical field order
+        assertThat(value.getChild(0).getValue(), is("second value"));
+        assertThat(value.getChild(1).getValue(), is("first & value"));
+        }
+
 
     public void copyDirectory(String testProjectFolder, String destinationDirectoryLocation)
             throws IOException
