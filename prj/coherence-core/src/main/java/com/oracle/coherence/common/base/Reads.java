@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -274,8 +274,25 @@ public abstract class Reads
      *
      * @throws IOException  if an error occurs
      */
-    @SuppressWarnings("UnusedAssignment")
     public static byte[] read(URL url)
+            throws IOException
+        {
+        return read(url, URL_TIMEOUT_MILLIS);
+        }
+
+    /**
+     * Read the contents of the specified URL and return the result as a
+     * byte array.
+     *
+     * @param url      the java.net.URL object to read the contents of
+     * @param cMillis  connect and read timeout, in milliseconds
+     *
+     * @return the contents of the specified URL as a byte array
+     *
+     * @throws IOException  if an error occurs
+     */
+    @SuppressWarnings("UnusedAssignment")
+    static byte[] read(URL url, int cMillis)
             throws IOException
         {
         if (url == null)
@@ -284,6 +301,10 @@ public abstract class Reads
             }
 
         URLConnection con = url.openConnection();
+
+        con.setConnectTimeout(cMillis);
+        con.setReadTimeout(cMillis);
+
         int           cb  = con.getContentLength();
         byte[]        ab  = null;
         try (InputStream in = con.getInputStream())
@@ -304,4 +325,11 @@ public abstract class Reads
 
         return ab;
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Connect and read timeout for {@link #read(URL)}, in milliseconds.
+     */
+    static final int URL_TIMEOUT_MILLIS = 30000;
     }
