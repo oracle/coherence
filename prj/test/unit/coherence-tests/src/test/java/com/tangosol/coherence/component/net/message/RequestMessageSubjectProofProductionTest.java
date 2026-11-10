@@ -332,13 +332,13 @@ public class RequestMessageSubjectProofProductionTest
         @Override
         public boolean isVersionCompatible(Member member, IntPredicate predicate)
             {
-            return predicate.test(VersionHelper.encodeVersion(15, 0, 0, 2601, 0));
+            return predicate.test(VersionHelper.encodeVersion(26, 1, 0, 0, 0));
             }
 
         @Override
         public boolean isVersionCompatible(MemberSet setMembers, IntPredicate predicate)
             {
-            return m_fRecipientsCompatible && predicate.test(VersionHelper.encodeVersion(15, 0, 0, 2601, 0));
+            return m_fRecipientsCompatible && predicate.test(VersionHelper.encodeVersion(26, 1, 0, 0, 0));
             }
 
         public void setRecipientsCompatible(boolean fCompatible)
