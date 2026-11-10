@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<schema xmlns="http://xmlns.oracle.com/coherence/schema"
+        xmlns:java="http://xmlns.oracle.com/coherence/schema/java"
+        xmlns:p="http://xmlns.oracle.com/coherence/schema/pof">
+    <type name="com.oracle.coherence.maven.pof.SchemaValue">
+        <java:type name="com.oracle.coherence.maven.pof.SchemaValue"/>
+        <property name="SFirst" type="String" p:order="1"/>
+        <property name="SSecond" type="String" p:order="0"/>
+    </type>
+</schema>
