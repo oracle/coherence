@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.tangosol.io.FileHelper;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Abstract implementation of an {@link AbstractStatement} providing functionality
@@ -140,16 +141,40 @@ public abstract class AbstractSnapshotStatement
      */
     protected static String replaceDateMacros(String sSnapshotName)
         {
-        String   sFinalName = new String(sSnapshotName);
-        Calendar calendar   = Calendar.getInstance();
+        return replaceDateMacros(sSnapshotName, Calendar.getInstance());
+        }
+
+    /**
+     * Replace date macros in the given snapshot name using <tt>calendar</tt>.
+     *
+     * @param sSnapshotName  the snapshot name to replace macros
+     * @param calendar       the calendar that supplies the macro values
+     *
+     * @return the formatted snapshot name
+     */
+    protected static String replaceDateMacros(String sSnapshotName, Calendar calendar)
+        {
+        String sFinalName = new String(sSnapshotName);
+        Date   date       = calendar.getTime();
+        String sWeekday;
+        String sMonth;
+
+        synchronized (WEEKDAY_NAME)
+            {
+            sWeekday = WEEKDAY_NAME.format(date);
+            }
+        synchronized (MONTH_NAME)
+            {
+            sMonth = MONTH_NAME.format(date);
+            }
 
         sFinalName = sFinalName.replaceAll("%mm", String.format("%02d", calendar.get(Calendar.MINUTE))).
                                 replaceAll("%m", String.format("%02d", calendar.get(Calendar.MONTH))).
                                 replaceAll("%y", String.format("%d", calendar.get(Calendar.YEAR))).
                                 replaceAll("%d", String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH))).
                                 replaceAll("%hh", String.format("%02d", calendar.get(Calendar.HOUR_OF_DAY))).
-                                replaceAll("%w", WEEKDAY_NAME.format(calendar.getTime())).
-                                replaceAll("%M", MONTH_NAME.format(calendar.getTime()));
+                                replaceAll("%w", sWeekday).
+                                replaceAll("%M", sMonth);
 
         return sFinalName;
         }
